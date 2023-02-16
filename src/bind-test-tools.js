@@ -1,10 +1,4 @@
 /**
- * https://www.npmjs.com/package/@0bdx/test-tools
- * @version 0.0.1
- * @license Copyright (c) 2023 0bdx <0@0bdx.com> (0bdx.com)
- * SPDX-License-Identifier: MIT
- */
-/**
  * Creates a ‘context object’, binds any number of functions to it, and returns
  * those functions in an array. Each function can then access the shared context
  * object using the `this` keyword.
@@ -46,7 +40,7 @@
  * @throws
  *     Throws an `Error` if any of the arguments are invalid.
  */
-function bindTestTools(title, ...tools) {
+export default function bindTestTools(title, ...tools) {
     const ep = 'Error: bindTestTools():'; // error prefix
 
     if (typeof title !== 'string') throw Error(`${ep
@@ -63,5 +57,3 @@ function bindTestTools(title, ...tools) {
     const sharedContext = { results:[], title };
     return tools.map(tool => tool.bind(sharedContext));
 }
-
-export { bindTestTools as default };

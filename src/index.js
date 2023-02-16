@@ -1,1 +1,1 @@
-export { default as foo } from './foo.js';
+export { default } from './bind-test-tools.js';

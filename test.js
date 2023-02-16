@@ -1,7 +1,5 @@
-import {
-    foo,
-} from './test-tools.js';
+import bindTestTools from './test-tools.js';
 
-import fooTest from './src/foo.test.js';
+import bindTestToolsTest from './src/bind-test-tools.test.js';
 
-fooTest(foo);
+bindTestToolsTest(bindTestTools);
