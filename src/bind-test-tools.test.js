@@ -17,17 +17,17 @@ export default function bindTestToolsTest(f) {
     // @ts-expect-error
     throws(()=>f(true),
         `Error: bindTestTools(): title is type 'boolean' not 'string'`);
-    throws(()=>f('', null),
-        `Error: bindTestTools(): tools[0] is null, not a class`);
     // @ts-expect-error
     throws(()=>f('', 1e3),
         `Error: bindTestTools(): tools[0] is type 'number' not 'function'`);
 
-    // Ok.
+    // Arguments are ok, and bindTestTools() returns an array of functions.
     equal(JSON.stringify(f('')),
         '[]');
-    equal(JSON.stringify(f('Mathsy Test Suite')),
-        '[]');
+    equal(Array.isArray(f('Mathsy Test Suite')),
+        true);
     equal(typeof(f('Mathsy Test Suite', ()=>1))[0],
         'function');
+    equal((f('Mathsy Test Suite', ()=>1, ()=>2)).length,
+        2);
 }

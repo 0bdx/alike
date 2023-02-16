@@ -52,13 +52,9 @@ function bindTestTools(title, ...tools) {
     if (typeof title !== 'string') throw Error(`${ep
         } title is type '${typeof title}' not 'string'`);
 
-    for (let i=0, len=tools.length; i<len; i++) {
-        const tool = tools[i];
-        if (tool === null) throw Error(`${ep
-            } tools[${i}] is null, not a class`);
-        if (typeof tool !== 'function') throw Error(`${ep
-            } tools[${i}] is type '${typeof tool}' not 'function'`);
-    }
+    for (let i=0, len=tools.length; i<len; i++)
+        if (typeof tools[i] !== 'function') throw Error(`${ep
+            } tools[${i}] is type '${typeof tools[i]}' not 'function'`);
 
     const sharedContext = { results:[], title };
     return tools.map(tool => tool.bind(sharedContext));
