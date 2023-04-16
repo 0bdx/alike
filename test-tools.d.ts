@@ -1,10 +1,164 @@
 export { bindTestTools as default };
 /**
+ * A single 'stroke of the highlighter pen' when rendering JavaScript values.
+ */
+export type Highlight = {
+    /**
+     *     Non-negative integer, the position that highlighting should start.
+     */
+    begin: number;
+    /**
+     *     Non-negative integer greater than `begin`, where highlighting should stop.
+     */
+    end: number;
+    /**
+     *     How the value should be rendered. Booleans and numbers are highlighted the
+     *     same way. A `BigInt` is a number rendered with the "n" suffix. A `RegExp`
+     *     is highlighted like an `Object`, but looks like `/abc/` not `{ a:1 }`.
+     */
+    kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'STRING' | 'SYMBOL';
+};
+/**
+ * Instructions for how to render a JavaScript value.
+ */
+export type Renderable = {
+    /**
+     *     String representation of the value, often truncated to a maximum length.
+     */
+    text: string;
+    /**
+     *     Zero or more 'strokes of the highlighter pen' on `text`.
+     */
+    highlights: Highlight[];
+};
+/**
+ * Captures the outcome of one test. It's important that the Result is fixed,
+ * so it does not maintain any references to objects elsewhere in the code.
+ */
+export type Result = {
+    /**
+     *     A representation of the value that the test actually got, ready to render.
+     *     Note that this could be the representation of an unexpected exception.
+     */
+    actually: Renderable;
+    /**
+     *     A representation of the value that the test expected, ready to render.
+     */
+    expected: Renderable;
+    /**
+     *     `true` if it passed, `false` if it failed. `null` means that the test
+     *     threw an unexpected exception.
+     */
+    didPass: boolean | null;
+    /**
+     *     The index of the section that the test belongs to. Zero if it should be
+     *     rendered before the first section, or if there are no sections.
+     */
+    sectionIndex: number;
+    /**
+     *     A description of the test.
+     */
+    summary: string;
+};
+/**
+ * Marks the start of a new section in the test suite.
+ */
+export type Section = {
+    /**
+     *     Non-zero positive integer, where the first Section is 1, the second is 2.
+     */
+    index: number;
+    /**
+     *     Usually rendered as a heading within the results.
+     */
+    title: string;
+};
+/**
+ * Foo.
+ */
+export type TestState = {
+    /**
+     *     The total number of failed tests.
+     */
+    failTally: number;
+    /**
+     *     The total number of passed tests.
+     */
+    passTally: number;
+    /**
+     *     Zero or more section-markers and test results.
+     */
+    results: (Result | Section)[];
+    /**
+     *     The title of the test suite, usually rendered at the top of the results.
+     */
+    title: string;
+};
+/**
  * https://www.npmjs.com/package/@0bdx/test-tools
  * @version 0.0.1
  * @license Copyright (c) 2023 0bdx <0@0bdx.com> (0bdx.com)
  * SPDX-License-Identifier: MIT
  */
+/**
+* @typedef {Object} Highlight
+*     A single 'stroke of the highlighter pen' when rendering JavaScript values.
+* @property {number} begin
+*     Non-negative integer, the position that highlighting should start.
+* @property {number} end
+*     Non-negative integer greater than `begin`, where highlighting should stop.
+* @property {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|'FUNCTION'|'NULLISH'|
+*     'OBJECT'|'STRING'|'SYMBOL'} kind
+*     How the value should be rendered. Booleans and numbers are highlighted the
+*     same way. A `BigInt` is a number rendered with the "n" suffix. A `RegExp`
+*     is highlighted like an `Object`, but looks like `/abc/` not `{ a:1 }`.
+*/
+/**
+* @typedef {Object} Renderable
+*     Instructions for how to render a JavaScript value.
+* @property {string} text
+*     String representation of the value, often truncated to a maximum length.
+* @property {Highlight[]} highlights
+*     Zero or more 'strokes of the highlighter pen' on `text`.
+*/
+/**
+* @typedef {Object} Result
+*     Captures the outcome of one test. It's important that the Result is fixed,
+*     so it does not maintain any references to objects elsewhere in the code.
+* @property {Renderable} actually
+*     A representation of the value that the test actually got, ready to render.
+*     Note that this could be the representation of an unexpected exception.
+* @property {Renderable} expected
+*     A representation of the value that the test expected, ready to render.
+* @property {boolean|null} didPass
+*     `true` if it passed, `false` if it failed. `null` means that the test
+*     threw an unexpected exception.
+* @property {number} sectionIndex
+*     The index of the section that the test belongs to. Zero if it should be
+*     rendered before the first section, or if there are no sections.
+* @property {string} summary
+*     A description of the test.
+*/
+/**
+* @typedef {Object} Section
+*     Marks the start of a new section in the test suite.
+* @property {number} index
+*     Non-zero positive integer, where the first Section is 1, the second is 2.
+* @property {string} title
+*     Usually rendered as a heading within the results.
+*/
+/**
+* @typedef {Object} TestState
+*     Foo.
+* @property {number} failTally
+*     The total number of failed tests.
+* @property {number} passTally
+*     The total number of passed tests.
+* @property {(Result|Section)[]} results
+*     Zero or more section-markers and test results.
+* @property {string} title
+*     The title of the test suite, usually rendered at the top of the results.
+*/
 /**
  * Creates a ‘context object’, binds any number of functions to it, and returns
  * those functions in an array. Each function can then access the shared context
@@ -38,13 +192,13 @@ export { bindTestTools as default };
  *     return n;
  * }
  *
- * @param {string} title
- *     A name for the group of tests, eg "Mathsy Test Suite"
+ * @param {string|TestState} titleOrState
+ *     A name for the group of tests, or else the state from previous tests.
  * @param {...function} tools
- *     Any number of functions, which will be bound to a shared context object
- * @return {function[]}
- *     The functions which were passed in, now bound to a shared context object
+ *     Any number of functions, which will be bound to a shared context object.
+ * @returns {function[]}
+ *     The functions which were passed in, now bound to a shared context object.
  * @throws
  *     Throws an `Error` if any of the arguments are invalid.
  */
-declare function bindTestTools(title: string, ...tools: Function[]): Function[];
+declare function bindTestTools(titleOrState: string | TestState, ...tools: Function[]): Function[];

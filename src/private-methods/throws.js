@@ -4,7 +4,7 @@
  * @param   {function():any}  actual  The function which throws an exception
  * @param   {any}  expected  The message you expect the exception to contain
  *
- * @return  {void}  Does not return anything
+ * @returns  {void}  Does not return anything
  * @throws  Throws an `Error` if `actual !== expected`
  */
 export default function throws(actual, expected) {

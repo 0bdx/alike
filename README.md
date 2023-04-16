@@ -9,7 +9,14 @@ __Utilities for unit testing 0bdx apps, libraries and websites.__
 
 @TODO add an overview
 
-### Typical usage:
+## Examples
+
+Example scripts can be found in the 'examples/' directory.
+
+You can run Example 1, for example, using:  
+`node examples/example-1.js`
+
+### Example 1
 
 ```js
 import bindTestTools, { addSection, isEqual, renderAnsi }
@@ -19,7 +26,7 @@ import bindTestTools, { addSection, isEqual, renderAnsi }
 const [ section,    isEq,    render ] = bindTestTools('Mathsy Test Suite',
         addSection, isEqual, renderAnsi);
 
-// Optionally, begin a new addSection.
+// Optionally, begin a new `addSection`.
 section('Check that factorialise() works');
 
 // Run the tests. The third argument, `description`, is optional.
