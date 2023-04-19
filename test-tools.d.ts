@@ -90,7 +90,7 @@ export type TestState = {
      */
     results: (Result | Section)[];
     /**
-     *     The title of the test suite, usually rendered at the top of the results.
+     *     The test suite's title, usually rendered as a heading above the results.
      */
     title: string;
 };
@@ -157,7 +157,7 @@ export type TestState = {
 * @property {(Result|Section)[]} results
 *     Zero or more section-markers and test results.
 * @property {string} title
-*     The title of the test suite, usually rendered at the top of the results.
+*     The test suite's title, usually rendered as a heading above the results.
 */
 /**
  * Creates a ‘context object’, binds any number of functions to it, and returns

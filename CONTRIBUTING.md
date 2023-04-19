@@ -35,8 +35,9 @@
 Clone the repository, and `cd` into it:  
 `git clone git@github.com:0bdx/test-tools.git && cd test-tools`
 
-Install the two dev-dependencies:  
+Install the runtime dependency, and the two dev-dependencies:  
 `npm i`  
+@0bdx/ainta 0.0.18, 1 package, 114 kB for 7 items.  
 @0bdx/build-helpers 0.0.4, 1 package, 22 kB for 6 items.  
 rollup 3.15.0, 2 packages, 2.6 MB for 31 items.  
 
@@ -128,8 +129,9 @@ sed -ix 's|exit 1|node src/test.js|' *e.json
 sed -ix 's/§0/test-tools./g' *e.json
 sed -ix 's/author": "/author": "0bdx <0@0bdx.com> (0bdx.com)/' *e.json
 rm package.jsonx
-npm install @0bdx/build-helpers -D
-npm install rollup -D
+npm install @0bdx/ainta
+npm install @0bdx/build-helpers --save-dev
+npm install rollup --save-dev
 ```
 
 1. Create a default __package.json__ file:  
@@ -176,5 +178,6 @@ npm install rollup -D
 14. Delete the temporary __package.jsonx__ file:  
     `rm package.jsonx`
 15. Install three dev-dependencies:  
-    `npm install @0bdx/build-helpers -D` 0.0.4, 1 package, 22 kB for 6 items  
-    `npm install rollup -D` 3.15.0, 2 packages, 2.6 MB for 31 items  
+    `npm install @0bdx/ainta` 0.0.18, 1 package, 114 kB for 7 items  
+    `npm install @0bdx/build-helpers --save-dev` 0.0.4, 1 package, 22 kB for 6 items  
+    `npm install rollup --save-dev` 3.15.0, 2 packages, 2.6 MB for 31 items  

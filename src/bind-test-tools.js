@@ -59,7 +59,7 @@
 * @property {(Result|Section)[]} results
 *     Zero or more section-markers and test results.
 * @property {string} title
-*     The title of the test suite, usually rendered at the top of the results.
+*     The test suite's title, usually rendered as a heading above the results.
 */
 
 /**

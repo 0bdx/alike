@@ -40,5 +40,8 @@
   "devDependencies": {
     "@0bdx/build-helpers": "^0.0.4",
     "rollup": "^3.15.0"
+  },
+  "dependencies": {
+    "@0bdx/ainta": "^0.0.18"
   }
 }
