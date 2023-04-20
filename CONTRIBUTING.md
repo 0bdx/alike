@@ -177,7 +177,14 @@ npm install rollup --save-dev
     `sed -ix 's/author": "/author": "0bdx <0@0bdx.com> (0bdx.com)/' *e.json`
 14. Delete the temporary __package.jsonx__ file:  
     `rm package.jsonx`
-15. Install three dev-dependencies:  
-    `npm install @0bdx/ainta` 0.0.18, 1 package, 114 kB for 7 items  
+15. Install two dev-dependencies:  
     `npm install @0bdx/build-helpers --save-dev` 0.0.4, 1 package, 22 kB for 6 items  
     `npm install rollup --save-dev` 3.15.0, 2 packages, 2.6 MB for 31 items  
+16. Install one runtime dependency:  
+    `npm install @0bdx/ainta` 0.0.18, 1 package, 114 kB for 7 items  
+
+### __5. Fix the package name__
+
+Change the `"name"` in package-lock.json (2 places) and package.json (1 place).  
+From: `"test-tools"`  
+To: `"@0bdx/test-tools"`

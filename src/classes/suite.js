@@ -1,4 +1,5 @@
-import narrowAintas, { aintaArray, aintaNumber, aintaString } from '@0bdx/ainta';
+import narrowAintas, { aintaArray, aintaNumber, aintaObject, aintaString }
+    from '@0bdx/ainta';
 import { Highlight, Renderable, Result, Section } from './index.js';
 
 // Define a regular expression for validating `title`.
@@ -24,13 +25,18 @@ export default class Suite {
     /** A non-negative integer. The total number of tests not completed yet. */
     pendingTally;
 
-    /** An array containing zero or more test results and sections. */
-    resultsAndSections;
-
     /** The test suite's title, usually rendered as a heading above the results.
      * - 0 to 64 printable ASCII characters, except the backslash `"\"`
      * - An empty string `""` means that no title has been supplied */
     title;
+
+    /** An array containing zero or more test results and sections. */
+    #resultsAndSections;
+    get resultsAndSections() { return [...this.#resultsAndSections] };
+
+    toJSON() {
+        return ({ ...this, resultsAndSections:this.resultsAndSections });
+    }
 
     /** ### Creates a `Suite` instance from the supplied arguments.
      * 
@@ -40,12 +46,12 @@ export default class Suite {
      *    A non-negative integer. The total number of passed tests.
      * @param {number} pendingTally
      *    A non-negative integer. The total number of tests not completed yet.
-     * @param {(Result|Section)[]} resultsAndSections
-     *    An array containing zero or more test results and sections.
      * @param {string} title
      *    The test suite's title, usually rendered as a heading above the results.
      *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
      *    - An empty string `""` means that no title has been supplied
+     * @param {(Result|Section)[]} resultsAndSections
+     *    An array containing zero or more test results and sections.
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
@@ -53,8 +59,8 @@ export default class Suite {
         failTally,
         passTally,
         pendingTally,
-        resultsAndSections,
         title,
+        resultsAndSections,
     ) {
         const begin = 'new Suite()';
 
@@ -65,8 +71,8 @@ export default class Suite {
         aNum(failTally, 'failTally');
         aNum(passTally, 'passTally');
         aNum(pendingTally, 'pendingTally');
-        aArr(resultsAndSections, 'resultsAndSections', { is:[Result,Section] });
         aStr(title, 'title', { min:0, max:64, rx:titleRx });
+        aArr(resultsAndSections, 'resultsAndSections', { is:[Result,Section] });
         if (aResults.length) throw Error(aResults.join('\n'));
 
         // Check that the fail, pass and pending tallies agree with the results.
@@ -90,15 +96,49 @@ export default class Suite {
         // @TODO Check that every result's `sectionIndex` refers to a `Section` instance in `resultsAndSections`.
         // @TODO Note that empty sections are allowed.
 
-        // Store the validated arguments as properties.
+        // Store the validated scalar arguments as properties.
         this.failTally = failTally;
         this.passTally = passTally;
         this.pendingTally = pendingTally;
-        this.resultsAndSections = resultsAndSections;
         this.title = title;
+
+        // Store the validated object argument as a private property.
+        this.#resultsAndSections = resultsAndSections;
 
         // Prevent this instance from being modified.
         Object.freeze(this);
+    }
+
+    /** ### Adds a result to the test suite.
+     * 
+     * @param {Result} result
+     *    The `Result` instance to add.
+     */
+    addResult(result) {
+
+        // Validate the `result` argument.
+        const aResult = aintaObject(result, 'result',
+            { begin:'addResult()', is:[Result], open:true });
+        if (aResult) throw Error(aResult);
+
+        // Add the `Result` instance to the private `resultsAndSections` array.
+        this.#resultsAndSections.push(result);
+    }
+
+    /** ### Adds a section to the test suite.
+     * 
+     * @param {Section} section
+     *    The `Section` instance to add.
+     */
+    addSection(section) {
+
+        // Validate the `section` argument.
+        const aSection = aintaObject(section, 'section',
+            { begin:'addSection()', is:[Section], open:true });
+        if (aSection) throw Error(aSection);
+
+        // Add the `Section` instance to the private `resultsAndSections` array.
+        this.#resultsAndSections.push(section);
     }
 }
 
@@ -161,73 +201,74 @@ export function suiteTest() {
         begin + ": `failTally` is type 'undefined' not 'number'\n" +
         begin + ": `passTally` is type 'undefined' not 'number'\n" +
         begin + ": `pendingTally` is type 'undefined' not 'number'\n" +
-        begin + ": `resultsAndSections` is type 'undefined' not an array\n" +
-        begin + ": `title` is type 'undefined' not 'string'");
+        begin + ": `title` is type 'undefined' not 'string'\n" +
+        begin + ": `resultsAndSections` is type 'undefined' not an array");
 
     // `failTally` should be a valid non-negative integer.
     // @ts-expect-error
-    throws(()=>new C(BigInt(2), paUsual, peUsual, rsUsual, tUsual),
+    throws(()=>new C(BigInt(2), paUsual, peUsual, tUsual, rsUsual),
         begin + ": `failTally` is type 'bigint' not 'number'");
-    throws(()=>new C(-1, paUsual, peUsual, rsUsual, tUsual),
+    throws(()=>new C(-1, paUsual, peUsual, tUsual, rsUsual),
         begin + ": `failTally` -1 is not gte 0");
-    throws(()=>new C(Number.MAX_SAFE_INTEGER + 2, paUsual, peUsual, rsUsual, tUsual), // or `+ 1` :-)
+    throws(()=>new C(Number.MAX_SAFE_INTEGER + 2, paUsual, peUsual, tUsual, rsUsual), // or `+ 1` :-)
         begin + ": `failTally` 9007199254740992 is not lte 9007199254740991");
-    throws(()=>new C(33.44, paUsual, peUsual, rsUsual, tUsual),
+    throws(()=>new C(33.44, paUsual, peUsual, tUsual, rsUsual),
         begin + ": `failTally` 33.44 is not divisible by 1");
 
     // `passTally` should be a valid non-negative integer.
     // @ts-expect-error
-    throws(()=>new C(fUsual, '2', peUsual, rsUsual, tUsual),
+    throws(()=>new C(fUsual, '2', peUsual, tUsual, rsUsual),
         begin + ": `passTally` is type 'string' not 'number'");
-    throws(()=>new C(fUsual, -1, peUsual, rsUsual, tUsual),
+    throws(()=>new C(fUsual, -1, peUsual, tUsual, rsUsual),
         begin + ": `passTally` -1 is not gte 0");
-    throws(()=>new C(fUsual, Number.MAX_SAFE_INTEGER + 2, peUsual, rsUsual, tUsual),
+    throws(()=>new C(fUsual, Number.MAX_SAFE_INTEGER + 2, peUsual, tUsual, rsUsual),
         begin + ": `passTally` 9007199254740992 is not lte 9007199254740991");
-    throws(()=>new C(fUsual, 33.44, peUsual, rsUsual, tUsual),
+    throws(()=>new C(fUsual, 33.44, peUsual, tUsual, rsUsual),
         begin + ": `passTally` 33.44 is not divisible by 1");
 
     // `pendingTally` should be a valid non-negative integer.
     // @ts-expect-error
-    throws(()=>new C(fUsual, paUsual, [], rsUsual, tUsual),
+    throws(()=>new C(fUsual, paUsual, [], tUsual, rsUsual),
         begin + ": `pendingTally` is an array not type 'number'");
-    throws(()=>new C(fUsual, paUsual, -1, rsUsual, tUsual),
+    throws(()=>new C(fUsual, paUsual, -1, tUsual, rsUsual),
         begin + ": `pendingTally` -1 is not gte 0");
-    throws(()=>new C(fUsual, paUsual, Number.MAX_SAFE_INTEGER + 2, rsUsual, tUsual),
+    throws(()=>new C(fUsual, paUsual, Number.MAX_SAFE_INTEGER + 2, tUsual, rsUsual),
         begin + ": `pendingTally` 9007199254740992 is not lte 9007199254740991");
-    throws(()=>new C(fUsual, paUsual, 33.44, rsUsual, tUsual),
+    throws(()=>new C(fUsual, paUsual, 33.44, tUsual, rsUsual),
         begin + ": `pendingTally` 33.44 is not divisible by 1");
-
-    // `resultsAndSections` should be a mixed array of `Result` and `Section` instances.
-    // @ts-expect-error
-    throws(()=>new C(fUsual, paUsual, peUsual, {}, tUsual),
-        begin + ": `resultsAndSections` is type 'object' not an array");
-    // // @ts-expect-error
-    // throws(()=>new C(fUsual, paUsual, peUsual, [Result, Section], tUsual), // @TODO add `is` to `schema` to detect this situation
-    //     begin + ": `resultsAndSections[0]` is type 'function' not object");
-    // @ts-expect-error
-    throws(()=>new C(fUsual, paUsual, peUsual, [...rsUsual, {}], tUsual),
-        begin + ": `resultsAndSections[1]` is not in `options.is` 'Result:Section'");
 
     // `title` should be a valid string, up to 64 characters long.
     // @ts-expect-error
-    throws(()=>new C(fUsual, paUsual, peUsual, rsUsual, Symbol('nope')),
+    throws(()=>new C(fUsual, paUsual, peUsual, Symbol('nope'), rsUsual),
         begin + ": `title` is type 'symbol' not 'string'");
-    throws(()=>new C(fUsual, paUsual, peUsual, rsUsual, '12345678'.repeat(8) + '9'),
+    throws(()=>new C(fUsual, paUsual, peUsual, '12345678'.repeat(8) + '9', rsUsual),
         begin + ": `title` '123456781234567812345...23456789' is not max 64");
-    throws(()=>new C(fUsual, paUsual, peUsual, rsUsual, tUsual + '\\'),
+    throws(()=>new C(fUsual, paUsual, peUsual, tUsual + '\\', rsUsual),
         begin + ": `title` 'The Cafe is ok.%5C' fails " +
         "'Printable ASCII characters except backslashes'");
-    throws(()=>new C(fUsual, paUsual, peUsual, rsUsual, tUsual + '\n'),
+    throws(()=>new C(fUsual, paUsual, peUsual, tUsual + '\n', rsUsual),
         begin + ": `title` 'The Cafe is ok.%0A' fails " +
         "'Printable ASCII characters except backslashes'");
 
+    // `resultsAndSections` should be a mixed array of `Result` and `Section` instances.
+    // @ts-expect-error
+    throws(()=>new C(fUsual, paUsual, peUsual, tUsual, {}),
+        begin + ": `resultsAndSections` is type 'object' not an array");
+    // @TODO add `is` to `schema` to detect the following situation:
+    // // @ts-expect-error
+    // throws(()=>new C(fUsual, paUsual, peUsual, tUsual, [Result, Section]),
+    //     begin + ": `resultsAndSections[0]` is type 'function' not object");
+    // @ts-expect-error
+    throws(()=>new C(fUsual, paUsual, peUsual, tUsual, [...rsUsual, {}]),
+        begin + ": `resultsAndSections[1]` is not in `options.is` 'Result:Section'");
+
     // `failTally`, `passTally` and `pendingTally` should all agree with the
     // `Result` instances in `resultsAndSections`.
-    throws(()=>new C(fUsual+1, paUsual, peUsual, rsUsual, 'bad fail'),
+    throws(()=>new C(fUsual+1, paUsual, peUsual, 'bad fail', rsUsual),
         begin + ": `failTally` 1 !== 0 fails found in `resultsAndSections`");
-    throws(()=>new C(fUsual, paUsual+1, peUsual, rsUsual, 'bad pass'),
+    throws(()=>new C(fUsual, paUsual+1, peUsual, 'bad pass', rsUsual),
         begin + ": `passTally` 2 !== 1 passes found in `resultsAndSections`");
-    throws(()=>new C(fUsual, paUsual, peUsual+1, rsUsual, 'bad pending'),
+    throws(()=>new C(fUsual, paUsual, peUsual+1, 'bad pending', rsUsual),
         begin + ": `pendingTally` 1 !== 0 pending found in `resultsAndSections`");
 
     // @TODO test that an Error is thrown when a result's `sectionIndex` does not exist. Empty sections are ok.
@@ -238,8 +279,8 @@ export function suiteTest() {
         fUsual,
         paUsual,
         peUsual,
-        rsUsual,
         tUsual,
+        rsUsual,
     );
     const commonUsual = [
         `        "highlights": [`,
@@ -256,6 +297,7 @@ export function suiteTest() {
         `  "failTally": 0,`,
         `  "passTally": 1,`,
         `  "pendingTally": 0,`,
+        `  "title": "The Cafe is ok.",`,
         `  "resultsAndSections": [`,
         `    {`,
         `      "actually": {`,
@@ -268,8 +310,7 @@ export function suiteTest() {
         `      "status": "PASS",`,
         `      "summary": "The Cafe is ok."`,
         `    }`,
-        `  ],`,
-        `  "title": "The Cafe is ok."`,
+        `  ]`,
         `}`,
     );
     equal(toStr(usual), expectedUsual);
@@ -285,25 +326,47 @@ export function suiteTest() {
     throws(()=>{usual.another = 'OOPS!'},
         /^.*property.+extensible\.?$/);
 
-    // It should not be possible to modify properties.
+    // It should not be possible to set scalar properties.
     throws(()=>{usual.failTally = 44},
         /read only|read-only|readonly/);
     throws(()=>{usual.passTally = 44},
         /read only|read-only|readonly/);
-    throws(()=>{usual.resultsAndSections = []},
-        /read only|read-only|readonly/);
     throws(()=>{usual.title = 'This would be a valid title'},
         /read only|read-only|readonly/);
 
-    // It should not be possible to delete properties.
+    // It should not be possible to set object properties.
+    // @TODO accept browser equivalents of this error message
+    // @ts-expect-error
+    throws(()=>{usual.resultsAndSections = []},
+        'Cannot set property resultsAndSections of #<Suite> which has only a getter');
+
+    // It should not be possible to modify object properties.
+    // @TODO check that browsers don't throw an error, either
+    equal(usual.resultsAndSections.length, 1);
+    usual.resultsAndSections.push(
+        new Section(123, 'Should be using `addSection()` instead!'));
+    equal(usual.resultsAndSections.length, 1);
+
+    // The `resultsAndSections` property should not be the same object as its
+    // passed-in argument. So, the argument should not be frozen, and modifying
+    // it after `new Suite()` or method calls should not change the property.
+    // @TODO
+
+    // It should not be possible to delete scalar properties.
     throws(()=>{delete usual.failTally},
         /^.*delete.+property.*$|^.*property.+delete.*$/);
     throws(()=>{delete usual.passTally},
         /^.*delete.+property.*$|^.*property.+delete.*$/);
-    throws(()=>{delete usual.resultsAndSections},
-        /^.*delete.+property.*$|^.*property.+delete.*$/);
     throws(()=>{delete usual.title},
         /^.*delete.+property.*$|^.*property.+delete.*$/);
+
+    // It should not be possible to delete object properties.
+    // @TODO check that browsers don't throw an error, either
+    equal(typeof usual.resultsAndSections, 'object');
+    // @ts-expect-error
+    delete usual.resultsAndSections;
+    equal(typeof usual.resultsAndSections, 'object');
+    equal(usual.resultsAndSections.length, 1);
 
     // `isFrozen()` should return `true`, meaning that `freeze()` was used.
     // The instance should `JSON.stringify()` the same as before, which confirms
@@ -311,11 +374,67 @@ export function suiteTest() {
     equal(Object.isFrozen(usual), true);
     equal(toStr(usual), expectedUsual);
 
-    // The `resultsAndSections` property should also be frozen.
-    // @TODO
 
-    // The `resultsAndSections` property should not be the same object as its
-    // passed-in argument. So, the argument should not be frozen, and modifying
-    // it after `new Suite()` or method calls should not change the property.
-    // @TODO
+    /* ------------------------------- Methods ------------------------------ */
+
+    // addResult() should fail if the `section` argument is invalid.
+    // @ts-expect-error
+    throws(()=>usual.addResult(),
+        "addResult(): `result` is type 'undefined' not 'object'");
+    // @ts-expect-error
+    throws(()=>usual.addResult([]),
+        "addResult(): `result` is an array not a regular object");
+
+    // addResult() should add a valid section to resultsAndSections.
+    equal(usual.resultsAndSections.length, 1);
+    const secondResult = rsUsual[0];
+    equal(usual.addResult(secondResult), void 0);
+    equal(usual.resultsAndSections.length, 2);
+    equal(toStr(usual.resultsAndSections[1]),
+        `{\n` +
+        `  "actually": {\n` +
+        `    "highlights": [\n` +
+        `      {\n` +
+        `        "kind": "BOOLNUM",\n` +
+        `        "start": 6,\n` +
+        `        "stop": 11\n` +
+        `      }\n` +
+        `    ],\n` +
+        `    "text": "{ ok:\\"Café\\" }"\n` +
+        `  },\n` +
+        `  "expected": {\n` +
+        `    "highlights": [\n` +
+        `      {\n` +
+        `        "kind": "BOOLNUM",\n` +
+        `        "start": 6,\n` +
+        `        "stop": 11\n` +
+        `      }\n` +
+        `    ],\n` +
+        `    "text": "{ ok:\\"Café\\" }"\n` +
+        `  },\n` +
+        `  "sectionIndex": 77,\n` +
+        `  "status": "PASS",\n` +
+        `  "summary": "The Cafe is ok."\n` +
+        `}`);
+    equal(usual.resultsAndSections[1], secondResult);
+
+    // addSection() should fail if the `section` argument is invalid.
+    // @ts-expect-error
+    throws(()=>usual.addSection(),
+        "addSection(): `section` is type 'undefined' not 'object'");
+    throws(()=>usual.addSection(null),
+        "addSection(): `section` is null not a regular object");
+
+    // addSection() should add a valid section to resultsAndSections.
+    equal(usual.resultsAndSections.length, 2);
+    const firstSection = new Section(1, 'The 1st Section');
+    equal(usual.addSection(firstSection), void 0);
+    equal(usual.resultsAndSections.length, 3);
+    equal(toStr(usual.resultsAndSections[2]),
+        `{\n` +
+        `  "index": 1,\n` +
+        `  "subtitle": "The 1st Section"\n` +
+        `}`);
+    equal(usual.resultsAndSections[2], firstSection);
+
 }
