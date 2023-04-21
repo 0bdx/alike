@@ -141,7 +141,23 @@ export function addSection(subtitle: string): void;
  *    Throws an `Error` if any of the arguments are invalid.
  */
 declare function bindTestTools(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
-export function isEqual(actual: any, expected: any, desc?: string): void;
+/** ### Adds a new section to the test suite.
+ *
+ * @param {any} actually
+ *    The value that the test actually got.
+ * @param {any} expected
+ *    The value that the test expected.
+ * @param {string} [summary]
+ *    An optional description of the test.
+ *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
+ *    - An empty string `""` means that no summary should be shown
+ *    - A default `summary` will be generated if none is supplied
+ * @returns {void}
+ *    Does not return anything.
+ * @throws
+ *    Throws an `Error` if `summary` or the `this` context are invalid.
+ */
+export function isEqual(actually: any, expected: any, summary?: string): void;
 export function renderPlain(): string;
 /** ### Records the outcome of one test.
  *
@@ -169,6 +185,7 @@ declare class Result {
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @param {string} summary
      *    A description of the test.
+     *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
      *    - An empty string `""` means that no summary has been supplied
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
@@ -189,6 +206,7 @@ declare class Result {
      * - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception */
     status: "FAIL" | "PASS" | "PENDING" | "UNEXPECTED_EXCEPTION";
     /** A description of the test.
+     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
      * - An empty string `""` means that no summary has been supplied */
     summary: string;
 }
@@ -226,6 +244,14 @@ declare class Section {
  * - __Valid:__ both properties are validated during instantiation
  */
 declare class Renderable {
+    /** ### Xx
+     *
+     * @param {any} value
+     *    [value description]
+     * @returns {Renderable}
+     *    [return description]
+     */
+    static from(value: any): Renderable;
     /** ### Creates a `Renderable` instance from the supplied arguments.
      *
      * @param {Highlight[]} highlights

@@ -3,8 +3,8 @@ import Highlight from './highlight.js';
 import Renderable from './renderable.js';
 
 // Define a regular expression for validating `summary`.
-const summaryRx = /^[ -\[\]-~]*$/;
-summaryRx.toString = () => "'Printable ASCII characters except backslashes'";
+const summaryRx = /^[\n -\[\]-~]*$/;
+summaryRx.toString = () => "'Printable ASCII characters plus newlines, but not backslashes'";
 
 // Define an enum for validating `status`.
 const validStatus = [ 'FAIL', 'PASS', 'PENDING', 'UNEXPECTED_EXCEPTION' ];
@@ -37,6 +37,7 @@ export default class Result {
     status;
 
     /** A description of the test.
+     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
      * - An empty string `""` means that no summary has been supplied */
     summary;
 
@@ -58,6 +59,7 @@ export default class Result {
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @param {string} summary
      *    A description of the test.
+     *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
      *    - An empty string `""` means that no summary has been supplied
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
@@ -135,7 +137,7 @@ export function resultTest() {
     );
     const siUsual = 77;
     const stUsual = 'PASS';
-    const suUsual = 'The Cafe is ok.';
+    const suUsual = 'First line.\nSecond Line.';
     // @TODO *Min
     // @TODO *Max
 
@@ -193,11 +195,8 @@ export function resultTest() {
     throws(()=>new C(aUsual, eUsual, siUsual, stUsual, '12345678'.repeat(8) + '9'),
         begin + ": `summary` '123456781234567812345...23456789' is not max 64");
     throws(()=>new C(aUsual, eUsual, siUsual, stUsual, suUsual + '\\'),
-        begin + ": `summary` 'The Cafe is ok.%5C' fails " +
-        "'Printable ASCII characters except backslashes'");
-    throws(()=>new C(aUsual, eUsual, siUsual, stUsual, suUsual + '\n'),
-        begin + ": `summary` 'The Cafe is ok.%0A' fails " +
-        "'Printable ASCII characters except backslashes'");
+        begin + ": `summary` 'First line.%0ASecond Line.%5C' fails " +
+        "'Printable ASCII characters plus newlines, but not backslashes'");
 
     // Instantiate a typical `Result`, and create its JSON representation.
     // The instance should `JSON.stringify()` as expected.
@@ -228,7 +227,7 @@ export function resultTest() {
         `  },`,
         `  "sectionIndex": 77,`,
         `  "status": "PASS",`,
-        `  "summary": "The Cafe is ok."`,
+        `  "summary": "First line.\\nSecond Line."`,
         `}`,
     );
     equal(toStr(usual), expectedUsual);

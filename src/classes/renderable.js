@@ -52,6 +52,30 @@ export default class Renderable {
         Object.freeze(this);
     }
 
+    /** ### Xx
+     *
+     * @param {any} value
+     *    [value description]
+     * @returns {Renderable}
+     *    [return description]
+     */
+    static from(value) {
+        const type = typeof value;
+
+        switch (type) {
+            case 'boolean':
+                return type
+                    ? new Renderable([], 'true')
+                    : new Renderable([], 'false');
+            case 'number':
+                return new Renderable([], value.toString())
+            case 'undefined':
+                return new Renderable([], 'undefined');
+            default:
+                return new Renderable([], 'abc');
+        }
+    }
+
 }
 
 

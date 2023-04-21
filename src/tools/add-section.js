@@ -15,6 +15,7 @@ export default function addSection(subtitle) {
     const begin = 'addSection()';
 
     // Check that this function has been bound to a `Suite` instance.
+    // @TODO cache this result for performance
     const aSuite = aintaObject(this, 'suite', { begin, is:[Suite], open:true });
     if (aSuite) throw Error(aSuite);
 
@@ -32,7 +33,7 @@ export default function addSection(subtitle) {
  * @param {addSection} f
  *    The `addSection()` function to test.
  * @param {typeof Suite} S
- *    The `Suite` class. Actually different in the source and production build.
+ *    The `Suite` class, because test-tools.js objects are not src/ objects.
  * @returns {void}
  *    Does not return anything.
  * @throws

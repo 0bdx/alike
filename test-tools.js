@@ -128,11 +128,35 @@ class Renderable {
         Object.freeze(this);
     }
 
+    /** ### Xx
+     *
+     * @param {any} value
+     *    [value description]
+     * @returns {Renderable}
+     *    [return description]
+     */
+    static from(value) {
+        const type = typeof value;
+
+        switch (type) {
+            case 'boolean':
+                return type
+                    ? new Renderable([], 'true')
+                    : new Renderable([], 'false');
+            case 'number':
+                return new Renderable([], value.toString())
+            case 'undefined':
+                return new Renderable([], 'undefined');
+            default:
+                return new Renderable([], 'abc');
+        }
+    }
+
 }
 
 // Define a regular expression for validating `summary`.
-const summaryRx = /^[ -\[\]-~]*$/;
-summaryRx.toString = () => "'Printable ASCII characters except backslashes'";
+const summaryRx = /^[\n -\[\]-~]*$/;
+summaryRx.toString = () => "'Printable ASCII characters plus newlines, but not backslashes'";
 
 // Define an enum for validating `status`.
 const validStatus = [ 'FAIL', 'PASS', 'PENDING', 'UNEXPECTED_EXCEPTION' ];
@@ -165,6 +189,7 @@ class Result {
     status;
 
     /** A description of the test.
+     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
      * - An empty string `""` means that no summary has been supplied */
     summary;
 
@@ -186,6 +211,7 @@ class Result {
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @param {string} summary
      *    A description of the test.
+     *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
      *    - An empty string `""` means that no summary has been supplied
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
@@ -528,6 +554,7 @@ function addSection(subtitle) {
     const begin = 'addSection()';
 
     // Check that this function has been bound to a `Suite` instance.
+    // @TODO cache this result for performance
     const aSuite = aintaObject(this, 'suite', { begin, is:[Suite], open:true });
     if (aSuite) throw Error(aSuite);
 
@@ -536,11 +563,39 @@ function addSection(subtitle) {
     (this).addSection(subtitle);
 }
 
-function isEqual(actual, expected, desc='') {
-    this.results.push(
-        actual === expected
-            ? { desc, pass: true }
-            : { desc, fail: `actual:\n${actual}\n!== expected:\n${expected}\n` }
+/** ### Adds a new section to the test suite.
+ *
+ * @param {any} actually
+ *    The value that the test actually got.
+ * @param {any} expected
+ *    The value that the test expected.
+ * @param {string} [summary]
+ *    An optional description of the test.
+ *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
+ *    - An empty string `""` means that no summary should be shown
+ *    - A default `summary` will be generated if none is supplied
+ * @returns {void}
+ *    Does not return anything.
+ * @throws
+ *    Throws an `Error` if `summary` or the `this` context are invalid.
+ */
+function isEqual(actually, expected, summary) {
+    const begin = 'isEqual()';
+
+    // Check that this function has been bound to a `Suite` instance.
+    // @TODO cache this result for performance
+    const aSuite = aintaObject(this, 'suite', { begin, is:[Suite], open:true });
+    if (aSuite) throw Error(aSuite);
+
+    // The brackets around `this` make JSDoc see `(this)` as a `Suite` instance.
+    /** @type Suite */
+    (this).addResult(
+        Renderable.from(actually),
+        Renderable.from(expected),
+        actually === expected ? 'PASS' : 'FAIL',
+        summary === void 0
+            ? 'actual:\n{{actually}}\n!== expected:\n{{expected}}'
+            : summary
     );
 }
 
