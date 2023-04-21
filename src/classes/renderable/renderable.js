@@ -1,5 +1,6 @@
 import narrowAintas, { aintaArray, aintaString } from '@0bdx/ainta';
-import Highlight from './highlight.js';
+import renderableFrom from './renderable-from.js';
+import Highlight from '../highlight.js';
 
 /** ### A representation of a JavaScript value, ready to render.
  *
@@ -15,7 +16,7 @@ export default class Renderable {
     highlights;
 
     /** A string representation of the value, truncated to a maximum length.
-     * - 1 to 64 unicode characters */
+     * - 1 to 65535 unicode characters (about 10,000 lorem ipsum words) */
     text;
 
     /** ### Creates a `Renderable` instance from the supplied arguments.
@@ -24,7 +25,7 @@ export default class Renderable {
      *    Zero or more 'strokes of the highlighter pen' on `text`.
      * @param {string} text
      *    A string representation of the value, truncated to a maximum length.
-     *    - 1 to 64 unicode characters `"\"`
+     *     - 1 to 65535 unicode characters (about 10,000 lorem ipsum words)
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
@@ -38,7 +39,7 @@ export default class Renderable {
         const [ aResults, aArr, aStr ] =
             narrowAintas({ begin }, aintaArray, aintaString);
         aArr(highlights, 'highlights', { is:[Highlight] });
-        aStr(text, 'text', { min:1, max:64 });
+        aStr(text, 'text', { min:1, max:65535 });
         if (aResults.length) throw Error(aResults.join('\n'));
 
         // @TODO check that none of the Highlights overlap
@@ -52,28 +53,18 @@ export default class Renderable {
         Object.freeze(this);
     }
 
-    /** ### Xx
+    /** ### Creates a new `Renderable` instance from any JavaScript value.
      *
      * @param {any} value
-     *    [value description]
+     *    The JavaScript value which needs rendering.
      * @returns {Renderable}
-     *    [return description]
+     *    A `Renderable` instance, ready for rendering.
+     * @throws
+     *    Throws an `Error` if the `this` context is invalid.
      */
     static from(value) {
-        const type = typeof value;
-
-        switch (type) {
-            case 'boolean':
-                return type
-                    ? new Renderable([], 'true')
-                    : new Renderable([], 'false');
-            case 'number':
-                return new Renderable([], value.toString())
-            case 'undefined':
-                return new Renderable([], 'undefined');
-            default:
-                return new Renderable([], 'abc');
-        }
+        const { highlights, text } = renderableFrom(value);
+        return new Renderable(highlights, text);
     }
 
 }
@@ -136,8 +127,8 @@ export function renderableTest() {
         begin + ": `text` is type 'boolean' not 'string'");
     throws(()=>new C(hMin, ''),
         begin + ": `text` '' is not min 1");
-    throws(()=>new C(hMax, '12345678'.repeat(8) + '9'),
-        begin + ": `text` '123456781234567812345...23456789' is not max 64");
+    throws(()=>new C(hMax, '1234567890'.repeat(6553) + '123456'),
+        begin + ": `text` '123456789012345678901...90123456' is not max 65535");
 
     // Instantiate a typical `Renderable`, and create its JSON representation.
     // The instance should `JSON.stringify()` as expected.

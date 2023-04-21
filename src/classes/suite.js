@@ -1,6 +1,6 @@
 import { aintaString } from '@0bdx/ainta';
 import Highlight from './highlight.js';
-import Renderable from './renderable.js';
+import Renderable from './renderable/renderable.js';
 import Result from './result.js';
 import Section from './section.js';
 

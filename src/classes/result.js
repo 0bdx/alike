@@ -1,6 +1,6 @@
 import narrowAintas, { aintaObject, aintaNumber, aintaString } from '@0bdx/ainta';
 import Highlight from './highlight.js';
-import Renderable from './renderable.js';
+import Renderable from './renderable/renderable.js';
 
 // Define a regular expression for validating `summary`.
 const summaryRx = /^[\n -\[\]-~]*$/;

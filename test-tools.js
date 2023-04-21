@@ -77,6 +77,50 @@ class Highlight {
 
 }
 
+/** ### Prepares arguments for a new `Renderable`, from any JavaScript value.
+ *
+ * @param {any} value
+ *    The JavaScript value which needs rendering.
+ * @returns {{highlights:Highlight[],text:string}}
+ *    Arguments ready to pass into `new Renderable()`.
+ */
+function renderableFrom(value) {
+
+    // Deal with `null`, which might otherwise be confused with an object.
+    if (value === null) return { highlights:
+        [ new Highlight('NULLISH', 0, 4) ], text:'null'};
+
+    // Deal with a straightforward value: boolean, number or undefined.
+    const type = typeof value;
+    switch (type) {
+        case 'boolean':
+            return value
+                ? { highlights:[ new Highlight('BOOLNUM', 0, 4) ], text:'true' }
+                : { highlights:[ new Highlight('BOOLNUM', 0, 5) ], text:'false' };
+        case 'number': // treat `NaN` like a regular number
+            const text = value.toString();
+            return { highlights:[ new Highlight('BOOLNUM', 0, text.length) ], text};
+        case 'undefined':
+            return { highlights:[ new Highlight('NULLISH', 0, 9) ], text:'undefined' };
+    }
+
+    // Deal with a string.
+    if (type === 'string') {
+
+        // If the string contains no single-quotes, wrap it in single-quotes.
+        if (!value.includes("'")) return { highlights:
+            [ new Highlight('STRING', 0, value.length+2) ], text:`'${value}'` };
+
+        // Otherwise, it contains single-quotes, and may contain double-quotes.
+        // `JSON.stringify()` will escape the double-quotes (plus backslashes),
+        // and wrap it in double-quotes.
+        const text = JSON.stringify(value);
+        return { highlights: [ new Highlight('STRING', 0, text.length) ], text }      
+    }
+
+    return { highlights:[], text:'@TODO' };
+}
+
 /** ### A representation of a JavaScript value, ready to render.
  *
  * - __Consistent:__ related data in different properties always agrees
@@ -91,7 +135,7 @@ class Renderable {
     highlights;
 
     /** A string representation of the value, truncated to a maximum length.
-     * - 1 to 64 unicode characters */
+     * - 1 to 65535 unicode characters (about 10,000 lorem ipsum words) */
     text;
 
     /** ### Creates a `Renderable` instance from the supplied arguments.
@@ -100,7 +144,7 @@ class Renderable {
      *    Zero or more 'strokes of the highlighter pen' on `text`.
      * @param {string} text
      *    A string representation of the value, truncated to a maximum length.
-     *    - 1 to 64 unicode characters `"\"`
+     *     - 1 to 65535 unicode characters (about 10,000 lorem ipsum words)
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
@@ -114,7 +158,7 @@ class Renderable {
         const [ aResults, aArr, aStr ] =
             narrowAintas({ begin }, aintaArray, aintaString);
         aArr(highlights, 'highlights', { is:[Highlight] });
-        aStr(text, 'text', { min:1, max:64 });
+        aStr(text, 'text', { min:1, max:65535 });
         if (aResults.length) throw Error(aResults.join('\n'));
 
         // @TODO check that none of the Highlights overlap
@@ -128,28 +172,18 @@ class Renderable {
         Object.freeze(this);
     }
 
-    /** ### Xx
+    /** ### Creates a new `Renderable` instance from any JavaScript value.
      *
      * @param {any} value
-     *    [value description]
+     *    The JavaScript value which needs rendering.
      * @returns {Renderable}
-     *    [return description]
+     *    A `Renderable` instance, ready for rendering.
+     * @throws
+     *    Throws an `Error` if the `this` context is invalid.
      */
     static from(value) {
-        const type = typeof value;
-
-        switch (type) {
-            case 'boolean':
-                return type
-                    ? new Renderable([], 'true')
-                    : new Renderable([], 'false');
-            case 'number':
-                return new Renderable([], value.toString())
-            case 'undefined':
-                return new Renderable([], 'undefined');
-            default:
-                return new Renderable([], 'abc');
-        }
+        const { highlights, text } = renderableFrom(value);
+        return new Renderable(highlights, text);
     }
 
 }
@@ -614,4 +648,4 @@ function renderPlain() {
     }\n`;
 }
 
-export { Suite, addSection, bindTestTools as default, isEqual, renderPlain };
+export { Renderable, Suite, addSection, bindTestTools as default, isEqual, renderPlain };

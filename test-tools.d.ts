@@ -1,3 +1,39 @@
+/** ### A representation of a JavaScript value, ready to render.
+ *
+ * - __Consistent:__ related data in different properties always agrees
+ * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
+ * - __Frozen:__ both properties are read-only, and no methods ever change them
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ both properties are validated during instantiation
+ */
+export class Renderable {
+    /** ### Creates a new `Renderable` instance from any JavaScript value.
+     *
+     * @param {any} value
+     *    The JavaScript value which needs rendering.
+     * @returns {Renderable}
+     *    A `Renderable` instance, ready for rendering.
+     * @throws
+     *    Throws an `Error` if the `this` context is invalid.
+     */
+    static from(value: any): Renderable;
+    /** ### Creates a `Renderable` instance from the supplied arguments.
+     *
+     * @param {Highlight[]} highlights
+     *    Zero or more 'strokes of the highlighter pen' on `text`.
+     * @param {string} text
+     *    A string representation of the value, truncated to a maximum length.
+     *     - 1 to 65535 unicode characters (about 10,000 lorem ipsum words)
+     * @throws
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(highlights: Highlight[], text: string);
+    /** Zero or more 'strokes of the highlighter pen' on `text`. */
+    highlights: Highlight[];
+    /** A string representation of the value, truncated to a maximum length.
+     * - 1 to 65535 unicode characters (about 10,000 lorem ipsum words) */
+    text: string;
+}
 /** ### A container for test results.
  *
  * - __Consistent:__ related data in different properties always agrees
@@ -159,6 +195,40 @@ declare function bindTestTools(titleOrSuite: string | Suite, ...tools: Function[
  */
 export function isEqual(actually: any, expected: any, summary?: string): void;
 export function renderPlain(): string;
+/** ### A single 'stroke of the highlighter pen' when rendering JS values.
+ *
+ * - __Consistent:__ related data in different properties always agrees
+ * - __Frozen:__ all properties are read-only, and no methods ever change them
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ all properties are validated during instantiation
+ */
+declare class Highlight {
+    /** ### Creates a `Highlight` instance from the supplied arguments.
+     *
+     * @param {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|
+     *         'FUNCTION'|'NULLISH'|'OBJECT'|'STRING'|'SYMBOL'} kind
+     *    How the value should be rendered.
+     *    - Booleans and numbers highlight the same way
+     *    - A `BigInt` is a number rendered with the `"n"` suffix
+     *    - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}`
+     * @param {number} start
+     *    A non-negative integer. The position that highlighting starts.
+     * @param {number} stop
+     *    A non-zero integer greater than `start`, where highlighting stops.
+     * @throws
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'STRING' | 'SYMBOL', start: number, stop: number);
+    /** How the value should be rendered.
+     * - Booleans and numbers highlight the same way
+     * - A `BigInt` is a number rendered with the `"n"` suffix
+     * - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}` */
+    kind: "ARRAY" | "BOOLNUM" | "DOM" | "ERROR" | "EXCEPTION" | "FUNCTION" | "NULLISH" | "OBJECT" | "STRING" | "SYMBOL";
+    /** A non-negative integer. The position that highlighting starts. */
+    start: number;
+    /** A non-zero integer greater than `start`, where highlighting stops. */
+    stop: number;
+}
 /** ### Records the outcome of one test.
  *
  * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
@@ -234,73 +304,5 @@ declare class Section {
      * - 0 to 64 printable ASCII characters, except the backslash `"\"`
      * - An empty string `""` means that a default should be used */
     subtitle: string;
-}
-/** ### A representation of a JavaScript value, ready to render.
- *
- * - __Consistent:__ related data in different properties always agrees
- * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
- * - __Frozen:__ both properties are read-only, and no methods ever change them
- * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
- * - __Valid:__ both properties are validated during instantiation
- */
-declare class Renderable {
-    /** ### Xx
-     *
-     * @param {any} value
-     *    [value description]
-     * @returns {Renderable}
-     *    [return description]
-     */
-    static from(value: any): Renderable;
-    /** ### Creates a `Renderable` instance from the supplied arguments.
-     *
-     * @param {Highlight[]} highlights
-     *    Zero or more 'strokes of the highlighter pen' on `text`.
-     * @param {string} text
-     *    A string representation of the value, truncated to a maximum length.
-     *    - 1 to 64 unicode characters `"\"`
-     * @throws
-     *    Throws an `Error` if any of the arguments are invalid.
-     */
-    constructor(highlights: Highlight[], text: string);
-    /** Zero or more 'strokes of the highlighter pen' on `text`. */
-    highlights: Highlight[];
-    /** A string representation of the value, truncated to a maximum length.
-     * - 1 to 64 unicode characters */
-    text: string;
-}
-/** ### A single 'stroke of the highlighter pen' when rendering JS values.
- *
- * - __Consistent:__ related data in different properties always agrees
- * - __Frozen:__ all properties are read-only, and no methods ever change them
- * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
- * - __Valid:__ all properties are validated during instantiation
- */
-declare class Highlight {
-    /** ### Creates a `Highlight` instance from the supplied arguments.
-     *
-     * @param {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|
-     *         'FUNCTION'|'NULLISH'|'OBJECT'|'STRING'|'SYMBOL'} kind
-     *    How the value should be rendered.
-     *    - Booleans and numbers highlight the same way
-     *    - A `BigInt` is a number rendered with the `"n"` suffix
-     *    - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}`
-     * @param {number} start
-     *    A non-negative integer. The position that highlighting starts.
-     * @param {number} stop
-     *    A non-zero integer greater than `start`, where highlighting stops.
-     * @throws
-     *    Throws an `Error` if any of the arguments are invalid.
-     */
-    constructor(kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'STRING' | 'SYMBOL', start: number, stop: number);
-    /** How the value should be rendered.
-     * - Booleans and numbers highlight the same way
-     * - A `BigInt` is a number rendered with the `"n"` suffix
-     * - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}` */
-    kind: "ARRAY" | "BOOLNUM" | "DOM" | "ERROR" | "EXCEPTION" | "FUNCTION" | "NULLISH" | "OBJECT" | "STRING" | "SYMBOL";
-    /** A non-negative integer. The position that highlighting starts. */
-    start: number;
-    /** A non-zero integer greater than `start`, where highlighting stops. */
-    stop: number;
 }
 export { bindTestTools as default };

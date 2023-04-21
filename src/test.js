@@ -1,6 +1,7 @@
 import {
     highlightTest,
     Renderable,
+    renderableFromTest,
     renderableTest,
     resultTest,
     sectionTest,
@@ -18,6 +19,7 @@ import { addSectionTest } from './tools/add-section.js';
 import { isEqualTest } from './tools/is-equal.js';
 
 highlightTest();
+renderableFromTest();
 renderableTest();
 resultTest();
 sectionTest();
