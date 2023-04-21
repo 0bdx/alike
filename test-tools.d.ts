@@ -7,51 +7,72 @@
  * - __Valid:__ all properties are validated by instantiation and method calls
  */
 export class Suite {
-    /** ### Creates a `Suite` instance from the supplied arguments.
+    /** ### Creates an empty `Suite` instance with the supplied title.
      *
-     * @param {number} failTally
-     *    A non-negative integer. The total number of failed tests.
-     * @param {number} passTally
-     *    A non-negative integer. The total number of passed tests.
-     * @param {number} pendingTally
-     *    A non-negative integer. The total number of tests not completed yet.
      * @param {string} title
      *    The test suite's title, usually rendered as a heading above the results.
      *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
      *    - An empty string `""` means that a default should be used
-     * @param {(Result|Section)[]} resultsAndSections
-     *    An array containing zero or more test results and sections.
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
-    constructor(failTally: number, passTally: number, pendingTally: number, title: string, resultsAndSections: (Result | Section)[]);
-    /** A non-negative integer. The total number of failed tests. */
-    failTally: number;
-    /** A non-negative integer. The total number of passed tests. */
-    passTally: number;
-    /** A non-negative integer. The total number of tests not completed yet. */
-    pendingTally: number;
+    constructor(title: string);
     /** The test suite's title, usually rendered as a heading above the results.
      * - 0 to 64 printable ASCII characters, except the backslash `"\"`
      * - An empty string `""` means that a default should be used */
     title: string;
-    get resultsAndSections(): (Result | Section)[];
+    /** ### A non-negative integer. The total number of failed tests.
+     * @property {number} failTally */
+    get failTally(): number;
+    /** ### A non-negative integer. The total number of passed tests.
+     * @property {number} passTally */
+    get passTally(): number;
+    /** ### A non-negative integer. The total number of tests not completed yet.
+     * @property {number} pendingTally */
+    get pendingTally(): number;
+    /** ### An array containing zero or more test results and sections.
+     * @property {(Result|Section)[]} pendingTally */
+    get resultsAndSections(): any[];
     /** ### Returns the suite's public properties as an object.
      *
      * JavaScript's `JSON.stringify()` looks for a function named `toJSON()` in
      * any object being serialized. If it exists, it serializes the return value
      * of `toJSON()`, instead of just writing "[object Object]".
      *
-     * @returns {Suite}
+     * @returns {{failTally:number, passTally:number, pendingTally:number,
+     *           resultsAndSections:(Result|Section)[], title:string}}
      *    The public properties of `Suite`.
      */
-    toJSON(): Suite;
-    /** ### Adds a result to the test suite.
+    toJSON(): {
+        failTally: number;
+        passTally: number;
+        pendingTally: number;
+        resultsAndSections: (Result | Section)[];
+        title: string;
+    };
+    /** ### Adds a new result to the test suite.
      *
-     * @param {Result} result
-     *    The `Result` instance to add.
+     * Note that the result will be automatically be assigned a section index,
+     * based on the suite's current highest section index.
+     *
+     * @param {Renderable} actually
+     *    A representation of the value that the test actually got, ready to
+     *    render. This could be the representation of an unexpected exception.
+     * @param {Renderable} expected
+     *    A representation of the value that the test expected, ready to render.
+     * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
+     *    A string (effectively an enum) which can be one of four values:
+     *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
+     *    - `"PASS"` if the test passed
+     *    - `"PENDING"` if the test has not completed yet
+     *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
+     * @param {string} summary
+     *    A description of the test.
+     *    - An empty string `""` means that no summary has been supplied
+     * @throws
+     *    Throws an `Error` if any of the arguments are invalid.
      */
-    addResult(result: Result): void;
+    addResult(actually: Renderable, expected: Renderable, status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION', summary: string): void;
     /** ### Adds a new section to the test suite.
      *
      * @param {string} subtitle

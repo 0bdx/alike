@@ -131,7 +131,7 @@ class Renderable {
 }
 
 // Define a regular expression for validating `summary`.
-const summaryRx = /^[ -\[\]-~]+$/;
+const summaryRx = /^[ -\[\]-~]*$/;
 summaryRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 // Define an enum for validating `status`.
@@ -205,7 +205,7 @@ class Result {
         aObj(actually, 'actually', { is:[Renderable], open:true });
         aObj(expected, 'expected', { is:[Renderable], open:true });
         aNum(sectionIndex, 'sectionIndex', {
-            gte:1, lte:Number.MAX_SAFE_INTEGER, mod:1 });
+            gte:0, lte:Number.MAX_SAFE_INTEGER, mod:1 });
         aStr(status, 'status', { is:validStatus });
         aStr(summary, 'summary', { min:0, max:64, rx:summaryRx });
         if (aResults.length) throw Error(aResults.join('\n'));
@@ -290,100 +290,58 @@ titleRx.toString = () => "'Printable ASCII characters except backslashes'";
  */
 class Suite {
 
-    /** A non-negative integer. The total number of failed tests. */
-    failTally;
-
-    /** A non-negative integer. The total number of passed tests. */
-    passTally;
-
-    /** A non-negative integer. The total number of tests not completed yet. */
-    pendingTally;
-
     /** The test suite's title, usually rendered as a heading above the results.
      * - 0 to 64 printable ASCII characters, except the backslash `"\"`
      * - An empty string `""` means that a default should be used */
     title;
 
-    /** An array containing zero or more test results and sections. */
-    #resultsAndSections;
+    /** ### A non-negative integer. The total number of failed tests.
+     * @property {number} failTally */
+    get failTally() { return this.#failTally };
+    #failTally;
+
+    /** ### A non-negative integer. The total number of passed tests.
+     * @property {number} passTally */
+    get passTally() { return this.#passTally };
+    #passTally;
+
+    /** ### A non-negative integer. The total number of tests not completed yet.
+     * @property {number} pendingTally */
+    get pendingTally() { return this.#pendingTally };
+    #pendingTally;
+
+    /** ### An array containing zero or more test results and sections.
+     * @property {(Result|Section)[]} pendingTally */
     get resultsAndSections() { return [...this.#resultsAndSections] };
+    #resultsAndSections;
 
     /** The current highest section index. Incremented by `addSection()`. */
     #currentSectionIndex;
 
-    /** ### Creates a `Suite` instance from the supplied arguments.
+    /** ### Creates an empty `Suite` instance with the supplied title.
      * 
-     * @param {number} failTally
-     *    A non-negative integer. The total number of failed tests.
-     * @param {number} passTally
-     *    A non-negative integer. The total number of passed tests.
-     * @param {number} pendingTally
-     *    A non-negative integer. The total number of tests not completed yet.
      * @param {string} title
      *    The test suite's title, usually rendered as a heading above the results.
      *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
      *    - An empty string `""` means that a default should be used
-     * @param {(Result|Section)[]} resultsAndSections
-     *    An array containing zero or more test results and sections.
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
-    constructor(
-        failTally,
-        passTally,
-        pendingTally,
-        title,
-        resultsAndSections,
-    ) {
+    constructor(title) {
         const begin = 'new Suite()';
 
-        // Validate each argument.
-        const [ aResults, aArr, aNum, aStr ] =
-            narrowAintas({ begin, gte:0, lte:Number.MAX_SAFE_INTEGER, mod:1 },
-            aintaArray, aintaNumber, aintaString);
-        aNum(failTally, 'failTally');
-        aNum(passTally, 'passTally');
-        aNum(pendingTally, 'pendingTally');
-        aStr(title, 'title', { min:0, max:64, rx:titleRx });
-        aArr(resultsAndSections, 'resultsAndSections', { is:[Result,Section] });
-        if (aResults.length) throw Error(aResults.join('\n'));
-
-        // Check that the fail, pass and pending tallies agree with the results.
-        const [ foundFails, foundPasses, foundPending ] = resultsAndSections
-            .filter(rs => rs instanceof Result)
-            .reduce(
-                ([ fails, passes, pending ], /** @type Result */ rs) => [
-                    fails + +(rs.status !== 'PASS' && rs.status !== 'PENDING'),
-                    passes + +(rs.status === 'PASS'),
-                    pending + +(rs.status === 'PENDING'),
-                ],
-                [0, 0, 0]
-            );
-        if (foundFails !== failTally) throw Error(`${begin}: \`failTally\` ${
-            failTally} !== ${foundFails} fails found in \`resultsAndSections\``);
-        if (foundPasses !== passTally) throw Error(`${begin}: \`passTally\` ${
-            passTally} !== ${foundPasses} passes found in \`resultsAndSections\``);
-        if (foundPending !== pendingTally) throw Error(`${begin}: \`pendingTally\` ${
-            pendingTally} !== ${foundPending} pending found in \`resultsAndSections\``);
-
-        // @TODO Check that every result's `sectionIndex` refers to a `Section` instance in `resultsAndSections`.
-        // @TODO Note that empty sections are allowed.
-
-        // Store the validated scalar arguments as properties.
-        this.failTally = failTally;
-        this.passTally = passTally;
-        this.pendingTally = pendingTally;
+        // Validate the `title` argument, and then store it as a property.
+        const aTitle = aintaString(title, 'title',
+            { begin, min:0, max:64, rx:titleRx });
+        if (aTitle) throw Error(aTitle);
         this.title = title;
 
-        // Store the validated object argument as a private property.
-        this.#resultsAndSections = resultsAndSections;
-
-        // Store the current highest section index as a private property.
-        // @TODO test that this is working
-        this.#currentSectionIndex = resultsAndSections
-            .filter(ras => ras instanceof Section)
-            .reduce((max, /** @type Section */{ index }) =>
-                index > max ? index : max, 0);
+        // Initialise the read-only properties.
+        this.#currentSectionIndex = 0;
+        this.#failTally = 0;
+        this.#passTally = 0;
+        this.#pendingTally = 0;
+        this.#resultsAndSections = [];
 
         // Prevent this instance from being modified.
         Object.freeze(this);
@@ -395,26 +353,73 @@ class Suite {
      * any object being serialized. If it exists, it serializes the return value
      * of `toJSON()`, instead of just writing "[object Object]".
      * 
-     * @returns {Suite}
+     * @returns {{failTally:number, passTally:number, pendingTally:number,
+     *           resultsAndSections:(Result|Section)[], title:string}}
      *    The public properties of `Suite`.
      */
     toJSON() {
-        return ({ ...this, resultsAndSections:this.resultsAndSections });
+        return ({
+            failTally: this.failTally,
+            passTally: this.passTally,
+            pendingTally: this.pendingTally,
+            resultsAndSections: this.resultsAndSections,
+            title: this.title,
+        });
     }
 
-    /** ### Adds a result to the test suite.
+    /** ### Adds a new result to the test suite.
      * 
-     * @param {Result} result
-     *    The `Result` instance to add.
+     * Note that the result will be automatically be assigned a section index,
+     * based on the suite's current highest section index.
+     * 
+     * @param {Renderable} actually
+     *    A representation of the value that the test actually got, ready to
+     *    render. This could be the representation of an unexpected exception.
+     * @param {Renderable} expected
+     *    A representation of the value that the test expected, ready to render.
+     * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
+     *    A string (effectively an enum) which can be one of four values:
+     *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
+     *    - `"PASS"` if the test passed
+     *    - `"PENDING"` if the test has not completed yet
+     *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
+     * @param {string} summary
+     *    A description of the test.
+     *    - An empty string `""` means that no summary has been supplied
+     * @throws
+     *    Throws an `Error` if any of the arguments are invalid.
      */
-    addResult(result) {
+    addResult(
+        actually,
+        expected,
+        status,
+        summary,        
+    ) {
+        // Try to instantiate a new `Result`. We want to throw an `Error` if any
+        // of the arguments are not valid, before incrementing a tally.
+        const result = new Result(
+            actually,
+            expected,
+            this.#currentSectionIndex, // sectionIndex
+            status,
+            summary,        
+        );
 
-        // Validate the `result` argument.
-        const aResult = aintaObject(result, 'result',
-            { begin:'addResult()', is:[Result], open:true });
-        if (aResult) throw Error(aResult);
+        // Update one of the three tallies.
+        switch (result.status) {
+            case 'FAIL':
+            case 'UNEXPECTED_EXCEPTION':
+                this.#failTally += 1;
+                break;
+            case 'PASS':
+                this.#passTally += 1;
+                break;
+            case 'PENDING':
+                this.#pendingTally += 1;
+                break;
+        }
 
-        // Add the `Result` instance to the private `resultsAndSections` array.
+        // Add the new `Result` to the private `resultsAndSections` array.
         this.#resultsAndSections.push(result);
     }
 
@@ -429,8 +434,8 @@ class Suite {
      *    Throws an `Error` if `subtitle` or the `this` context are invalid.
      */
     addSection(subtitle) {
-        // Try to instantiate a new `Section`. This will throw an `Error` if
-        // `subtitle` is not valid.
+        // Try to instantiate a new `Section`. We want to throw an `Error` if
+        // `subtitle` is not valid, before incrementing `currentSectionIndex`.
         const section = new Section(
             this.#currentSectionIndex + 1,
             subtitle,
@@ -439,7 +444,7 @@ class Suite {
         // Increment the current highest section index.
         this.#currentSectionIndex += 1;
 
-        // Add a new `Section` to the private `resultsAndSections` array.
+        // Add the new `Section` to the private `resultsAndSections` array.
         this.#resultsAndSections.push(section);
     }
 }
@@ -503,13 +508,7 @@ function bindTestTools(titleOrSuite, ...tools) {
     // so just use is as-is. Otherwise, create a new `Suite` instance.
     const suite = typeof titleOrSuite === 'object'
         ? titleOrSuite
-        : new Suite(
-            0, // failTally
-            0, // passTally
-            0, // pendingTally
-            titleOrSuite || 'Untitled Test Suite', // title
-            [], // resultsAndSections
-        );
+        : new Suite(titleOrSuite || 'Untitled Test Suite');
 
     // Bind the `Suite` instance to each test tool.
     return tools.map(tool => tool.bind(suite));

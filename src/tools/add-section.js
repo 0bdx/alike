@@ -58,7 +58,7 @@ export function addSectionTest(f, S) {
         "addSection(): `suite` is not in `options.is` 'Suite'");
 
     // When bound bound to a `Suite` instance, `addSection()` adds a section.
-    const suite = new S(0,0,0,'Test Suite',[]);
+    const suite = new S('Test Suite');
     /** @type f */
     const bound = f.bind(suite);
     equal(bound('Valid title.'), void 0);

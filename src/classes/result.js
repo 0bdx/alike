@@ -3,7 +3,7 @@ import Highlight from './highlight.js';
 import Renderable from './renderable.js';
 
 // Define a regular expression for validating `summary`.
-const summaryRx = /^[ -\[\]-~]+$/;
+const summaryRx = /^[ -\[\]-~]*$/;
 summaryRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 // Define an enum for validating `status`.
@@ -77,7 +77,7 @@ export default class Result {
         aObj(actually, 'actually', { is:[Renderable], open:true });
         aObj(expected, 'expected', { is:[Renderable], open:true });
         aNum(sectionIndex, 'sectionIndex', {
-            gte:1, lte:Number.MAX_SAFE_INTEGER, mod:1 });
+            gte:0, lte:Number.MAX_SAFE_INTEGER, mod:1 });
         aStr(status, 'status', { is:validStatus });
         aStr(summary, 'summary', { min:0, max:64, rx:summaryRx });
         if (aResults.length) throw Error(aResults.join('\n'));
@@ -168,8 +168,8 @@ export function resultTest() {
     // @ts-expect-error
     throws(()=>new C(aUsual, eUsual, BigInt(2), stUsual, suUsual),
         begin + ": `sectionIndex` is type 'bigint' not 'number'");
-    throws(()=>new C(aUsual, eUsual, 0, stUsual, suUsual),
-        begin + ": `sectionIndex` 0 is not gte 1");
+    throws(()=>new C(aUsual, eUsual, -1, stUsual, suUsual),
+        begin + ": `sectionIndex` -1 is not gte 0");
     throws(()=>new C(aUsual, eUsual, Number.MAX_SAFE_INTEGER + 2, stUsual, suUsual), // or `+ 1` :-)
         begin + ": `sectionIndex` 9007199254740992 is not lte 9007199254740991");
     throws(()=>new C(aUsual, eUsual, 33.44, stUsual, suUsual),

@@ -60,13 +60,7 @@ export default function bindTestTools(titleOrSuite, ...tools) {
     // so just use is as-is. Otherwise, create a new `Suite` instance.
     const suite = typeof titleOrSuite === 'object'
         ? titleOrSuite
-        : new Suite(
-            0, // failTally
-            0, // passTally
-            0, // pendingTally
-            titleOrSuite || 'Untitled Test Suite', // title
-            [], // resultsAndSections
-        );
+        : new Suite(titleOrSuite || 'Untitled Test Suite');
 
     // Bind the `Suite` instance to each test tool.
     return tools.map(tool => tool.bind(suite));
