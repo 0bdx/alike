@@ -1,9 +1,12 @@
 import narrowAintas, { aintaArray, aintaNumber, aintaObject, aintaString }
     from '@0bdx/ainta';
-import { Highlight, Renderable, Result, Section } from './index.js';
+import Highlight from './highlight.js';
+import Renderable from './renderable.js';
+import Result from './result.js';
+import Section from './section.js';
 
 // Define a regular expression for validating `title`.
-const titleRx = /^[ -\[\]-~]+$/;
+const titleRx = /^[ -\[\]-~]*$/;
 titleRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 /** ### A container for test results.

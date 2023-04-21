@@ -16,7 +16,7 @@
     "build:types": "tsc test-tools.js --allowJs --declaration --emitDeclarationOnly",
     "build": "for s in {prod,types};do npm run build:$s;done",
     "preflight:test": "echo \"🧬 test.js\" && node test.js",
-    "preflight:types": "tsc test-tools.js --allowJs --checkJs --noEmit",
+    "preflight:types": "tsc test-tools.js --allowJs --checkJs --noEmit --moduleResolution nodenext --target es2020",
     "preflight": "for s in {test,types};do npm run preflight:$s;done",
     "test": "echo \"🧪 src/test.js\" && node src/test.js"
   },

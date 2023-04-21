@@ -1,5 +1,5 @@
 import narrowAintas, { aintaArray, aintaString } from '@0bdx/ainta';
-import { Highlight } from './index.js';
+import Highlight from './highlight.js';
 
 /** ### A representation of a JavaScript value, ready to render.
  *

@@ -1,74 +1,14 @@
-/**
-* @typedef {Object} Highlight
-*     A single 'stroke of the highlighter pen' when rendering JavaScript values.
-* @property {number} begin
-*     Non-negative integer, the position that highlighting should start.
-* @property {number} end
-*     Non-negative integer greater than `begin`, where highlighting should stop.
-* @property {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|'FUNCTION'|'NULLISH'|
-*     'OBJECT'|'STRING'|'SYMBOL'} kind
-*     How the value should be rendered. Booleans and numbers are highlighted the
-*     same way. A `BigInt` is a number rendered with the "n" suffix. A `RegExp`
-*     is highlighted like an `Object`, but looks like `/abc/` not `{ a:1 }`.
-*/
+import narrowAintas, { aintaArray, aintaObject, aintaString } from '@0bdx/ainta';
+import { Suite } from "./classes/index.js";
 
-/**
-* @typedef {Object} Renderable
-*     Instructions for how to render a JavaScript value.
-* @property {string} text
-*     String representation of the value, often truncated to a maximum length.
-* @property {Highlight[]} highlights
-*     Zero or more 'strokes of the highlighter pen' on `text`.
-*/
-
-/**
-* @typedef {Object} Result
-*     Captures the outcome of one test. It's important that the Result is fixed,
-*     so it does not maintain any references to objects elsewhere in the code.
-* @property {Renderable} actually
-*     A representation of the value that the test actually got, ready to render.
-*     Note that this could be the representation of an unexpected exception.
-* @property {Renderable} expected
-*     A representation of the value that the test expected, ready to render.
-* @property {boolean|null} didPass
-*     `true` if it passed, `false` if it failed. `null` means that the test
-*     threw an unexpected exception.
-* @property {number} sectionIndex
-*     The index of the section that the test belongs to. Zero if it should be
-*     rendered before the first section, or if there are no sections.
-* @property {string} summary
-*     A description of the test.
-*/
-
-/**
-* @typedef {Object} Section
-*     Marks the start of a new section in the test suite.
-* @property {number} index
-*     Non-zero positive integer, where the first Section is 1, the second is 2.
-* @property {string} title
-*     Usually rendered as a heading within the results.
-*/
-
-/**
-* @typedef {Object} TestState
-*     Foo.
-* @property {number} failTally
-*     The total number of failed tests.
-* @property {number} passTally
-*     The total number of passed tests.
-* @property {(Result|Section)[]} results
-*     Zero or more section-markers and test results.
-* @property {string} title
-*     The test suite's title, usually rendered as a heading above the results.
-*/
-
-/**
- * Creates a ‘context object’, binds any number of functions to it, and returns
- * those functions in an array. Each function can then access the shared context
- * object using the `this` keyword.
+/** ### Binds various test tools to a shared `Suite` instance.
+ * 
+ * Takes an existing `Suite` or creates a new one, binds any number of functions
+ * to it, and returns those functions in an array. Each function can then access
+ * the shared `Suite` instance using the `this` keyword.
  *
- * This pattern of dependency injection allows lots of flexibility, and is great
- * for Rollup's tree shaking.
+ * This pattern of dependency injection allows lots of flexibility, and works
+ * well with Rollup's tree shaking.
  *
  * @example
  * import bindTestTools, { addSection, isEqual, renderAnsi }
@@ -95,94 +35,91 @@
  *     return n;
  * }
  *
- * @param {string|TestState} titleOrState
- *     A name for the group of tests, or else the state from previous tests.
+ * @param {string|Suite} titleOrSuite
+ *    A name for the group of tests, or else a suite from previous tests.
  * @param {...function} tools
- *     Any number of functions, which will be bound to a shared context object.
+ *    Any number of functions, which will be bound to a shared `Suite` instance.
  * @returns {function[]}
- *     The functions which were passed in, now bound to a shared context object.
+ *    The functions which were passed in, now bound to a shared `Suite` instance.
  * @throws
- *     Throws an `Error` if any of the arguments are invalid.
+ *    Throws an `Error` if any of the arguments are invalid.
  */
-export default function bindTestTools(titleOrState, ...tools) {
-    const ep = 'Error: bindTestTools():'; // error prefix
-    if (titleOrState === null) throw Error(`${ep
-        } titleOrState is null not 'string' or a TestState object`);
+export default function bindTestTools(titleOrSuite, ...tools) {
+    const begin = 'bindTestTools():';
 
-    let state;
-    if (typeof titleOrState === 'string') {
-        state = {
-            failTally: 0,
-            passTally: 0,
-            results: [],
-            title: titleOrState,
-        }
-    } else if (typeof titleOrState !== 'object') {
-        throw Error(`${ep
-            } titleOrState is type '${typeof titleOrState}' not 'string'`);
-    } else if (Array.isArray(titleOrState)) {
-        throw Error(`${ep
-            } titleOrState is an array, not a string or plain object`);
-    } else {
-        validateStateObject(titleOrState, `${ep} titleOrState.`);
-    }
+    // Validate the arguments.
+    const [ aResults, aArr, aObj, aStr ] = narrowAintas({ begin },
+        aintaArray, aintaObject, aintaString);
+    const aTitle = aStr(titleOrSuite, 'titleOrSuite');
+    const aSuite = aObj(titleOrSuite, 'titleOrSuite', { is:[Suite] });
+    const aTools = aArr(tools, 'tools', { types:['function'] });
+    if ((aTitle && aSuite) || aTools)
+        throw Error(aTitle && aSuite ? aResults.join('\n') : aResults[1]);
 
-    for (let i=0, len=tools.length; i<len; i++)
-        if (typeof tools[i] !== 'function') throw Error(`${ep
-            } tools[${i}] is type '${typeof tools[i]}' not 'function'`);
+    // If `titleOrSuite` is an object it must already be an instance of `Suite`,
+    // so just use is as-is. Otherwise, create a new `Suite` instance.
+    const suite = typeof titleOrSuite === 'object'
+        ? titleOrSuite
+        : new Suite(
+            0, // failTally
+            0, // passTally
+            0, // pendingTally
+            titleOrSuite || 'Untitled Test Suite', // title
+            [], // resultsAndSections
+        );
 
-    return tools.map(tool => tool.bind(state));
+    // Bind the `Suite` instance to each test tool.
+    return tools.map(tool => tool.bind(suite));
 }
 
+
+/* ---------------------------------- Test ---------------------------------- */
+
 /**
- * Validates a TestState object.
- *
- * @param {TestState} state
- *     The object to validate
- * @param {string} pfx
- *     A prefix for all Error messages
+ * ### `bindTestTools()` unit tests.
+ * 
+ * @param {bindTestTools} f
+ *    The `bindTestTools()` function to test.
  * @returns {void}
- *     Does not return anything
+ *    Does not return anything.
  * @throws
- *     Throws an `Error` if the TestState object is invalid
+ *    Throws an `Error` if a test fails.
  */
-function validateStateObject(state, pfx) {
-/*
-    if (typeof state.failTally !== 'number') throw Error(`${pfx
-        }failTally is type '${typeof state.failTally}' not 'number'`);
-    if (typeof state.passTally !== 'number') throw Error(`${pfx
-        }passTally is type '${typeof state.passTally}' not 'number'`);
-    if (typeof state.title !== 'string') throw Error(`${pfx
-        }title is type '${typeof state.title}' not 'string'`);
-    if (!Array.isArray(state.results)) throw Error(`${pfx
-        }results is type '${typeof state.results}' not an array`);
-    for (let i=0, len=state.results.length; i<len; i++) {
-        const r = state.results[i];
-        if (r === null) throw Error(`${pfx
-            }results[${i}] is null not a plain object`);
-        if (Array.isArray(r)) throw Error(`${pfx
-            }results[${i}] is an array, not a plain object`);
-        if (typeof r !== 'object') throw Error(`${pfx
-            }results[${i}] is type '${typeof r}' not 'object'`);
-        if (! Object.hasOwn(r, 'actually')) throw Error(`${pfx
-            }results[${i}].actually does not exist`);
-        if (! Object.hasOwn(r, 'expected')) throw Error(`${pfx
-            }results[${i}].expected does not exist`);
-        if (!/^ERROR$|^FAIL$|^PASS$|^SECTION$/.test(r.kind)) throw Error(
-            `${pfx}results[${i}].kind is not ERROR|FAIL|PASS|SECTION`);
-        if (typeof r.summary !== 'string') throw Error(`${pfx}results[${i
-            }].summary is type '${typeof r.summary}' not 'string'`);
-        if (r.kind === 'SECTION') {
-            if (typeof r.actually !== 'undefined') throw Error(`${pfx
-                }results[${i}].kind is 'SECTION' but results[${i
-                }].actually is type '${typeof r.actually}' not 'undefined'`);
-            if (typeof r.expected !== 'undefined') throw Error(`${pfx
-                }results[${i}].kind is 'SECTION' but results[${i
-                }].expected is type '${typeof r.expected}' not 'undefined'`);
-            if (r.summary === '') throw Error(`${pfx
-                }results[${i}].kind is 'SECTION' but results[${i
-                }].summary is an empty string`);
-        }
-    }
-*/
+export function bindTestToolsTest(f) {
+    const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
+    const equal = (actual, expected) => { if (actual === expected) return;
+        try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
+            `!== expected:\n${expected}\n...at ${e2l(err)}\n`) } };
+    const throws = (actual, exp) => { try { actual() } catch (err) {
+        if (typeof exp.test=='function'?!exp.test(err.message):err.message!==exp)
+        { throw Error(`actual message:\n${err.message}\n!== expected message:\n${
+            exp}\n...at ${e2l(err)}\n`)} return }
+        throw Error(`expected message:\n${exp}\nbut nothing was thrown\n`) };
+    const toLines = (...lines) => lines.join('\n');
+    const toStr = value => JSON.stringify(value, null, '  ');
+
+    // The `titleOrSuite` argument should be one of the correct types.
+    // @ts-expect-error
+    throws(()=>f(),
+        "bindTestTools():: `titleOrSuite` is type 'undefined' not 'string'\n" +
+        "bindTestTools():: `titleOrSuite` is type 'undefined' not 'object'");
+    throws(()=>f(null),
+        "bindTestTools():: `titleOrSuite` is null not type 'string'\n" +
+        "bindTestTools():: `titleOrSuite` is null not a regular object");
+
+    // If the `titleOrSuite` argument is a string, it should be a valid title.
+    throws(()=>f('Café'),
+        "new Suite(): `title` 'Caf%C3%A9' fails 'Printable ASCII characters except backslashes'");
+
+    // If the `titleOrSuite` argument is an object, it should be a `Suite` instance.
+    // @ts-expect-error
+    throws(()=>f({}),
+        "bindTestTools():: `titleOrSuite` is type 'object' not 'string'\n" +
+        "bindTestTools():: `titleOrSuite` is not in `options.is` 'Suite'");
+
+    // The `tools` arguments should all be functions.
+    // @ts-expect-error
+    throws(()=>f('', ()=>{}, 123),
+        "bindTestTools():: `tools[1]` is type 'number', not the `options.types` 'function'");
+
 }

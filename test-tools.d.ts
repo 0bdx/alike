@@ -1,171 +1,12 @@
 export { bindTestTools as default };
-/**
- * A single 'stroke of the highlighter pen' when rendering JavaScript values.
- */
-export type Highlight = {
-    /**
-     *     Non-negative integer, the position that highlighting should start.
-     */
-    begin: number;
-    /**
-     *     Non-negative integer greater than `begin`, where highlighting should stop.
-     */
-    end: number;
-    /**
-     *     How the value should be rendered. Booleans and numbers are highlighted the
-     *     same way. A `BigInt` is a number rendered with the "n" suffix. A `RegExp`
-     *     is highlighted like an `Object`, but looks like `/abc/` not `{ a:1 }`.
-     */
-    kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'STRING' | 'SYMBOL';
-};
-/**
- * Instructions for how to render a JavaScript value.
- */
-export type Renderable = {
-    /**
-     *     String representation of the value, often truncated to a maximum length.
-     */
-    text: string;
-    /**
-     *     Zero or more 'strokes of the highlighter pen' on `text`.
-     */
-    highlights: Highlight[];
-};
-/**
- * Captures the outcome of one test. It's important that the Result is fixed,
- * so it does not maintain any references to objects elsewhere in the code.
- */
-export type Result = {
-    /**
-     *     A representation of the value that the test actually got, ready to render.
-     *     Note that this could be the representation of an unexpected exception.
-     */
-    actually: Renderable;
-    /**
-     *     A representation of the value that the test expected, ready to render.
-     */
-    expected: Renderable;
-    /**
-     *     `true` if it passed, `false` if it failed. `null` means that the test
-     *     threw an unexpected exception.
-     */
-    didPass: boolean | null;
-    /**
-     *     The index of the section that the test belongs to. Zero if it should be
-     *     rendered before the first section, or if there are no sections.
-     */
-    sectionIndex: number;
-    /**
-     *     A description of the test.
-     */
-    summary: string;
-};
-/**
- * Marks the start of a new section in the test suite.
- */
-export type Section = {
-    /**
-     *     Non-zero positive integer, where the first Section is 1, the second is 2.
-     */
-    index: number;
-    /**
-     *     Usually rendered as a heading within the results.
-     */
-    title: string;
-};
-/**
- * Foo.
- */
-export type TestState = {
-    /**
-     *     The total number of failed tests.
-     */
-    failTally: number;
-    /**
-     *     The total number of passed tests.
-     */
-    passTally: number;
-    /**
-     *     Zero or more section-markers and test results.
-     */
-    results: (Result | Section)[];
-    /**
-     *     The test suite's title, usually rendered as a heading above the results.
-     */
-    title: string;
-};
-/**
- * https://www.npmjs.com/package/@0bdx/test-tools
- * @version 0.0.1
- * @license Copyright (c) 2023 0bdx <0@0bdx.com> (0bdx.com)
- * SPDX-License-Identifier: MIT
- */
-/**
-* @typedef {Object} Highlight
-*     A single 'stroke of the highlighter pen' when rendering JavaScript values.
-* @property {number} begin
-*     Non-negative integer, the position that highlighting should start.
-* @property {number} end
-*     Non-negative integer greater than `begin`, where highlighting should stop.
-* @property {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|'FUNCTION'|'NULLISH'|
-*     'OBJECT'|'STRING'|'SYMBOL'} kind
-*     How the value should be rendered. Booleans and numbers are highlighted the
-*     same way. A `BigInt` is a number rendered with the "n" suffix. A `RegExp`
-*     is highlighted like an `Object`, but looks like `/abc/` not `{ a:1 }`.
-*/
-/**
-* @typedef {Object} Renderable
-*     Instructions for how to render a JavaScript value.
-* @property {string} text
-*     String representation of the value, often truncated to a maximum length.
-* @property {Highlight[]} highlights
-*     Zero or more 'strokes of the highlighter pen' on `text`.
-*/
-/**
-* @typedef {Object} Result
-*     Captures the outcome of one test. It's important that the Result is fixed,
-*     so it does not maintain any references to objects elsewhere in the code.
-* @property {Renderable} actually
-*     A representation of the value that the test actually got, ready to render.
-*     Note that this could be the representation of an unexpected exception.
-* @property {Renderable} expected
-*     A representation of the value that the test expected, ready to render.
-* @property {boolean|null} didPass
-*     `true` if it passed, `false` if it failed. `null` means that the test
-*     threw an unexpected exception.
-* @property {number} sectionIndex
-*     The index of the section that the test belongs to. Zero if it should be
-*     rendered before the first section, or if there are no sections.
-* @property {string} summary
-*     A description of the test.
-*/
-/**
-* @typedef {Object} Section
-*     Marks the start of a new section in the test suite.
-* @property {number} index
-*     Non-zero positive integer, where the first Section is 1, the second is 2.
-* @property {string} title
-*     Usually rendered as a heading within the results.
-*/
-/**
-* @typedef {Object} TestState
-*     Foo.
-* @property {number} failTally
-*     The total number of failed tests.
-* @property {number} passTally
-*     The total number of passed tests.
-* @property {(Result|Section)[]} results
-*     Zero or more section-markers and test results.
-* @property {string} title
-*     The test suite's title, usually rendered as a heading above the results.
-*/
-/**
- * Creates a ‘context object’, binds any number of functions to it, and returns
- * those functions in an array. Each function can then access the shared context
- * object using the `this` keyword.
+/** ### Binds various test tools to a shared `Suite` instance.
  *
- * This pattern of dependency injection allows lots of flexibility, and is great
- * for Rollup's tree shaking.
+ * Takes an existing `Suite` or creates a new one, binds any number of functions
+ * to it, and returns those functions in an array. Each function can then access
+ * the shared `Suite` instance using the `this` keyword.
+ *
+ * This pattern of dependency injection allows lots of flexibility, and works
+ * well with Rollup's tree shaking.
  *
  * @example
  * import bindTestTools, { addSection, isEqual, renderAnsi }
@@ -192,13 +33,201 @@ export type TestState = {
  *     return n;
  * }
  *
- * @param {string|TestState} titleOrState
- *     A name for the group of tests, or else the state from previous tests.
+ * @param {string|Suite} titleOrSuite
+ *    A name for the group of tests, or else a suite from previous tests.
  * @param {...function} tools
- *     Any number of functions, which will be bound to a shared context object.
+ *    Any number of functions, which will be bound to a shared `Suite` instance.
  * @returns {function[]}
- *     The functions which were passed in, now bound to a shared context object.
+ *    The functions which were passed in, now bound to a shared `Suite` instance.
  * @throws
- *     Throws an `Error` if any of the arguments are invalid.
+ *    Throws an `Error` if any of the arguments are invalid.
  */
-declare function bindTestTools(titleOrState: string | TestState, ...tools: Function[]): Function[];
+declare function bindTestTools(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
+/** ### A container for test results.
+ *
+ * - __Consistent:__ related data in different properties always agrees
+ * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
+ * - __Frozen:__ all properties are read-only, and only change via method calls
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ all properties are validated by instantiation and method calls
+ */
+declare class Suite {
+    /** ### Creates a `Suite` instance from the supplied arguments.
+     *
+     * @param {number} failTally
+     *    A non-negative integer. The total number of failed tests.
+     * @param {number} passTally
+     *    A non-negative integer. The total number of passed tests.
+     * @param {number} pendingTally
+     *    A non-negative integer. The total number of tests not completed yet.
+     * @param {string} title
+     *    The test suite's title, usually rendered as a heading above the results.
+     *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
+     *    - An empty string `""` means that no title has been supplied
+     * @param {(Result|Section)[]} resultsAndSections
+     *    An array containing zero or more test results and sections.
+     * @throws
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(failTally: number, passTally: number, pendingTally: number, title: string, resultsAndSections: (Result | Section)[]);
+    /** A non-negative integer. The total number of failed tests. */
+    failTally: number;
+    /** A non-negative integer. The total number of passed tests. */
+    passTally: number;
+    /** A non-negative integer. The total number of tests not completed yet. */
+    pendingTally: number;
+    /** The test suite's title, usually rendered as a heading above the results.
+     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
+     * - An empty string `""` means that no title has been supplied */
+    title: string;
+    get resultsAndSections(): (Result | Section)[];
+    toJSON(): Suite & {
+        resultsAndSections: (Result | Section)[];
+    };
+    /** ### Adds a result to the test suite.
+     *
+     * @param {Result} result
+     *    The `Result` instance to add.
+     */
+    addResult(result: Result): void;
+    /** ### Adds a section to the test suite.
+     *
+     * @param {Section} section
+     *    The `Section` instance to add.
+     */
+    addSection(section: Section): void;
+    #private;
+}
+/** ### Records the outcome of one test.
+ *
+ * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
+ * - __Frozen:__ all properties are read-only, and no methods ever change them
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ all properties are validated during instantiation
+ */
+declare class Result {
+    /** ### Creates a `Result` instance from the supplied arguments.
+     *
+     * @param {Renderable} actually
+     *    A representation of the value that the test actually got, ready to
+     *    render. This could be the representation of an unexpected exception.
+     * @param {Renderable} expected
+     *    A representation of the value that the test expected, ready to render.
+     * @param {number} sectionIndex
+     *    The index of the `Section` that the test belongs to. Zero if it should
+     *    be rendered before the first section, or if there are no sections.
+     * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
+     *    A string (effectively an enum) which can be one of four values:
+     *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
+     *    - `"PASS"` if the test passed
+     *    - `"PENDING"` if the test has not completed yet
+     *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
+     * @param {string} summary
+     *    A description of the test.
+     *    - An empty string `""` means that no summary has been supplied
+     * @throws
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(actually: Renderable, expected: Renderable, sectionIndex: number, status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION', summary: string);
+    /** A representation of the value that the test actually got, ready to
+     * render. This could be the representation of an unexpected exception. */
+    actually: Renderable;
+    /** A representation of the value that the test expected, ready to render. */
+    expected: Renderable;
+    /** The index of the `Section` that the test belongs to. Zero if it should
+     * be rendered before the first section, or if there are no sections. */
+    sectionIndex: number;
+    /** A string (effectively an enum) which can be one of four values:
+     * - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
+     * - `"PASS"` if the test passed
+     * - `"PENDING"` if the test has not completed yet
+     * - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception */
+    status: "FAIL" | "PASS" | "PENDING" | "UNEXPECTED_EXCEPTION";
+    /** A description of the test.
+     * - An empty string `""` means that no summary has been supplied */
+    summary: string;
+}
+/** ### Marks the start of a new section in the test suite.
+ *
+ * - __Frozen:__ both properties are read-only, and no methods ever change them
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ both properties are validated during instantiation
+ */
+declare class Section {
+    /** ### Creates a `Section` instance from the supplied arguments.
+     *
+     * @param {number} index
+     *    A non-zero positive integer. The first Section is 1, the second is 2.
+     * @param {string} subtitle
+     *    The section title, usually rendered as a sub-heading in the results.
+     *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
+     * @throws
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(index: number, subtitle: string);
+    /** A non-zero positive integer. The first Section is 1, the second is 2. */
+    index: number;
+    /** The section title, usually rendered as a sub-heading in the results.
+     * - 1 to 64 printable ASCII characters, except the backslash `"\"` */
+    subtitle: string;
+}
+/** ### A representation of a JavaScript value, ready to render.
+ *
+ * - __Consistent:__ related data in different properties always agrees
+ * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
+ * - __Frozen:__ both properties are read-only, and no methods ever change them
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ both properties are validated during instantiation
+ */
+declare class Renderable {
+    /** ### Creates a `Renderable` instance from the supplied arguments.
+     *
+     * @param {Highlight[]} highlights
+     *    Zero or more 'strokes of the highlighter pen' on `text`.
+     * @param {string} text
+     *    A string representation of the value, truncated to a maximum length.
+     *    - 1 to 64 unicode characters `"\"`
+     * @throws
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(highlights: Highlight[], text: string);
+    /** Zero or more 'strokes of the highlighter pen' on `text`. */
+    highlights: Highlight[];
+    /** A string representation of the value, truncated to a maximum length.
+     * - 1 to 64 unicode characters */
+    text: string;
+}
+/** ### A single 'stroke of the highlighter pen' when rendering JS values.
+ *
+ * - __Consistent:__ related data in different properties always agrees
+ * - __Frozen:__ all properties are read-only, and no methods ever change them
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ all properties are validated during instantiation
+ */
+declare class Highlight {
+    /** ### Creates a `Highlight` instance from the supplied arguments.
+     *
+     * @param {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|
+     *         'FUNCTION'|'NULLISH'|'OBJECT'|'STRING'|'SYMBOL'} kind
+     *    How the value should be rendered.
+     *    - Booleans and numbers highlight the same way
+     *    - A `BigInt` is a number rendered with the `"n"` suffix
+     *    - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}`
+     * @param {number} start
+     *    A non-negative integer. The position that highlighting starts.
+     * @param {number} stop
+     *    A non-zero integer greater than `start`, where highlighting stops.
+     * @throws
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'STRING' | 'SYMBOL', start: number, stop: number);
+    /** How the value should be rendered.
+     * - Booleans and numbers highlight the same way
+     * - A `BigInt` is a number rendered with the `"n"` suffix
+     * - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}` */
+    kind: "ARRAY" | "BOOLNUM" | "DOM" | "ERROR" | "EXCEPTION" | "FUNCTION" | "NULLISH" | "OBJECT" | "STRING" | "SYMBOL";
+    /** A non-negative integer. The position that highlighting starts. */
+    start: number;
+    /** A non-zero integer greater than `start`, where highlighting stops. */
+    stop: number;
+}

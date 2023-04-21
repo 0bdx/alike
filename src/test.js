@@ -7,17 +7,12 @@ import {
 } from './classes/index.js';
 
 import bindTestTools from './index.js';
-
-import bindTestToolsTest from './bind-test-tools.test.js';
-
-bindTestToolsTest(bindTestTools);
-
-// import { validateHighlight, testValidateHighlight } from './index.js';
-
-// testValidateHighlight(validateHighlight);
+import { bindTestToolsTest } from './bind-test-tools.js';
 
 highlightTest();
 renderableTest();
 resultTest();
 sectionTest();
 suiteTest();
+
+bindTestToolsTest(bindTestTools);
