@@ -307,9 +307,8 @@ class Suite {
     #resultsAndSections;
     get resultsAndSections() { return [...this.#resultsAndSections] };
 
-    toJSON() {
-        return ({ ...this, resultsAndSections:this.resultsAndSections });
-    }
+    /** The current highest section index. Incremented by `addSection()`. */
+    #currentSectionIndex;
 
     /** ### Creates a `Suite` instance from the supplied arguments.
      * 
@@ -378,8 +377,28 @@ class Suite {
         // Store the validated object argument as a private property.
         this.#resultsAndSections = resultsAndSections;
 
+        // Store the current highest section index as a private property.
+        // @TODO test that this is working
+        this.#currentSectionIndex = resultsAndSections
+            .filter(ras => ras instanceof Section)
+            .reduce((max, /** @type Section */{ index }) =>
+                index > max ? index : max, 0);
+
         // Prevent this instance from being modified.
         Object.freeze(this);
+    }
+
+    /** ### Returns the suite's public properties as an object.
+     *
+     * JavaScript's `JSON.stringify()` looks for a function named `toJSON()` in
+     * any object being serialized. If it exists, it serializes the return value
+     * of `toJSON()`, instead of just writing "[object Object]".
+     * 
+     * @returns {Suite}
+     *    The public properties of `Suite`.
+     */
+    toJSON() {
+        return ({ ...this, resultsAndSections:this.resultsAndSections });
     }
 
     /** ### Adds a result to the test suite.
@@ -398,19 +417,28 @@ class Suite {
         this.#resultsAndSections.push(result);
     }
 
-    /** ### Adds a section to the test suite.
+    /** ### Adds a new section to the test suite.
      * 
-     * @param {Section} section
-     *    The `Section` instance to add.
+     * @param {string} subtitle
+     *    The section title, usually rendered as a sub-heading in the results.
+     *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
+     * @returns {void}
+     *    Does not return anything.
+     * @throws
+     *    Throws an `Error` if `subtitle` or the `this` context are invalid.
      */
-    addSection(section) {
+    addSection(subtitle) {
+        // Try to instantiate a new `Section`. This will throw an `Error` if
+        // `subtitle` is not valid.
+        const section = new Section(
+            this.#currentSectionIndex + 1,
+            subtitle,
+        );
 
-        // Validate the `section` argument.
-        const aSection = aintaObject(section, 'section',
-            { begin:'addSection()', is:[Section], open:true });
-        if (aSection) throw Error(aSection);
+        // Increment the current highest section index.
+        this.#currentSectionIndex += 1;
 
-        // Add the `Section` instance to the private `resultsAndSections` array.
+        // Add a new `Section` to the private `resultsAndSections` array.
         this.#resultsAndSections.push(section);
     }
 }

@@ -95,8 +95,6 @@ export function bindTestToolsTest(f) {
         { throw Error(`actual message:\n${err.message}\n!== expected message:\n${
             exp}\n...at ${e2l(err)}\n`)} return }
         throw Error(`expected message:\n${exp}\nbut nothing was thrown\n`) };
-    const toLines = (...lines) => lines.join('\n');
-    const toStr = value => JSON.stringify(value, null, '  ');
 
     // The `titleOrSuite` argument should be one of the correct types.
     // @ts-expect-error

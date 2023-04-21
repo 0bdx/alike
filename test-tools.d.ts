@@ -81,21 +81,33 @@ declare class Suite {
      * - An empty string `""` means that no title has been supplied */
     title: string;
     get resultsAndSections(): (Result | Section)[];
-    toJSON(): Suite & {
-        resultsAndSections: (Result | Section)[];
-    };
+    /** ### Returns the suite's public properties as an object.
+     *
+     * JavaScript's `JSON.stringify()` looks for a function named `toJSON()` in
+     * any object being serialized. If it exists, it serializes the return value
+     * of `toJSON()`, instead of just writing "[object Object]".
+     *
+     * @returns {Suite}
+     *    The public properties of `Suite`.
+     */
+    toJSON(): Suite;
     /** ### Adds a result to the test suite.
      *
      * @param {Result} result
      *    The `Result` instance to add.
      */
     addResult(result: Result): void;
-    /** ### Adds a section to the test suite.
+    /** ### Adds a new section to the test suite.
      *
-     * @param {Section} section
-     *    The `Section` instance to add.
+     * @param {string} subtitle
+     *    The section title, usually rendered as a sub-heading in the results.
+     *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
+     * @returns {void}
+     *    Does not return anything.
+     * @throws
+     *    Throws an `Error` if `subtitle` or the `this` context are invalid.
      */
-    addSection(section: Section): void;
+    addSection(subtitle: string): void;
     #private;
 }
 /** ### Records the outcome of one test.
