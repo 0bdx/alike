@@ -30,7 +30,7 @@ export default class Suite {
 
     /** The test suite's title, usually rendered as a heading above the results.
      * - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     * - An empty string `""` means that no title has been supplied */
+     * - An empty string `""` means that a default should be used */
     title;
 
     /** An array containing zero or more test results and sections. */
@@ -51,7 +51,7 @@ export default class Suite {
      * @param {string} title
      *    The test suite's title, usually rendered as a heading above the results.
      *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     *    - An empty string `""` means that no title has been supplied
+     *    - An empty string `""` means that a default should be used
      * @param {(Result|Section)[]} resultsAndSections
      *    An array containing zero or more test results and sections.
      * @throws
@@ -206,6 +206,7 @@ export function suiteTest() {
     const fUsual = 0;
     const paUsual = 1;
     const peUsual = 0;
+    const tUsual = 'The Cafe is ok.';
     const rsUsual = [
         new Result(
             new Renderable(
@@ -221,7 +222,6 @@ export function suiteTest() {
             'The Cafe is ok.',
         )
     ];
-    const tUsual = 'The Cafe is ok.';
     // @TODO *Min
     // @TODO *Max
 

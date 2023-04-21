@@ -1,7 +1,7 @@
 import narrowAintas, { aintaNumber, aintaString } from '@0bdx/ainta';
 
 // Define a regular expression for validating `subtitle`.
-const subtitleRx = /^[ -\[\]-~]+$/;
+const subtitleRx = /^[ -\[\]-~]*$/;
 subtitleRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 /** ### Marks the start of a new section in the test suite.
@@ -16,7 +16,8 @@ export default class Section {
     index;
 
     /** The section title, usually rendered as a sub-heading in the results.
-     * - 1 to 64 printable ASCII characters, except the backslash `"\"` */
+     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
+     * - An empty string `""` means that a default should be used */
     subtitle;
 
     /** ### Creates a `Section` instance from the supplied arguments.
@@ -39,7 +40,7 @@ export default class Section {
         const [ aResults, aNum, aStr ] =
             narrowAintas({ begin }, aintaNumber, aintaString);
         aNum(index, 'index', { gte:1, lte:Number.MAX_SAFE_INTEGER, mod:1 });
-        aStr(subtitle, 'subtitle', { min:1, max:64, rx:subtitleRx });
+        aStr(subtitle, 'subtitle', { min:0, max:64, rx:subtitleRx });
         if (aResults.length) throw Error(aResults.join('\n'));
 
         // Store the validated arguments as properties.
@@ -85,7 +86,7 @@ export function sectionTest() {
     const iUsual = 77;
     const sUsual = 'The 77th Section';
     const iMin = 1;
-    const tMin = ' ';
+    const tMin = '';
     const iMax = Number.MAX_SAFE_INTEGER;
     const tMax = '12345678'.repeat(8);
 
@@ -113,8 +114,6 @@ export function sectionTest() {
     // @ts-expect-error
     throws(()=>new C(iUsual, true),
         begin + ": `subtitle` is type 'boolean' not 'string'");
-    throws(()=>new C(iMin, ''),
-        begin + ": `subtitle` '' is not min 1");
     throws(()=>new C(iMax, '12345678'.repeat(8) + '9'),
         begin + ": `subtitle` '123456781234567812345...23456789' is not max 64");
     throws(()=>new C(iUsual, sUsual + '\\'),

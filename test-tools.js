@@ -224,7 +224,7 @@ class Result {
 }
 
 // Define a regular expression for validating `subtitle`.
-const subtitleRx = /^[ -\[\]-~]+$/;
+const subtitleRx = /^[ -\[\]-~]*$/;
 subtitleRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 /** ### Marks the start of a new section in the test suite.
@@ -239,7 +239,8 @@ class Section {
     index;
 
     /** The section title, usually rendered as a sub-heading in the results.
-     * - 1 to 64 printable ASCII characters, except the backslash `"\"` */
+     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
+     * - An empty string `""` means that a default should be used */
     subtitle;
 
     /** ### Creates a `Section` instance from the supplied arguments.
@@ -262,7 +263,7 @@ class Section {
         const [ aResults, aNum, aStr ] =
             narrowAintas({ begin }, aintaNumber, aintaString);
         aNum(index, 'index', { gte:1, lte:Number.MAX_SAFE_INTEGER, mod:1 });
-        aStr(subtitle, 'subtitle', { min:1, max:64, rx:subtitleRx });
+        aStr(subtitle, 'subtitle', { min:0, max:64, rx:subtitleRx });
         if (aResults.length) throw Error(aResults.join('\n'));
 
         // Store the validated arguments as properties.
@@ -300,7 +301,7 @@ class Suite {
 
     /** The test suite's title, usually rendered as a heading above the results.
      * - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     * - An empty string `""` means that no title has been supplied */
+     * - An empty string `""` means that a default should be used */
     title;
 
     /** An array containing zero or more test results and sections. */
@@ -321,7 +322,7 @@ class Suite {
      * @param {string} title
      *    The test suite's title, usually rendered as a heading above the results.
      *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     *    - An empty string `""` means that no title has been supplied
+     *    - An empty string `""` means that a default should be used
      * @param {(Result|Section)[]} resultsAndSections
      *    An array containing zero or more test results and sections.
      * @throws
@@ -514,4 +515,49 @@ function bindTestTools(titleOrSuite, ...tools) {
     return tools.map(tool => tool.bind(suite));
 }
 
-export { bindTestTools as default };
+/** ### Adds a new section to the test suite.
+ * 
+ * @param {string} subtitle
+ *    The section title, usually rendered as a sub-heading in the results.
+ *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
+ * @returns {void}
+ *    Does not return anything.
+ * @throws
+ *    Throws an `Error` if `subtitle` or the `this` context are invalid.
+ */
+function addSection(subtitle) {
+    const begin = 'addSection()';
+
+    // Check that this function has been bound to a `Suite` instance.
+    const aSuite = aintaObject(this, 'suite', { begin, is:[Suite], open:true });
+    if (aSuite) throw Error(aSuite);
+
+    // The brackets around `this` make JSDoc see `(this)` as a `Suite` instance.
+    /** @type Suite */
+    (this).addSection(subtitle);
+}
+
+function isEqual(actual, expected, desc='') {
+    this.results.push(
+        actual === expected
+            ? { desc, pass: true }
+            : { desc, fail: `actual:\n${actual}\n!== expected:\n${expected}\n` }
+    );
+}
+
+function renderPlain() {
+    const header = `${this.title}\n${'-'.repeat(this.title.length)}\n\n`;
+    return `${header}${
+        this.results.length === 0
+            ? 'No tests were run'
+            : this.results.every(result => result.pass)
+                ? this.results.length === 1
+                    ? `The test passed`
+                    : this.results.length === 2
+                        ? `Both tests passed`
+                        : `All ${this.results.length} tests passed`
+                : '@TODO fails'
+    }\n`;
+}
+
+export { Suite, addSection, bindTestTools as default, isEqual, renderPlain };

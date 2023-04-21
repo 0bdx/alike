@@ -1,4 +1,81 @@
-export { bindTestTools as default };
+/** ### A container for test results.
+ *
+ * - __Consistent:__ related data in different properties always agrees
+ * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
+ * - __Frozen:__ all properties are read-only, and only change via method calls
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ all properties are validated by instantiation and method calls
+ */
+export class Suite {
+    /** ### Creates a `Suite` instance from the supplied arguments.
+     *
+     * @param {number} failTally
+     *    A non-negative integer. The total number of failed tests.
+     * @param {number} passTally
+     *    A non-negative integer. The total number of passed tests.
+     * @param {number} pendingTally
+     *    A non-negative integer. The total number of tests not completed yet.
+     * @param {string} title
+     *    The test suite's title, usually rendered as a heading above the results.
+     *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
+     *    - An empty string `""` means that a default should be used
+     * @param {(Result|Section)[]} resultsAndSections
+     *    An array containing zero or more test results and sections.
+     * @throws
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(failTally: number, passTally: number, pendingTally: number, title: string, resultsAndSections: (Result | Section)[]);
+    /** A non-negative integer. The total number of failed tests. */
+    failTally: number;
+    /** A non-negative integer. The total number of passed tests. */
+    passTally: number;
+    /** A non-negative integer. The total number of tests not completed yet. */
+    pendingTally: number;
+    /** The test suite's title, usually rendered as a heading above the results.
+     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
+     * - An empty string `""` means that a default should be used */
+    title: string;
+    get resultsAndSections(): (Result | Section)[];
+    /** ### Returns the suite's public properties as an object.
+     *
+     * JavaScript's `JSON.stringify()` looks for a function named `toJSON()` in
+     * any object being serialized. If it exists, it serializes the return value
+     * of `toJSON()`, instead of just writing "[object Object]".
+     *
+     * @returns {Suite}
+     *    The public properties of `Suite`.
+     */
+    toJSON(): Suite;
+    /** ### Adds a result to the test suite.
+     *
+     * @param {Result} result
+     *    The `Result` instance to add.
+     */
+    addResult(result: Result): void;
+    /** ### Adds a new section to the test suite.
+     *
+     * @param {string} subtitle
+     *    The section title, usually rendered as a sub-heading in the results.
+     *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
+     * @returns {void}
+     *    Does not return anything.
+     * @throws
+     *    Throws an `Error` if `subtitle` or the `this` context are invalid.
+     */
+    addSection(subtitle: string): void;
+    #private;
+}
+/** ### Adds a new section to the test suite.
+ *
+ * @param {string} subtitle
+ *    The section title, usually rendered as a sub-heading in the results.
+ *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
+ * @returns {void}
+ *    Does not return anything.
+ * @throws
+ *    Throws an `Error` if `subtitle` or the `this` context are invalid.
+ */
+export function addSection(subtitle: string): void;
 /** ### Binds various test tools to a shared `Suite` instance.
  *
  * Takes an existing `Suite` or creates a new one, binds any number of functions
@@ -43,73 +120,8 @@ export { bindTestTools as default };
  *    Throws an `Error` if any of the arguments are invalid.
  */
 declare function bindTestTools(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
-/** ### A container for test results.
- *
- * - __Consistent:__ related data in different properties always agrees
- * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
- * - __Frozen:__ all properties are read-only, and only change via method calls
- * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
- * - __Valid:__ all properties are validated by instantiation and method calls
- */
-declare class Suite {
-    /** ### Creates a `Suite` instance from the supplied arguments.
-     *
-     * @param {number} failTally
-     *    A non-negative integer. The total number of failed tests.
-     * @param {number} passTally
-     *    A non-negative integer. The total number of passed tests.
-     * @param {number} pendingTally
-     *    A non-negative integer. The total number of tests not completed yet.
-     * @param {string} title
-     *    The test suite's title, usually rendered as a heading above the results.
-     *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     *    - An empty string `""` means that no title has been supplied
-     * @param {(Result|Section)[]} resultsAndSections
-     *    An array containing zero or more test results and sections.
-     * @throws
-     *    Throws an `Error` if any of the arguments are invalid.
-     */
-    constructor(failTally: number, passTally: number, pendingTally: number, title: string, resultsAndSections: (Result | Section)[]);
-    /** A non-negative integer. The total number of failed tests. */
-    failTally: number;
-    /** A non-negative integer. The total number of passed tests. */
-    passTally: number;
-    /** A non-negative integer. The total number of tests not completed yet. */
-    pendingTally: number;
-    /** The test suite's title, usually rendered as a heading above the results.
-     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     * - An empty string `""` means that no title has been supplied */
-    title: string;
-    get resultsAndSections(): (Result | Section)[];
-    /** ### Returns the suite's public properties as an object.
-     *
-     * JavaScript's `JSON.stringify()` looks for a function named `toJSON()` in
-     * any object being serialized. If it exists, it serializes the return value
-     * of `toJSON()`, instead of just writing "[object Object]".
-     *
-     * @returns {Suite}
-     *    The public properties of `Suite`.
-     */
-    toJSON(): Suite;
-    /** ### Adds a result to the test suite.
-     *
-     * @param {Result} result
-     *    The `Result` instance to add.
-     */
-    addResult(result: Result): void;
-    /** ### Adds a new section to the test suite.
-     *
-     * @param {string} subtitle
-     *    The section title, usually rendered as a sub-heading in the results.
-     *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
-     * @returns {void}
-     *    Does not return anything.
-     * @throws
-     *    Throws an `Error` if `subtitle` or the `this` context are invalid.
-     */
-    addSection(subtitle: string): void;
-    #private;
-}
+export function isEqual(actual: any, expected: any, desc?: string): void;
+export function renderPlain(): string;
 /** ### Records the outcome of one test.
  *
  * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
@@ -180,7 +192,8 @@ declare class Section {
     /** A non-zero positive integer. The first Section is 1, the second is 2. */
     index: number;
     /** The section title, usually rendered as a sub-heading in the results.
-     * - 1 to 64 printable ASCII characters, except the backslash `"\"` */
+     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
+     * - An empty string `""` means that a default should be used */
     subtitle: string;
 }
 /** ### A representation of a JavaScript value, ready to render.
@@ -243,3 +256,4 @@ declare class Highlight {
     /** A non-zero integer greater than `start`, where highlighting stops. */
     stop: number;
 }
+export { bindTestTools as default };
