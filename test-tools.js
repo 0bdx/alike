@@ -112,8 +112,8 @@ function renderableFrom(value) {
             [ new Highlight('STRING', 0, value.length+2) ], text:`'${value}'` };
 
         // Otherwise, it contains single-quotes, and may contain double-quotes.
-        // `JSON.stringify()` will escape the double-quotes (plus backslashes),
-        // and wrap it in double-quotes.
+        // `JSON.stringify()` will escape any double-quotes (plus backslashes),
+        // and then wrap it in double-quotes.
         const text = JSON.stringify(value);
         return { highlights: [ new Highlight('STRING', 0, text.length) ], text }      
     }
@@ -178,8 +178,6 @@ class Renderable {
      *    The JavaScript value which needs rendering.
      * @returns {Renderable}
      *    A `Renderable` instance, ready for rendering.
-     * @throws
-     *    Throws an `Error` if the `this` context is invalid.
      */
     static from(value) {
         const { highlights, text } = renderableFrom(value);
@@ -519,12 +517,12 @@ class Suite {
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindTestTools, { addSection, isEqual, renderAnsi }
+ * import bindTestTools, { addSection, isEqual, renderPlain }
  *     from '@0bdx/test-tools';
  *
  * // Give the test suite a title, and bind some functions to it.
  * const [ section,    isEq,    render ] = bindTestTools('Mathsy Test Suite',
- *         addSection, isEqual, renderAnsi);
+ *         addSection, isEqual, renderPlain);
  *
  * // Optionally, begin a new addSection.
  * section('Check that factorialise() works');
@@ -534,7 +532,7 @@ class Suite {
  * isEq(factorialise(5), 120,
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
- * // Output the test results to the console, using ANSI colours.
+ * // Output the test results to the console, as plain text.
  * console.log(render());
  *
  * function factorialise(n) {
@@ -597,7 +595,9 @@ function addSection(subtitle) {
     (this).addSection(subtitle);
 }
 
-/** ### Adds a new section to the test suite.
+/** ### Uses deep-equal to compare two values.
+ * 
+ * @TODO describe with examples
  *
  * @param {any} actually
  *    The value that the test actually got.
@@ -633,18 +633,48 @@ function isEqual(actually, expected, summary) {
     );
 }
 
+/** ### Renders a test suite without colours or typographic styling.
+ * 
+ * @TODO describe with examples
+ *
+ * @returns {string}
+ *    Returns the test suite's title, followed by a summary of the test results.
+ * @throws
+ *    Throws an `Error` if the `this` context is invalid.
+ */
 function renderPlain() {
-    const header = `${this.title}\n${'-'.repeat(this.title.length)}\n\n`;
-    return `${header}${
-        this.results.length === 0
-            ? 'No tests were run'
-            : this.results.every(result => result.pass)
-                ? this.results.length === 1
-                    ? `The test passed`
-                    : this.results.length === 2
-                        ? `Both tests passed`
-                        : `All ${this.results.length} tests passed`
-                : '@TODO fails'
+    const begin = 'renderPlain()';
+
+    // Tell JSDoc that the `this` context is a `Suite` instance.
+    /** @type Suite */
+    const suite = this;
+
+    // Check that this function has been bound to a `Suite` instance.
+    // @TODO cache this result for performance
+    const aSuite = aintaObject(suite, 'suite', { begin, is:[Suite], open:true });
+    if (aSuite) throw Error(aSuite);
+
+    // Get the number of tests which failed, passed, and have not completed yet.
+    const fail = suite.failTally;
+    const pass = suite.passTally;
+    const pending = suite.pendingTally;
+    const numTests = fail + pass + pending;
+
+    // Return the test suite's title, followed by a summary of the test results.
+    return `${'-'.repeat(suite.title.length)}\n` +
+        `${suite.title}\n` +
+        `${'='.repeat(suite.title.length)}\n\n${
+        numTests === 0
+            ? 'No tests were run.'
+            : pending
+                ? `${pending} test${pending === 1 ? '' : 's' } still pending.`
+                : fail
+                  ? '@TODO fails'
+                  : pass === 1
+                    ? 'The test passed.'
+                    : pass === 2
+                        ? 'Both tests passed.'
+                        : `All ${pass} tests passed.`
     }\n`;
 }
 

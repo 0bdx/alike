@@ -180,8 +180,7 @@ export default class Suite {
 
 /* ---------------------------------- Tests --------------------------------- */
 
-/**
- * ### `Suite` unit tests.
+/** ### `Suite` unit tests.
  * 
  * @returns {void}
  *    Does not return anything.

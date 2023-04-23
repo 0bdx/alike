@@ -27,13 +27,12 @@ export default function addSection(subtitle) {
 
 /* ---------------------------------- Test ---------------------------------- */
 
-/**
- * ### `addSection()` unit tests.
+/** ### `addSection()` unit tests.
  * 
  * @param {addSection} f
  *    The `addSection()` function to test.
  * @param {typeof Suite} S
- *    The `Suite` class, because test-tools.js objects are not src/ objects.
+ *    The `Suite` class, because `Suite` in test-tools.js !== `Suite` in src/.
  * @returns {void}
  *    Does not return anything.
  * @throws
@@ -49,6 +48,7 @@ export function addSectionTest(f, S) {
         { throw Error(`actual message:\n${err.message}\n!== expected message:\n${
             exp}\n...at ${e2l(err)}\n`)} return }
         throw Error(`expected message:\n${exp}\nbut nothing was thrown\n`) };
+    const toLines = (...lines) => lines.join('\n');
     const toStr = value => JSON.stringify(value, null, '  ');
 
     // `addSection()` should be bound to a `Suite` instance.
@@ -58,17 +58,17 @@ export function addSectionTest(f, S) {
     throws(()=>badlyBound('Valid title.'),
         "addSection(): `suite` is not in `options.is` 'Suite'");
 
-    // When bound bound to a `Suite` instance, `addSection()` adds a section.
+    // When bound bound to a `Suite` instance, `addSection()` should add a section.
     const suite = new S('Test Suite');
     /** @type f */
     const bound = f.bind(suite);
     equal(bound('Valid title.'), void 0);
     equal(suite.resultsAndSections.length, 1);
-    equal(toStr(suite.resultsAndSections[0]),
-        `{\n` +
-        `  "index": 1,\n` +
-        `  "subtitle": "Valid title."\n` +
-        `}`);
+    equal(toStr(suite.resultsAndSections[0]), toLines(
+        `{`,
+        `  "index": 1,`,
+        `  "subtitle": "Valid title."`,
+        `}`));
 
     // `subtitle` should be 0 to 64 printable ASCII characters, except backslashes.
     // @ts-expect-error
@@ -90,20 +90,20 @@ export function addSectionTest(f, S) {
     equal(bound('>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~'), void 0);
     equal(bound(''), void 0);
     equal(suite.resultsAndSections.length, 4);
-    equal(toStr(suite.resultsAndSections[1]),
-        `{\n` +
-        `  "index": 2,\n` +
-        `  "subtitle": " !\\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_\`"\n` +
-        `}`);
-    equal(toStr(suite.resultsAndSections[2]),
-        `{\n` +
-        `  "index": 3,\n` +
-        `  "subtitle": ">?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_\`abcdefghijklmnopqrstuvwxyz{|}~"\n` +
-        `}`);
-    equal(toStr(suite.resultsAndSections[3]),
-        `{\n` +
-        `  "index": 4,\n` +
-        `  "subtitle": ""\n` +
-        `}`);
+    equal(toStr(suite.resultsAndSections[1]), toLines(
+        `{`,
+        `  "index": 2,`,
+        `  "subtitle": " !\\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_\`"`,
+        `}`));
+    equal(toStr(suite.resultsAndSections[2]), toLines(
+        `{`,
+        `  "index": 3,`,
+        `  "subtitle": ">?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_\`abcdefghijklmnopqrstuvwxyz{|}~"`,
+        `}`));
+    equal(toStr(suite.resultsAndSections[3]), toLines(
+        `{`,
+        `  "index": 4,`,
+        `  "subtitle": ""`,
+        `}`));
     
 }

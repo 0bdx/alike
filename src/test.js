@@ -12,11 +12,12 @@ import {
 import bindTestTools, {
     addSection,
     isEqual,
-    // renderPlain,
+    renderPlain,
 } from './index.js';
 import { bindTestToolsTest } from './bind-test-tools.js';
 import { addSectionTest } from './tools/add-section.js';
 import { isEqualTest } from './tools/is-equal.js';
+import { renderPlainTest } from './tools/render-plain.js';
 
 highlightTest();
 renderableFromTest();
@@ -28,3 +29,4 @@ suiteTest();
 bindTestToolsTest(bindTestTools);
 addSectionTest(addSection, Suite);
 isEqualTest(isEqual, Renderable, Suite);
+renderPlainTest(renderPlain, Renderable, Suite);

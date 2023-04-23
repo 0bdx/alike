@@ -59,8 +59,6 @@ export default class Renderable {
      *    The JavaScript value which needs rendering.
      * @returns {Renderable}
      *    A `Renderable` instance, ready for rendering.
-     * @throws
-     *    Throws an `Error` if the `this` context is invalid.
      */
     static from(value) {
         const { highlights, text } = renderableFrom(value);
@@ -72,8 +70,7 @@ export default class Renderable {
 
 /* ---------------------------------- Tests --------------------------------- */
 
-/**
- * ### `Renderable` unit tests.
+/** ### `Renderable` unit tests.
  * 
  * @returns {void}
  *    Does not return anything.

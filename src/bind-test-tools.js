@@ -11,12 +11,12 @@ import { Suite } from "./classes/index.js";
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindTestTools, { addSection, isEqual, renderAnsi }
+ * import bindTestTools, { addSection, isEqual, renderPlain }
  *     from '@0bdx/test-tools';
  *
  * // Give the test suite a title, and bind some functions to it.
  * const [ section,    isEq,    render ] = bindTestTools('Mathsy Test Suite',
- *         addSection, isEqual, renderAnsi);
+ *         addSection, isEqual, renderPlain);
  *
  * // Optionally, begin a new addSection.
  * section('Check that factorialise() works');
@@ -26,7 +26,7 @@ import { Suite } from "./classes/index.js";
  * isEq(factorialise(5), 120,
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
- * // Output the test results to the console, using ANSI colours.
+ * // Output the test results to the console, as plain text.
  * console.log(render());
  *
  * function factorialise(n) {
@@ -69,8 +69,7 @@ export default function bindTestTools(titleOrSuite, ...tools) {
 
 /* ---------------------------------- Test ---------------------------------- */
 
-/**
- * ### `bindTestTools()` unit tests.
+/** ### `bindTestTools()` unit tests.
  * 
  * @param {bindTestTools} f
  *    The `bindTestTools()` function to test.

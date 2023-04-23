@@ -19,12 +19,12 @@ You can run __Example 1,__ for example, using:
 ### Example 1
 
 ```js
-import bindTestTools, { addSection, isEqual, renderAnsi }
+import bindTestTools, { addSection, isEqual, renderPlain }
     from '@0bdx/test-tools';
 
 // Give the test suite a title, and bind some functions to it.
 const [ section,    isEq,    render ] = bindTestTools('Mathsy Test Suite',
-        addSection, isEqual, renderAnsi);
+        addSection, isEqual, renderPlain);
 
 // Optionally, begin a new section by calling `addSection()`.
 section('Check that factorialise() works');
@@ -34,7 +34,7 @@ isEq(factorialise(0), 1);
 isEq(factorialise(5), 120,
     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
 
-// Output the test results to the console, using ANSI colours.
+// Output the test results to the console, as plain text.
 console.log(render());
 
 function factorialise(n) {

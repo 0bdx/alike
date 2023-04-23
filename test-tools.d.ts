@@ -13,8 +13,6 @@ export class Renderable {
      *    The JavaScript value which needs rendering.
      * @returns {Renderable}
      *    A `Renderable` instance, ready for rendering.
-     * @throws
-     *    Throws an `Error` if the `this` context is invalid.
      */
     static from(value: any): Renderable;
     /** ### Creates a `Renderable` instance from the supplied arguments.
@@ -143,12 +141,12 @@ export function addSection(subtitle: string): void;
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindTestTools, { addSection, isEqual, renderAnsi }
+ * import bindTestTools, { addSection, isEqual, renderPlain }
  *     from '@0bdx/test-tools';
  *
  * // Give the test suite a title, and bind some functions to it.
  * const [ section,    isEq,    render ] = bindTestTools('Mathsy Test Suite',
- *         addSection, isEqual, renderAnsi);
+ *         addSection, isEqual, renderPlain);
  *
  * // Optionally, begin a new addSection.
  * section('Check that factorialise() works');
@@ -158,7 +156,7 @@ export function addSection(subtitle: string): void;
  * isEq(factorialise(5), 120,
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
- * // Output the test results to the console, using ANSI colours.
+ * // Output the test results to the console, as plain text.
  * console.log(render());
  *
  * function factorialise(n) {
@@ -177,7 +175,9 @@ export function addSection(subtitle: string): void;
  *    Throws an `Error` if any of the arguments are invalid.
  */
 declare function bindTestTools(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
-/** ### Adds a new section to the test suite.
+/** ### Uses deep-equal to compare two values.
+ *
+ * @TODO describe with examples
  *
  * @param {any} actually
  *    The value that the test actually got.
@@ -194,6 +194,15 @@ declare function bindTestTools(titleOrSuite: string | Suite, ...tools: Function[
  *    Throws an `Error` if `summary` or the `this` context are invalid.
  */
 export function isEqual(actually: any, expected: any, summary?: string): void;
+/** ### Renders a test suite without colours or typographic styling.
+ *
+ * @TODO describe with examples
+ *
+ * @returns {string}
+ *    Returns the test suite's title, followed by a summary of the test results.
+ * @throws
+ *    Throws an `Error` if the `this` context is invalid.
+ */
 export function renderPlain(): string;
 /** ### A single 'stroke of the highlighter pen' when rendering JS values.
  *

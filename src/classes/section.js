@@ -56,8 +56,7 @@ export default class Section {
 
 /* ---------------------------------- Tests --------------------------------- */
 
-/**
- * ### `Section` unit tests.
+/** ### `Section` unit tests.
  * 
  * @returns {void}
  *    Does not return anything.

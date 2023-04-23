@@ -74,8 +74,7 @@ export default class Highlight {
 
 /* ---------------------------------- Tests --------------------------------- */
 
-/**
- * ### `Highlight` unit tests.
+/** ### `Highlight` unit tests.
  * 
  * @returns {void}
  *    Does not return anything.

@@ -47,8 +47,7 @@ export default function renderableFrom(value) {
 
 /* ---------------------------------- Test ---------------------------------- */
 
-/**
- * ### `renderableFrom()` unit tests.
+/** ### `renderableFrom()` unit tests.
  * 
  * @returns {void}
  *    Does not return anything.

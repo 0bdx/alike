@@ -1,7 +1,9 @@
 import { aintaObject } from '@0bdx/ainta';
 import { Renderable, Suite } from "../classes/index.js";
 
-/** ### Adds a new section to the test suite.
+/** ### Uses deep-equal to compare two values.
+ * 
+ * @TODO describe with examples
  *
  * @param {any} actually
  *    The value that the test actually got.
@@ -40,15 +42,14 @@ export default function isEqual(actually, expected, summary) {
 
 /* ---------------------------------- Test ---------------------------------- */
 
-/**
- * ### `isEqual()` unit tests.
+/** ### `isEqual()` unit tests.
  * 
  * @param {isEqual} f
  *    The `isEqual()` function to test.
  * @param {typeof Renderable} R
- *    The `Renderable` class, because test-tools.js objects are not src/ objects.
+ *    The `Renderable` class, because `Renderable` in test-tools.js !== in src/.
  * @param {typeof Suite} S
- *    The `Suite` class, because test-tools.js objects are not src/ objects.
+ *    The `Suite` class, because `Suite` in test-tools.js !== `Suite` in src/.
  * @returns {void}
  *    Does not return anything.
  * @throws
@@ -67,14 +68,14 @@ export function isEqualTest(f, R, S) {
     const toStr = value => JSON.stringify(value, null, '  ');
     const toLines = (...lines) => lines.join('\n');
 
-    // `addResult()` should be bound to a `Suite` instance.
+    // `isEqual()` should be bound to a `Suite` instance.
     throws(()=>f(),
         "isEqual(): `suite` is type 'undefined' not 'object'");
     const badlyBound = f.bind({});
     throws(()=>badlyBound(),
         "isEqual(): `suite` is not in `options.is` 'Suite'");
 
-    // When bound bound to a `Suite` instance, `isEqual()` adds a result.
+    // When bound bound to a `Suite` instance, `isEqual()` should add a result.
     const suite = new S('Test Suite');
     /** @type f */
     const bound = f.bind(suite);
