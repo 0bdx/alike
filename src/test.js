@@ -9,12 +9,12 @@ import {
     suiteTest,
 } from './classes/index.js';
 
-import bindTestTools, {
+import bindAlikeTools, {
     addSection,
     isEqual,
     renderPlain,
 } from './index.js';
-import { bindTestToolsTest } from './bind-test-tools.js';
+import { bindAlikeToolsTest } from './bind-alike-tools.js';
 import { addSectionTest } from './tools/add-section.js';
 import { isEqualTest } from './tools/is-equal.js';
 import { renderPlainTest } from './tools/render-plain.js';
@@ -26,7 +26,7 @@ resultTest();
 sectionTest();
 suiteTest();
 
-bindTestToolsTest(bindTestTools);
+bindAlikeToolsTest(bindAlikeTools);
 addSectionTest(addSection, Suite);
 isEqualTest(isEqual, Renderable, Suite);
 renderPlainTest(renderPlain, Renderable, Suite);

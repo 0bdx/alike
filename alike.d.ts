@@ -143,11 +143,11 @@ export function addSection(subtitle: string): void;
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindTestTools, { addSection, isEqual, renderPlain }
- *     from '@0bdx/test-tools';
+ * import bindAlikeTools, { addSection, isEqual, renderPlain }
+ *     from '@0bdx/alike';
  *
  * // Give the test suite a title, and bind some functions to it.
- * const [ section,    isEq,    render ] = bindTestTools('Mathsy Test Suite',
+ * const [ section,    isEq,    render ] = bindAlikeTools('Mathsy Test Suite',
  *         addSection, isEqual, renderPlain);
  *
  * // Optionally, begin a new addSection.
@@ -176,7 +176,7 @@ export function addSection(subtitle: string): void;
  * @throws
  *    Throws an `Error` if any of the arguments are invalid.
  */
-declare function bindTestTools(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
+declare function bindAlikeTools(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
 /** ### Uses deep-equal to compare two values.
  *
  * @TODO describe with examples
@@ -317,4 +317,4 @@ declare class Section {
      * - An empty string `""` means that a default should be used */
     subtitle: string;
 }
-export { bindTestTools as default };
+export { bindAlikeTools as default };

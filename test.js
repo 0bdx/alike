@@ -1,16 +1,16 @@
-import bindTestTools, {
+import bindAlikeTools, {
     addSection,
     isEqual,
     Renderable,
     renderPlain,
     Suite,
-} from './test-tools.js';
-import { bindTestToolsTest } from './src/bind-test-tools.js';
+} from './alike.js';
+import { bindAlikeToolsTest } from './src/bind-alike-tools.js';
 import { addSectionTest } from './src/tools/add-section.js';
 import { isEqualTest } from './src/tools/is-equal.js';
 import { renderPlainTest } from './src/tools/render-plain.js';
 
-bindTestToolsTest(bindTestTools);
+bindAlikeToolsTest(bindAlikeTools);
 addSectionTest(addSection, Suite);
 isEqualTest(isEqual, Renderable, Suite);
 renderPlainTest(renderPlain, Renderable, Suite);

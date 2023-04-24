@@ -6,8 +6,8 @@
  *
  * This file is not related to the "build:types" and "preflight:types" scripts
  * in package.json:
- * - "build:types" generates the test-tools.d.ts type declaration
- * - "preflight:types" checks that test-tools.js uses all types correctly
+ * - "build:types" generates the alike.d.ts type declaration
+ * - "preflight:types" checks that alike.js uses all types correctly
  */
 {
     "compilerOptions": {

@@ -11,11 +11,11 @@ import { Suite } from "./classes/index.js";
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindTestTools, { addSection, isEqual, renderPlain }
- *     from '@0bdx/test-tools';
+ * import bindAlikeTools, { addSection, isEqual, renderPlain }
+ *     from '@0bdx/alike';
  *
  * // Give the test suite a title, and bind some functions to it.
- * const [ section,    isEq,    render ] = bindTestTools('Mathsy Test Suite',
+ * const [ section,    isEq,    render ] = bindAlikeTools('Mathsy Test Suite',
  *         addSection, isEqual, renderPlain);
  *
  * // Optionally, begin a new addSection.
@@ -44,8 +44,8 @@ import { Suite } from "./classes/index.js";
  * @throws
  *    Throws an `Error` if any of the arguments are invalid.
  */
-export default function bindTestTools(titleOrSuite, ...tools) {
-    const begin = 'bindTestTools():';
+export default function bindAlikeTools(titleOrSuite, ...tools) {
+    const begin = 'bindAlikeTools():';
 
     // Validate the arguments.
     const [ aResults, aArr, aObj, aStr ] = narrowAintas({ begin },
@@ -69,16 +69,16 @@ export default function bindTestTools(titleOrSuite, ...tools) {
 
 /* ---------------------------------- Test ---------------------------------- */
 
-/** ### `bindTestTools()` unit tests.
+/** ### `bindAlikeTools()` unit tests.
  * 
- * @param {bindTestTools} f
- *    The `bindTestTools()` function to test.
+ * @param {bindAlikeTools} f
+ *    The `bindAlikeTools()` function to test.
  * @returns {void}
  *    Does not return anything.
  * @throws
  *    Throws an `Error` if a test fails.
  */
-export function bindTestToolsTest(f) {
+export function bindAlikeToolsTest(f) {
     const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
@@ -92,11 +92,11 @@ export function bindTestToolsTest(f) {
     // The `titleOrSuite` argument should be one of the correct types.
     // @ts-expect-error
     throws(()=>f(),
-        "bindTestTools():: `titleOrSuite` is type 'undefined' not 'string'\n" +
-        "bindTestTools():: `titleOrSuite` is type 'undefined' not 'object'");
+        "bindAlikeTools():: `titleOrSuite` is type 'undefined' not 'string'\n" +
+        "bindAlikeTools():: `titleOrSuite` is type 'undefined' not 'object'");
     throws(()=>f(null),
-        "bindTestTools():: `titleOrSuite` is null not type 'string'\n" +
-        "bindTestTools():: `titleOrSuite` is null not a regular object");
+        "bindAlikeTools():: `titleOrSuite` is null not type 'string'\n" +
+        "bindAlikeTools():: `titleOrSuite` is null not a regular object");
 
     // If the `titleOrSuite` argument is a string, it should be a valid title.
     throws(()=>f('Café'),
@@ -105,12 +105,12 @@ export function bindTestToolsTest(f) {
     // If the `titleOrSuite` argument is an object, it should be a `Suite` instance.
     // @ts-expect-error
     throws(()=>f({}),
-        "bindTestTools():: `titleOrSuite` is type 'object' not 'string'\n" +
-        "bindTestTools():: `titleOrSuite` is not in `options.is` 'Suite'");
+        "bindAlikeTools():: `titleOrSuite` is type 'object' not 'string'\n" +
+        "bindAlikeTools():: `titleOrSuite` is not in `options.is` 'Suite'");
 
     // The `tools` arguments should all be functions.
     // @ts-expect-error
     throws(()=>f('', ()=>{}, 123),
-        "bindTestTools():: `tools[1]` is type 'number', not the `options.types` 'function'");
+        "bindAlikeTools():: `tools[1]` is type 'number', not the `options.types` 'function'");
 
 }

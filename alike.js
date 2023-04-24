@@ -1,5 +1,5 @@
 /**
- * https://www.npmjs.com/package/@0bdx/test-tools
+ * https://www.npmjs.com/package/@0bdx/alike
  * @version 0.0.1
  * @license Copyright (c) 2023 0bdx <0@0bdx.com> (0bdx.com)
  * SPDX-License-Identifier: MIT
@@ -521,11 +521,11 @@ class Suite {
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindTestTools, { addSection, isEqual, renderPlain }
- *     from '@0bdx/test-tools';
+ * import bindAlikeTools, { addSection, isEqual, renderPlain }
+ *     from '@0bdx/alike';
  *
  * // Give the test suite a title, and bind some functions to it.
- * const [ section,    isEq,    render ] = bindTestTools('Mathsy Test Suite',
+ * const [ section,    isEq,    render ] = bindAlikeTools('Mathsy Test Suite',
  *         addSection, isEqual, renderPlain);
  *
  * // Optionally, begin a new addSection.
@@ -554,8 +554,8 @@ class Suite {
  * @throws
  *    Throws an `Error` if any of the arguments are invalid.
  */
-function bindTestTools(titleOrSuite, ...tools) {
-    const begin = 'bindTestTools():';
+function bindAlikeTools(titleOrSuite, ...tools) {
+    const begin = 'bindAlikeTools():';
 
     // Validate the arguments.
     const [ aResults, aArr, aObj, aStr ] = narrowAintas({ begin },
@@ -690,4 +690,4 @@ function renderPlain() {
     }\n`;
 }
 
-export { Renderable, Suite, addSection, bindTestTools as default, isEqual, renderPlain };
+export { Renderable, Suite, addSection, bindAlikeTools as default, isEqual, renderPlain };

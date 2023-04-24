@@ -1,8 +1,8 @@
-import bindTestTools, { addSection, isEqual, renderPlain }
-    from '../test-tools.js';
+import bindAlikeTools, { addSection, isEqual, renderPlain }
+    from '../alike.js';
 
 // Give the test suite a title, and bind some functions to it.
-const [ section,    isEq,    render ] = bindTestTools('Mathsy Test Suite',
+const [ section,    isEq,    render ] = bindAlikeTools('Mathsy Test Suite',
         addSection, isEqual, renderPlain);
 
 // Optionally, begin a new `addSection`.

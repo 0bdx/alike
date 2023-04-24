@@ -32,7 +32,7 @@ export default function addSection(subtitle) {
  * @param {addSection} f
  *    The `addSection()` function to test.
  * @param {typeof Suite} S
- *    The `Suite` class, because `Suite` in test-tools.js !== `Suite` in src/.
+ *    The `Suite` class, because `Suite` in alike.js !== `Suite` in src/.
  * @returns {void}
  *    Does not return anything.
  * @throws

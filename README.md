@@ -1,11 +1,11 @@
-# @0bdx/test-tools
+# @0bdx/alike
 
 __Utilities for unit testing 0bdx apps, libraries and websites.__
 
 ⨂ __Version:__ 0.0.1  
-⨂ __NPM:__ <https://www.npmjs.com/package/@0bdx/test-tools>  
-⨂ __Repo:__ <https://github.com/0bdx/test-tools>  
-⨂ __Homepage:__ <https://0bdx.com/test-tools>
+⨂ __NPM:__ <https://www.npmjs.com/package/@0bdx/alike>  
+⨂ __Repo:__ <https://github.com/0bdx/alike>  
+⨂ __Homepage:__ <https://0bdx.com/alike>
 
 @TODO add an overview
 
@@ -19,11 +19,11 @@ You can run __Example 1,__ for example, using:
 ### Example 1
 
 ```js
-import bindTestTools, { addSection, isEqual, renderPlain }
-    from '@0bdx/test-tools';
+import bindAlikeTools, { addSection, isEqual, renderPlain }
+    from '@0bdx/alike';
 
 // Give the test suite a title, and bind some functions to it.
-const [ section,    isEq,    render ] = bindTestTools('Mathsy Test Suite',
+const [ section,    isEq,    render ] = bindAlikeTools('Mathsy Test Suite',
         addSection, isEqual, renderPlain);
 
 // Optionally, begin a new section by calling `addSection()`.

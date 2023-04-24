@@ -54,9 +54,9 @@ export default function renderPlain() {
  * @param {renderPlain} f
  *    The `renderPlain()` function to test.
  * @param {typeof Renderable} R
- *    The `Renderable` class, because `Renderable` in test-tools.js !== in src/.
+ *    The `Renderable` class, because `Renderable` in alike.js !== in src/.
  * @param {typeof Suite} S
- *    The `Suite` class, because `Suite` in test-tools.js !== `Suite` in src/.
+ *    The `Suite` class, because `Suite` in alike.js !== `Suite` in src/.
  * @returns {void}
  *    Does not return anything.
  * @throws

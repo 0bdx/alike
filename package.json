@@ -1,28 +1,28 @@
 {
-  "name": "@0bdx/test-tools",
+  "name": "@0bdx/alike",
   "version": "0.0.1",
   "description": "Utilities for unit testing 0bdx apps, libraries and websites.",
   "type": "module",
   "files": [
-    "test-tools.d.ts",
-    "test-tools.js"
+    "alike.d.ts",
+    "alike.js"
   ],
   "engines": {
     "node": ">= 14.0.0"
   },
-  "main": "test-tools.js",
+  "main": "alike.js",
   "scripts": {
     "build:prod": "rollup -c",
-    "build:types": "tsc test-tools.js --allowJs --declaration --emitDeclarationOnly",
+    "build:types": "tsc alike.js --allowJs --declaration --emitDeclarationOnly",
     "build": "for s in {prod,types};do npm run build:$s;done",
     "preflight:test": "echo \"🧬 test.js\" && node test.js",
-    "preflight:types": "tsc test-tools.js --allowJs --checkJs --noEmit --moduleResolution nodenext --target es2020",
+    "preflight:types": "tsc alike.js --allowJs --checkJs --noEmit --moduleResolution nodenext --target es2020",
     "preflight": "for s in {test,types};do npm run preflight:$s;done",
     "test": "echo \"🧪 src/test.js\" && node src/test.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/0bdx/test-tools.git"
+    "url": "git+https://github.com/0bdx/alike.git"
   },
   "keywords": [
     "assert",
@@ -32,11 +32,11 @@
   ],
   "author": "0bdx <0@0bdx.com> (0bdx.com)",
   "license": "MIT",
-  "types": "./test-tools.d.ts",
+  "types": "./alike.d.ts",
   "bugs": {
-    "url": "https://github.com/0bdx/test-tools/issues"
+    "url": "https://github.com/0bdx/alike/issues"
   },
-  "homepage": "https://github.com/0bdx/test-tools#readme",
+  "homepage": "https://github.com/0bdx/alike#readme",
   "devDependencies": {
     "@0bdx/build-helpers": "^0.0.4",
     "rollup": "^3.15.0"
