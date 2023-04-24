@@ -1,4 +1,4 @@
-import { aintaObject } from '@0bdx/ainta';
+import { aintaArray, aintaObject } from '@0bdx/ainta';
 import { Renderable, Suite } from "../classes/index.js";
 
 /** ### Uses deep-equal to compare two values.
@@ -9,17 +9,16 @@ import { Renderable, Suite } from "../classes/index.js";
  *    The value that the test actually got.
  * @param {any} expected
  *    The value that the test expected.
- * @param {string} [summary]
- *    An optional description of the test.
- *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
- *    - An empty string `""` means that no summary should be shown
- *    - A default `summary` will be generated if none is supplied
+ * @param {string[]} [notes]
+ *    An optional description of the test, as an array of strings.
+ *    - 0 to 100 items, where each item is a line
+ *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
  * @returns {void}
  *    Does not return anything.
  * @throws
- *    Throws an `Error` if `summary` or the `this` context are invalid.
+ *    Throws an `Error` if `notes` or the `this` context are invalid.
  */
-export default function isEqual(actually, expected, summary) {
+export default function isEqual(actually, expected, notes) {
     const begin = 'isEqual()';
 
     // Check that this function has been bound to a `Suite` instance.
@@ -27,15 +26,24 @@ export default function isEqual(actually, expected, summary) {
     const aSuite = aintaObject(this, 'suite', { begin, is:[Suite], open:true });
     if (aSuite) throw Error(aSuite);
 
+    // Check that the optional `notes` argument is an array of some kind.
+    // `addResult()` will run more stringent checks on `notes`.
+    if (typeof notes !== 'undefined') {
+        const aNotes = aintaArray(notes, 'notes', { begin });
+        if (aNotes) throw Error(aNotes);
+    }
+
+    // @TODO describe
+    const generated = [ 'actual:', '{{actually}}', '!== expected:', '{{expected}}' ];
+    const notesCombined = notes ? [ ...notes, ...generated ] : generated;
+
     // The brackets around `this` make JSDoc see `(this)` as a `Suite` instance.
     /** @type Suite */
     (this).addResult(
         Renderable.from(actually),
         Renderable.from(expected),
+        notesCombined,
         actually === expected ? 'PASS' : 'FAIL',
-        summary === void 0
-            ? 'actual:\n{{actually}}\n!== expected:\n{{expected}}'
-            : summary
     );
 }
 
@@ -100,29 +108,34 @@ export function isEqualTest(f, R, S) {
         highlightsUndefined,
         `    "text": "undefined"`,
         `  },`,
+        `  "notes": "actual:\\n{{actually}}\\n!== expected:\\n{{expected}}",`,
         `  "sectionIndex": 0,`,
-        `  "status": "PASS",`,
-        `  "summary": "actual:\\n{{actually}}\\n!== expected:\\n{{expected}}"`,
+        `  "status": "PASS"`,
         `}`
     ));
 
-    // `summary` should be 0 to 64 printable ASCII characters plus newlines, but
+    // `notes` should be 0 to 64 printable ASCII characters plus newlines, but
     // not backslashes.
     // @ts-expect-error
-    throws(()=>bound(1,2,[]),
-        "new Result(): `summary` is an array not type 'string'");
-    throws(()=>bound(1,2,'12345678'.repeat(8) + '9'),
-        "new Result(): `summary` '123456781234567812345...23456789' is not max 64");
-    throws(()=>bound(1,2,'\\'),
-        "new Result(): `summary` '%5C' fails 'Printable ASCII characters plus newlines, but not backslashes'");
-    throws(()=>bound(1,2,'Café'),
-        "new Result(): `summary` 'Caf%C3%A9' fails 'Printable ASCII characters plus newlines, but not backslashes'");
+    throws(()=>bound(1,2,''),
+        "isEqual(): `notes` is type 'string' not an array");
+    throws(()=>bound(1,2,['1234567890'.repeat(12),'','1234567890'.repeat(12) + '1']),
+        "new Result(): `notes[2]` '123456789012345678901...45678901' is not max 120");
+    throws(()=>bound(1,2,['\\']),
+        "new Result(): `notes[0]` '%5C' fails 'Printable ASCII characters except backslashes'");
+    throws(()=>bound(1,2,['\n']),
+        "new Result(): `notes[0]` '%0A' fails 'Printable ASCII characters except backslashes'");
+    throws(()=>bound(1,2,['Ok','Café']),
+        "new Result(): `notes[1]` 'Caf%C3%A9' fails 'Printable ASCII characters except backslashes'");
 
-    // 64 printable ASCII characters plus newlines, but not backslashes, is a
+    // 64 printable ASCII characters except backslashes, is a
     // valid `summary`, and so is an empty string.
-    equal(bound(null,void 0,'\n !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_'), void 0);
-    equal(bound(3,3,'>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~'), void 0);
-    equal(bound('true',true,''), void 0);
+    const longestValidLine =
+        ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[' +
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZ]^_`abcdefghijklmnopqrstuvwxyz{|}~'
+    equal(bound(null,void 0,[]), void 0);
+    equal(bound(3,3,[longestValidLine]), void 0);
+    equal(bound('true',true), void 0);
     equal(suite.resultsAndSections.length, 4);
     equal(toStr(suite.resultsAndSections[1]), toLines(
         `{`,
@@ -146,9 +159,9 @@ export function isEqualTest(f, R, S) {
         `    ],`,
         `    "text": "undefined"`,
         `  },`,
+        `  "notes": "actual:\\n{{actually}}\\n!== expected:\\n{{expected}}",`,
         `  "sectionIndex": 0,`,
-        `  "status": "FAIL",`,
-        `  "summary": "\\n !\\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_"`,
+        `  "status": "FAIL"`,
         `}`
     ));
     equal(toStr(suite.resultsAndSections[2]), toLines(
@@ -173,9 +186,10 @@ export function isEqualTest(f, R, S) {
         `    ],`,
         `    "text": "3"`,
         `  },`,
+        `  "notes": " !\\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[ABCDEFGHIJKLMNOPQRSTUVWXYZ` +
+            `]^_\`abcdefghijklmnopqrstuvwxyz{|}~\\nactual:\\n{{actually}}\\n!== expected:\\n{{expected}}",`,
         `  "sectionIndex": 0,`,
-        `  "status": "PASS",`,
-        `  "summary": ">?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_\`abcdefghijklmnopqrstuvwxyz{|}~"`,
+        `  "status": "PASS"`,
         `}`
     ));
     equal(toStr(suite.resultsAndSections[3]), toLines(
@@ -200,9 +214,9 @@ export function isEqualTest(f, R, S) {
         `    ],`,
         `    "text": "true"`,
         `  },`,
+        `  "notes": "actual:\\n{{actually}}\\n!== expected:\\n{{expected}}",`,
         `  "sectionIndex": 0,`,
-        `  "status": "FAIL",`,
-        `  "summary": ""`,
+        `  "status": "FAIL"`,
         `}`
     ));
 

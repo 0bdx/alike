@@ -93,21 +93,21 @@ export function renderPlainTest(f, R, S) {
     equal(bound(), `${header}No tests were run.\n`);
 
     // With one, two or three 'PASS' results, the summary wording should be a little different.
-    suite.addResult(R.from(1), R.from(1), 'PASS', '1 is 1');
+    suite.addResult(R.from(1), R.from(1), ['1 is 1'], 'PASS');
     equal(bound(), `${header}The test passed.\n`);
-    suite.addResult(R.from('A'), R.from('A'), 'PASS', '"A" is "A"');
+    suite.addResult(R.from('A'), R.from('A'), ['"A" is "A"'], 'PASS');
     equal(bound(), `${header}Both tests passed.\n`);
-    suite.addResult(R.from(true), R.from(true), 'PASS', 'true is true');
+    suite.addResult(R.from(true), R.from(true), ['true is true'], 'PASS');
     equal(bound(), `${header}All 3 tests passed.\n`);
 
     // With a 'FAIL' result @TODO
-    suite.addResult(R.from(true), R.from(false), 'FAIL', 'true is not false');
+    suite.addResult(R.from(true), R.from(false), ['true is not false'], 'FAIL');
     equal(bound(), `${header}@TODO fails\n`);
 
     // With one or two 'PENDING' results, the summary wording should be a little different.
-    suite.addResult(R.from(new Promise(()=>{})), R.from(2), 'PENDING', 'will be 2?');
+    suite.addResult(R.from(new Promise(()=>{})), R.from(2), ['will be 2?'], 'PENDING');
     equal(bound(), `${header}1 test still pending.\n`);
-    suite.addResult(R.from(new Promise(()=>{})), R.from('B'), 'PENDING', 'will be "B"?');
+    suite.addResult(R.from(new Promise(()=>{})), R.from('B'), ['will be "B"?'], 'PENDING');
     equal(bound(), `${header}2 tests still pending.\n`);
 
 }

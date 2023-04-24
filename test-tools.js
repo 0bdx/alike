@@ -186,9 +186,9 @@ class Renderable {
 
 }
 
-// Define a regular expression for validating `summary`.
-const summaryRx = /^[\n -\[\]-~]*$/;
-summaryRx.toString = () => "'Printable ASCII characters plus newlines, but not backslashes'";
+// Define a regular expression for validating each item in `notes`.
+const noteRx = /^[ -\[\]-~]*$/;
+noteRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 // Define an enum for validating `status`.
 const validStatus = [ 'FAIL', 'PASS', 'PENDING', 'UNEXPECTED_EXCEPTION' ];
@@ -209,6 +209,12 @@ class Result {
     /** A representation of the value that the test expected, ready to render. */
     expected;
 
+    /** A description of the test, as a single string of newline-delimited lines.
+     * - 0 to 100 newline-delimited lines
+     * - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     * - An empty array `[]` means that no notes have been supplied */
+    notes;
+
     /** The index of the `Section` that the test belongs to. Zero if it should
      * be rendered before the first section, or if there are no sections. */
     sectionIndex;
@@ -220,11 +226,6 @@ class Result {
      * - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception */
     status;
 
-    /** A description of the test.
-     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     * - An empty string `""` means that no summary has been supplied */
-    summary;
-
     /** ### Creates a `Result` instance from the supplied arguments.
      * 
      * @param {Renderable} actually
@@ -232,6 +233,11 @@ class Result {
      *    render. This could be the representation of an unexpected exception.
      * @param {Renderable} expected
      *    A representation of the value that the test expected, ready to render.
+     * @param {string[]} notes
+     *    A description of the test, as an array of strings.
+     *    - 0 to 100 items, where each item is a line
+     *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     *    - An empty array `[]` means that no notes have been supplied
      * @param {number} sectionIndex
      *    The index of the `Section` that the test belongs to. Zero if it should
      *    be rendered before the first section, or if there are no sections.
@@ -241,39 +247,35 @@ class Result {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @param {string} summary
-     *    A description of the test.
-     *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     *    - An empty string `""` means that no summary has been supplied
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(
         actually,
         expected,
+        notes,
         sectionIndex,
         status,
-        summary,
     ) {
         const begin = 'new Result()';
 
         // Validate each argument.
-        const [ aResults, aObj, aNum, aStr ] =
-            narrowAintas({ begin }, aintaObject, aintaNumber, aintaString);
+        const [ aResults, aArr, aObj, aNum, aStr ] = narrowAintas({ begin },
+            aintaArray, aintaObject, aintaNumber, aintaString);
         aObj(actually, 'actually', { is:[Renderable], open:true });
         aObj(expected, 'expected', { is:[Renderable], open:true });
+        aArr(notes, 'notes', { most:100, max:120, pass:true, rx:noteRx, types:['string'] });
         aNum(sectionIndex, 'sectionIndex', {
             gte:0, lte:Number.MAX_SAFE_INTEGER, mod:1 });
         aStr(status, 'status', { is:validStatus });
-        aStr(summary, 'summary', { min:0, max:64, rx:summaryRx });
         if (aResults.length) throw Error(aResults.join('\n'));
 
         // Store the validated arguments as properties.
         this.actually = actually;
         this.expected = expected;
+        this.notes = notes.join('\n');
         this.sectionIndex = sectionIndex;
         this.status = status;
-        this.summary = summary;
 
         // Prevent this instance from being modified.
         Object.freeze(this);
@@ -435,32 +437,34 @@ class Suite {
      *    render. This could be the representation of an unexpected exception.
      * @param {Renderable} expected
      *    A representation of the value that the test expected, ready to render.
+     * @param {string[]} notes
+     *    A description of the test, as an array of strings.
+     *    - 0 to 100 items, where each item is a line
+     *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     *    - An empty array `[]` means that no notes have been supplied
      * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
      *    A string (effectively an enum) which can be one of four values:
      *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @param {string} summary
-     *    A description of the test.
-     *    - An empty string `""` means that no summary has been supplied
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
     addResult(
         actually,
         expected,
+        notes,
         status,
-        summary,        
     ) {
         // Try to instantiate a new `Result`. We want to throw an `Error` if any
-        // of the arguments are not valid, before incrementing a tally.
+        // of the arguments are invalid, before incrementing a tally.
         const result = new Result(
             actually,
             expected,
+            notes,
             this.#currentSectionIndex, // sectionIndex
             status,
-            summary,        
         );
 
         // Update one of the three tallies.
@@ -603,17 +607,16 @@ function addSection(subtitle) {
  *    The value that the test actually got.
  * @param {any} expected
  *    The value that the test expected.
- * @param {string} [summary]
- *    An optional description of the test.
- *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
- *    - An empty string `""` means that no summary should be shown
- *    - A default `summary` will be generated if none is supplied
+ * @param {string[]} [notes]
+ *    An optional description of the test, as an array of strings.
+ *    - 0 to 100 items, where each item is a line
+ *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
  * @returns {void}
  *    Does not return anything.
  * @throws
- *    Throws an `Error` if `summary` or the `this` context are invalid.
+ *    Throws an `Error` if `notes` or the `this` context are invalid.
  */
-function isEqual(actually, expected, summary) {
+function isEqual(actually, expected, notes) {
     const begin = 'isEqual()';
 
     // Check that this function has been bound to a `Suite` instance.
@@ -621,15 +624,24 @@ function isEqual(actually, expected, summary) {
     const aSuite = aintaObject(this, 'suite', { begin, is:[Suite], open:true });
     if (aSuite) throw Error(aSuite);
 
+    // Check that the optional `notes` argument is an array of some kind.
+    // `addResult()` will run more stringent checks on `notes`.
+    if (typeof notes !== 'undefined') {
+        const aNotes = aintaArray(notes, 'notes', { begin });
+        if (aNotes) throw Error(aNotes);
+    }
+
+    // @TODO describe
+    const generated = [ 'actual:', '{{actually}}', '!== expected:', '{{expected}}' ];
+    const notesCombined = notes ? [ ...notes, ...generated ] : generated;
+
     // The brackets around `this` make JSDoc see `(this)` as a `Suite` instance.
     /** @type Suite */
     (this).addResult(
         Renderable.from(actually),
         Renderable.from(expected),
+        notesCombined,
         actually === expected ? 'PASS' : 'FAIL',
-        summary === void 0
-            ? 'actual:\n{{actually}}\n!== expected:\n{{expected}}'
-            : summary
     );
 }
 

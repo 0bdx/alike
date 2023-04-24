@@ -105,32 +105,34 @@ export default class Suite {
      *    render. This could be the representation of an unexpected exception.
      * @param {Renderable} expected
      *    A representation of the value that the test expected, ready to render.
+     * @param {string[]} notes
+     *    A description of the test, as an array of strings.
+     *    - 0 to 100 items, where each item is a line
+     *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     *    - An empty array `[]` means that no notes have been supplied
      * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
      *    A string (effectively an enum) which can be one of four values:
      *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @param {string} summary
-     *    A description of the test.
-     *    - An empty string `""` means that no summary has been supplied
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
     addResult(
         actually,
         expected,
+        notes,
         status,
-        summary,        
     ) {
         // Try to instantiate a new `Result`. We want to throw an `Error` if any
-        // of the arguments are not valid, before incrementing a tally.
+        // of the arguments are invalid, before incrementing a tally.
         const result = new Result(
             actually,
             expected,
+            notes,
             this.#currentSectionIndex, // sectionIndex
             status,
-            summary,        
         );
 
         // Update one of the three tallies.
@@ -188,7 +190,7 @@ export default class Suite {
  *    Throws an `Error` if a test fails.
  */
 export function suiteTest() {
-    const e2l = e => (e.stack.split('\n')[1].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
+    const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
             `!== expected:\n${expected}\n...at ${e2l(err)}\n`) } };
@@ -344,15 +346,15 @@ export function suiteTest() {
     throws(()=>usual.addResult(1, true, null),
         "new Result(): `actually` is type 'number' not 'object'\n" +
         "new Result(): `expected` is type 'boolean' not 'object'\n" +
-        "new Result(): `status` is null not type 'string'\n" +
-        "new Result(): `summary` is type 'undefined' not 'string'");
+        "new Result(): `notes` is null not an array\n" +
+        "new Result(): `status` is type 'undefined' not 'string'");
 
     // `addResult()` should add a result to `resultsAndSections`, and increment
     // the correct tally.
     equal(usual.resultsAndSections.length, 0);
     equal(usual.passTally, 0);
     const renUsual = new Renderable([ new Highlight('BOOLNUM', 6, 11) ], '{ ok:"Café" }');
-    equal(usual.addResult(renUsual, renUsual, 'PASS', 'The Cafe is still ok.'), void 0);
+    equal(usual.addResult(renUsual, renUsual, ['The Cafe is','still ok.'], 'PASS'), void 0);
     equal(usual.resultsAndSections.length, 1);
     equal(usual.passTally, 1);
     equal(toStr(usual.resultsAndSections[0]),
@@ -377,9 +379,9 @@ export function suiteTest() {
         `    ],\n` +
         `    "text": "{ ok:\\"Café\\" }"\n` +
         `  },\n` +
+        `  "notes": "The Cafe is\\nstill ok.",\n` +
         `  "sectionIndex": 0,\n` +
-        `  "status": "PASS",\n` +
-        `  "summary": "The Cafe is still ok."\n` +
+        `  "status": "PASS"\n` +
         `}`);
 
     // addSection() should fail if the `subtitle` argument is invalid.
@@ -420,7 +422,7 @@ export function suiteTest() {
     equal(usual.resultsAndSections.length, 3);
     equal(usual.failTally, 0);
     const renMin = new Renderable([], "''");
-    equal(usual.addResult(renMin, renMin, 'UNEXPECTED_EXCEPTION', ''), void 0);
+    equal(usual.addResult(renMin, renMin, [], 'UNEXPECTED_EXCEPTION'), void 0);
     equal(usual.resultsAndSections.length, 4);
     equal(usual.failTally, 1);
     equal(toStr(usual.resultsAndSections[3]),
@@ -433,9 +435,9 @@ export function suiteTest() {
         `    "highlights": [],\n` +
         `    "text": "''"\n` +
         `  },\n` +
+        `  "notes": "",\n` +
         `  "sectionIndex": 2,\n` +
-        `  "status": "UNEXPECTED_EXCEPTION",\n` +
-        `  "summary": ""\n` +
+        `  "status": "UNEXPECTED_EXCEPTION"\n` +
         `}`);
 
 }

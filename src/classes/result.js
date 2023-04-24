@@ -1,10 +1,11 @@
-import narrowAintas, { aintaObject, aintaNumber, aintaString } from '@0bdx/ainta';
+import narrowAintas, { aintaArray, aintaObject, aintaNumber, aintaString }
+    from '@0bdx/ainta';
 import Highlight from './highlight.js';
 import Renderable from './renderable/renderable.js';
 
-// Define a regular expression for validating `summary`.
-const summaryRx = /^[\n -\[\]-~]*$/;
-summaryRx.toString = () => "'Printable ASCII characters plus newlines, but not backslashes'";
+// Define a regular expression for validating each item in `notes`.
+const noteRx = /^[ -\[\]-~]*$/;
+noteRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 // Define an enum for validating `status`.
 const validStatus = [ 'FAIL', 'PASS', 'PENDING', 'UNEXPECTED_EXCEPTION' ];
@@ -25,6 +26,12 @@ export default class Result {
     /** A representation of the value that the test expected, ready to render. */
     expected;
 
+    /** A description of the test, as a single string of newline-delimited lines.
+     * - 0 to 100 newline-delimited lines
+     * - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     * - An empty array `[]` means that no notes have been supplied */
+    notes;
+
     /** The index of the `Section` that the test belongs to. Zero if it should
      * be rendered before the first section, or if there are no sections. */
     sectionIndex;
@@ -36,11 +43,6 @@ export default class Result {
      * - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception */
     status;
 
-    /** A description of the test.
-     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     * - An empty string `""` means that no summary has been supplied */
-    summary;
-
     /** ### Creates a `Result` instance from the supplied arguments.
      * 
      * @param {Renderable} actually
@@ -48,6 +50,11 @@ export default class Result {
      *    render. This could be the representation of an unexpected exception.
      * @param {Renderable} expected
      *    A representation of the value that the test expected, ready to render.
+     * @param {string[]} notes
+     *    A description of the test, as an array of strings.
+     *    - 0 to 100 items, where each item is a line
+     *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     *    - An empty array `[]` means that no notes have been supplied
      * @param {number} sectionIndex
      *    The index of the `Section` that the test belongs to. Zero if it should
      *    be rendered before the first section, or if there are no sections.
@@ -57,39 +64,35 @@ export default class Result {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @param {string} summary
-     *    A description of the test.
-     *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     *    - An empty string `""` means that no summary has been supplied
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(
         actually,
         expected,
+        notes,
         sectionIndex,
         status,
-        summary,
     ) {
         const begin = 'new Result()';
 
         // Validate each argument.
-        const [ aResults, aObj, aNum, aStr ] =
-            narrowAintas({ begin }, aintaObject, aintaNumber, aintaString);
+        const [ aResults, aArr, aObj, aNum, aStr ] = narrowAintas({ begin },
+            aintaArray, aintaObject, aintaNumber, aintaString);
         aObj(actually, 'actually', { is:[Renderable], open:true });
         aObj(expected, 'expected', { is:[Renderable], open:true });
+        aArr(notes, 'notes', { most:100, max:120, pass:true, rx:noteRx, types:['string'] });
         aNum(sectionIndex, 'sectionIndex', {
             gte:0, lte:Number.MAX_SAFE_INTEGER, mod:1 });
         aStr(status, 'status', { is:validStatus });
-        aStr(summary, 'summary', { min:0, max:64, rx:summaryRx });
         if (aResults.length) throw Error(aResults.join('\n'));
 
         // Store the validated arguments as properties.
         this.actually = actually;
         this.expected = expected;
+        this.notes = notes.join('\n');
         this.sectionIndex = sectionIndex;
         this.status = status;
-        this.summary = summary;
 
         // Prevent this instance from being modified.
         Object.freeze(this);
@@ -108,7 +111,7 @@ export default class Result {
  *    Throws an `Error` if a test fails.
  */
 export function resultTest() {
-    const e2l = e => (e.stack.split('\n')[1].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
+    const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
             `!== expected:\n${expected}\n...at ${e2l(err)}\n`) } };
@@ -134,9 +137,9 @@ export function resultTest() {
         [ new Highlight('BOOLNUM', 6, 11) ],
         '{ ok:"Café" }',
     );
+    const nUsual = ['First line.','Second Line.'];
     const siUsual = 77;
     const stUsual = 'PASS';
-    const suUsual = 'First line.\nSecond Line.';
     // @TODO *Min
     // @TODO *Max
 
@@ -146,65 +149,65 @@ export function resultTest() {
     throws(()=>new C(),
         begin + ": `actually` is type 'undefined' not 'object'\n" +
         begin + ": `expected` is type 'undefined' not 'object'\n" +
+        begin + ": `notes` is type 'undefined' not an array\n" +
         begin + ": `sectionIndex` is type 'undefined' not 'number'\n" +
-        begin + ": `status` is type 'undefined' not 'string'\n" +
-        begin + ": `summary` is type 'undefined' not 'string'");
+        begin + ": `status` is type 'undefined' not 'string'");
 
     // `actually` should be a `Renderable` instance.
     // @ts-expect-error
-    throws(()=>new C([], eUsual, siUsual, stUsual, suUsual),
+    throws(()=>new C([], eUsual, nUsual, siUsual, stUsual),
         begin + ": `actually` is an array not a regular object");
     // @ts-expect-error
-    throws(()=>new C({}, eUsual, siUsual, stUsual, suUsual),
+    throws(()=>new C({}, eUsual, nUsual, siUsual, stUsual),
         begin + ": `actually` is not in `options.is` 'Renderable'");
 
     // `expected` should be a `Renderable` instance.
-    throws(()=>new C(aUsual, null, siUsual, stUsual, suUsual),
+    throws(()=>new C(aUsual, null, nUsual, siUsual, stUsual),
         begin + ": `expected` is null not a regular object");
     // @ts-expect-error
-    throws(()=>new C(aUsual, Renderable, siUsual, stUsual, suUsual),
+    throws(()=>new C(aUsual, Renderable, nUsual, siUsual, stUsual),
         begin + ": `expected` is type 'function' not 'object'");
 
     // `sectionIndex` should be a valid non-zero integer.
     // @ts-expect-error
-    throws(()=>new C(aUsual, eUsual, BigInt(2), stUsual, suUsual),
+    throws(()=>new C(aUsual, eUsual, nUsual, BigInt(2), stUsual),
         begin + ": `sectionIndex` is type 'bigint' not 'number'");
-    throws(()=>new C(aUsual, eUsual, -1, stUsual, suUsual),
+    throws(()=>new C(aUsual, eUsual, nUsual, -1, stUsual),
         begin + ": `sectionIndex` -1 is not gte 0");
-    throws(()=>new C(aUsual, eUsual, Number.MAX_SAFE_INTEGER + 2, stUsual, suUsual), // or `+ 1` :-)
+    throws(()=>new C(aUsual, eUsual, nUsual, Number.MAX_SAFE_INTEGER + 2, stUsual), // or `+ 1` :-)
         begin + ": `sectionIndex` 9007199254740992 is not lte 9007199254740991");
-    throws(()=>new C(aUsual, eUsual, 33.44, stUsual, suUsual),
+    throws(()=>new C(aUsual, eUsual, nUsual, 33.44, stUsual),
         begin + ": `sectionIndex` 33.44 is not divisible by 1");
 
     // `status` should be one of the 4 valid strings.
     // @ts-expect-error
-    throws(()=>new C(aUsual, eUsual, siUsual, true, suUsual),
+    throws(()=>new C(aUsual, eUsual, nUsual, siUsual, true),
         begin + ": `status` is type 'boolean' not 'string'");
     // @ts-expect-error
-    throws(()=>new C(aUsual, eUsual, siUsual, '', suUsual),
+    throws(()=>new C(aUsual, eUsual, nUsual, siUsual, ''),
         begin + ": `status` '' is not in `options.is` 'FAIL:PASS:PENDING:UNE...XCEPTION'");
     // @ts-expect-error
-    throws(()=>new C(aUsual, eUsual, siUsual, 'Pass', suUsual),
+    throws(()=>new C(aUsual, eUsual, nUsual, siUsual, 'Pass'),
         begin + ": `status` 'Pass' is not in `options.is` 'FAIL:PASS:PENDING:UNE...XCEPTION'");
 
-    // `summary` should be a valid string, up to 64 characters long.
+    // `notes` should be a valid array of up to 100 strings, each to 120 characters long.
     // @ts-expect-error
-    throws(()=>new C(aUsual, eUsual, siUsual, stUsual, true),
-        begin + ": `summary` is type 'boolean' not 'string'");
-    throws(()=>new C(aUsual, eUsual, siUsual, stUsual, '12345678'.repeat(8) + '9'),
-        begin + ": `summary` '123456781234567812345...23456789' is not max 64");
-    throws(()=>new C(aUsual, eUsual, siUsual, stUsual, suUsual + '\\'),
-        begin + ": `summary` 'First line.%0ASecond Line.%5C' fails " +
-        "'Printable ASCII characters plus newlines, but not backslashes'");
+    throws(()=>new C(aUsual, eUsual, true, siUsual, stUsual),
+        begin + ": `notes` is type 'boolean' not an array");
+    throws(()=>new C(aUsual, eUsual, ['1234567890'.repeat(12) + '1'], siUsual, stUsual),
+        begin + ": `notes[0]` '123456789012345678901...45678901' is not max 120");
+    throws(()=>new C(aUsual, eUsual, [...stUsual,'Backslash \\ not allowed'], siUsual, stUsual),
+        begin + ": `notes[4]` 'Backslash %5C not allowed' fails " +
+        "'Printable ASCII characters except backslashes'");
 
     // Instantiate a typical `Result`, and create its JSON representation.
     // The instance should `JSON.stringify()` as expected.
     const usual = new Result(
         aUsual,
         eUsual,
+        nUsual,
         siUsual,
         stUsual,
-        suUsual,
     );
     const commonUsual = [
         `    "highlights": [`,
@@ -224,9 +227,9 @@ export function resultTest() {
         `  "expected": {`,
         ...commonUsual,
         `  },`,
+        `  "notes": "First line.\\nSecond Line.",`,
         `  "sectionIndex": 77,`,
-        `  "status": "PASS",`,
-        `  "summary": "First line.\\nSecond Line."`,
+        `  "status": "PASS"`,
         `}`,
     );
     equal(toStr(usual), expectedUsual);
@@ -247,11 +250,11 @@ export function resultTest() {
         /read only|read-only|readonly/);
     throws(()=>{usual.expected = aUsual},
         /read only|read-only|readonly/);
+    throws(()=>{usual.notes = 'This would be valid\n summary text'},
+        /read only|read-only|readonly/);
     throws(()=>{usual.sectionIndex = 44},
         /read only|read-only|readonly/);
     throws(()=>{usual.status = 'PENDING'},
-        /read only|read-only|readonly/);
-    throws(()=>{usual.summary = 'This would be valid summary text'},
         /read only|read-only|readonly/);
 
     // It should not be possible to delete properties.
@@ -259,11 +262,11 @@ export function resultTest() {
         /^.*delete.+property.*$|^.*property.+delete.*$/);
     throws(()=>{delete usual.expected},
         /^.*delete.+property.*$|^.*property.+delete.*$/);
+    throws(()=>{delete usual.notes},
+        /^.*delete.+property.*$|^.*property.+delete.*$/);
     throws(()=>{delete usual.sectionIndex},
         /^.*delete.+property.*$|^.*property.+delete.*$/);
     throws(()=>{delete usual.status},
-        /^.*delete.+property.*$|^.*property.+delete.*$/);
-    throws(()=>{delete usual.summary},
         /^.*delete.+property.*$|^.*property.+delete.*$/);
 
     // `isFrozen()` should return `true`, meaning that `freeze()` was used.

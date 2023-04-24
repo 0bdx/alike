@@ -94,19 +94,21 @@ export class Suite {
      *    render. This could be the representation of an unexpected exception.
      * @param {Renderable} expected
      *    A representation of the value that the test expected, ready to render.
+     * @param {string[]} notes
+     *    A description of the test, as an array of strings.
+     *    - 0 to 100 items, where each item is a line
+     *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     *    - An empty array `[]` means that no notes have been supplied
      * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
      *    A string (effectively an enum) which can be one of four values:
      *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @param {string} summary
-     *    A description of the test.
-     *    - An empty string `""` means that no summary has been supplied
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
-    addResult(actually: Renderable, expected: Renderable, status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION', summary: string): void;
+    addResult(actually: Renderable, expected: Renderable, notes: string[], status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION'): void;
     /** ### Adds a new section to the test suite.
      *
      * @param {string} subtitle
@@ -183,17 +185,16 @@ declare function bindTestTools(titleOrSuite: string | Suite, ...tools: Function[
  *    The value that the test actually got.
  * @param {any} expected
  *    The value that the test expected.
- * @param {string} [summary]
- *    An optional description of the test.
- *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
- *    - An empty string `""` means that no summary should be shown
- *    - A default `summary` will be generated if none is supplied
+ * @param {string[]} [notes]
+ *    An optional description of the test, as an array of strings.
+ *    - 0 to 100 items, where each item is a line
+ *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
  * @returns {void}
  *    Does not return anything.
  * @throws
- *    Throws an `Error` if `summary` or the `this` context are invalid.
+ *    Throws an `Error` if `notes` or the `this` context are invalid.
  */
-export function isEqual(actually: any, expected: any, summary?: string): void;
+export function isEqual(actually: any, expected: any, notes?: string[]): void;
 /** ### Renders a test suite without colours or typographic styling.
  *
  * @TODO describe with examples
@@ -253,6 +254,11 @@ declare class Result {
      *    render. This could be the representation of an unexpected exception.
      * @param {Renderable} expected
      *    A representation of the value that the test expected, ready to render.
+     * @param {string[]} notes
+     *    A description of the test, as an array of strings.
+     *    - 0 to 100 items, where each item is a line
+     *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     *    - An empty array `[]` means that no notes have been supplied
      * @param {number} sectionIndex
      *    The index of the `Section` that the test belongs to. Zero if it should
      *    be rendered before the first section, or if there are no sections.
@@ -262,19 +268,20 @@ declare class Result {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @param {string} summary
-     *    A description of the test.
-     *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     *    - An empty string `""` means that no summary has been supplied
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
-    constructor(actually: Renderable, expected: Renderable, sectionIndex: number, status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION', summary: string);
+    constructor(actually: Renderable, expected: Renderable, notes: string[], sectionIndex: number, status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION');
     /** A representation of the value that the test actually got, ready to
      * render. This could be the representation of an unexpected exception. */
     actually: Renderable;
     /** A representation of the value that the test expected, ready to render. */
     expected: Renderable;
+    /** A description of the test, as a single string of newline-delimited lines.
+     * - 0 to 100 newline-delimited lines
+     * - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     * - An empty array `[]` means that no notes have been supplied */
+    notes: string;
     /** The index of the `Section` that the test belongs to. Zero if it should
      * be rendered before the first section, or if there are no sections. */
     sectionIndex: number;
@@ -284,10 +291,6 @@ declare class Result {
      * - `"PENDING"` if the test has not completed yet
      * - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception */
     status: "FAIL" | "PASS" | "PENDING" | "UNEXPECTED_EXCEPTION";
-    /** A description of the test.
-     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     * - An empty string `""` means that no summary has been supplied */
-    summary: string;
 }
 /** ### Marks the start of a new section in the test suite.
  *
