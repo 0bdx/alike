@@ -211,6 +211,8 @@ export function resultTest() {
         begin + ": `notes` is type 'boolean' not an array");
     throws(()=>new C(aUsual, eUsual, ['1234567890'.repeat(12) + '1'], siUsual, stUsual),
         begin + ": `notes[0]` '123456789012345678901...45678901' is not max 120");
+    throws(()=>new C(aUsual, eUsual, Array(101).fill('A'), siUsual, stUsual),
+        begin + ": `notes` has length 101 > `options.most` 100");
     throws(()=>new C(aUsual, eUsual, [...stUsual,'Backslash \\ not allowed'], siUsual, stUsual),
         begin + ": `notes[4]` 'Backslash %5C not allowed' fails " +
         "'Printable ASCII characters except backslashes'");

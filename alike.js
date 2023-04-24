@@ -645,7 +645,7 @@ function addSection(subtitle) {
     (this).addSection(subtitle);
 }
 
-/** ### Uses deep-equal to compare two values.
+/** ### Compares two values in a developer-friendly way.
  * 
  * @TODO describe with examples
  *
@@ -653,8 +653,9 @@ function addSection(subtitle) {
  *    The value that the test actually got.
  * @param {any} expected
  *    The value that the test expected.
- * @param {string[]} [notes]
- *    An optional description of the test, as an array of strings.
+ * @param {string|string[]} [notes]
+ *    An optional description of the test, as a string or array of strings.
+ *    - A string is treated identically to an array containing one string
  *    - 0 to 100 items, where each item is a line
  *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
  * @returns {Result}
@@ -674,14 +675,19 @@ function isAlike(actually, expected, notes) {
 
     // Check that the optional `notes` argument is an array of some kind.
     // `addResult()` will run more stringent checks on `notes`.
-    if (typeof notes !== 'undefined') {
+    const type = typeof notes;
+    if (type !== 'undefined' && type !== 'string') {
         const aNotes = aintaArray(notes, 'notes', { begin });
         if (aNotes) throw Error(aNotes);
     }
 
     // @TODO describe
-    const generated = [ 'actual:', '{{actually}}', '!== expected:', '{{expected}}' ];
-    const notesCombined = notes ? [ ...notes, ...generated ] : generated;
+    const auto = [ 'actual:', '{{actually}}', '!== expected:', '{{expected}}' ];
+    const notesCombined = typeof notes === 'object'
+        ? [ ...notes, ...auto ] // a string
+        : type === 'string'
+            ? [ notes, ...auto ] // an array
+            : auto; // undefined
 
     // Add the test result to the suite, and also return the test result.
     return suite.addResult(

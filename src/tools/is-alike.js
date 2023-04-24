@@ -1,7 +1,7 @@
 import { aintaArray, aintaObject } from '@0bdx/ainta';
 import { Renderable, Result, Suite } from "../classes/index.js";
 
-/** ### Uses deep-equal to compare two values.
+/** ### Compares two values in a developer-friendly way.
  * 
  * @TODO describe with examples
  *
@@ -9,8 +9,9 @@ import { Renderable, Result, Suite } from "../classes/index.js";
  *    The value that the test actually got.
  * @param {any} expected
  *    The value that the test expected.
- * @param {string[]} [notes]
- *    An optional description of the test, as an array of strings.
+ * @param {string|string[]} [notes]
+ *    An optional description of the test, as a string or array of strings.
+ *    - A string is treated identically to an array containing one string
  *    - 0 to 100 items, where each item is a line
  *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
  * @returns {Result}
@@ -30,14 +31,19 @@ export default function isAlike(actually, expected, notes) {
 
     // Check that the optional `notes` argument is an array of some kind.
     // `addResult()` will run more stringent checks on `notes`.
-    if (typeof notes !== 'undefined') {
+    const type = typeof notes;
+    if (type !== 'undefined' && type !== 'string') {
         const aNotes = aintaArray(notes, 'notes', { begin });
         if (aNotes) throw Error(aNotes);
     }
 
     // @TODO describe
-    const generated = [ 'actual:', '{{actually}}', '!== expected:', '{{expected}}' ];
-    const notesCombined = notes ? [ ...notes, ...generated ] : generated;
+    const auto = [ 'actual:', '{{actually}}', '!== expected:', '{{expected}}' ];
+    const notesCombined = typeof notes === 'object'
+        ? [ ...notes, ...auto ] // a string
+        : type === 'string'
+            ? [ notes, ...auto ] // an array
+            : auto; // undefined
 
     // Add the test result to the suite, and also return the test result.
     return suite.addResult(
@@ -121,11 +127,11 @@ export function isAlikeTest(f, R, S) {
     // `notes` should be 0 to 64 printable ASCII characters plus newlines, but
     // not backslashes.
     // @ts-expect-error
-    throws(()=>bound(1,2,''),
-        "isAlike(): `notes` is type 'string' not an array");
+    throws(()=>bound(1,2,3),
+        "isAlike(): `notes` is type 'number' not an array");
     throws(()=>bound(1,2,['1234567890'.repeat(12),'','1234567890'.repeat(12) + '1']),
         "new Result(): `notes[2]` '123456789012345678901...45678901' is not max 120");
-    throws(()=>bound(1,2,['\\']),
+    throws(()=>bound(1,2,'\\'),
         "new Result(): `notes[0]` '%5C' fails 'Printable ASCII characters except backslashes'");
     throws(()=>bound(1,2,['\n']),
         "new Result(): `notes[0]` '%0A' fails 'Printable ASCII characters except backslashes'");
@@ -138,7 +144,7 @@ export function isAlikeTest(f, R, S) {
         ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[' +
         'ABCDEFGHIJKLMNOPQRSTUVWXYZ]^_`abcdefghijklmnopqrstuvwxyz{|}~'
     bound(null,void 0,[]);
-    bound(3,3,[longestValidLine]);
+    bound(3,3,longestValidLine);
     bound('true',true);
     equal(suite.resultsAndSections.length, 4);
     equal(toStr(suite.resultsAndSections[1]), toLines(

@@ -186,7 +186,7 @@ export function addSection(subtitle: string): void;
  *    Throws an `Error` if any of the arguments are invalid.
  */
 declare function bindAlikeTools(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
-/** ### Uses deep-equal to compare two values.
+/** ### Compares two values in a developer-friendly way.
  *
  * @TODO describe with examples
  *
@@ -194,8 +194,9 @@ declare function bindAlikeTools(titleOrSuite: string | Suite, ...tools: Function
  *    The value that the test actually got.
  * @param {any} expected
  *    The value that the test expected.
- * @param {string[]} [notes]
- *    An optional description of the test, as an array of strings.
+ * @param {string|string[]} [notes]
+ *    An optional description of the test, as a string or array of strings.
+ *    - A string is treated identically to an array containing one string
  *    - 0 to 100 items, where each item is a line
  *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
  * @returns {Result}
@@ -203,7 +204,7 @@ declare function bindAlikeTools(titleOrSuite: string | Suite, ...tools: Function
  * @throws
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  */
-export function isAlike(actually: any, expected: any, notes?: string[]): Result;
+export function isAlike(actually: any, expected: any, notes?: string | string[]): Result;
 /** ### Renders a test suite without colours or typographic styling.
  *
  * @TODO describe with examples
