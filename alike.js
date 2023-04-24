@@ -75,6 +75,20 @@ class Highlight {
         Object.freeze(this);
     }
 
+    /**
+     * Creates a copy of the `Highlight` instance.
+     *
+     * @returns {Highlight}
+     *    Returns the clone.
+     */
+    clone() {
+        return new Highlight(
+            this.kind,
+            this.start,
+            this.stop,
+        );
+    }
+
 }
 
 /** ### Prepares arguments for a new `Renderable`, from any JavaScript value.
@@ -170,6 +184,19 @@ class Renderable {
 
         // Prevent this instance from being modified.
         Object.freeze(this);
+    }
+
+    /**
+     * Creates a dereferenced copy of the `Renderable` instance.
+     *
+     * @returns {Renderable}
+     *    Returns the deep clone.
+     */
+    clone() {
+        return new Renderable(
+            this.highlights.map(h => h.clone()),
+            this.text,
+        );
     }
 
     /** ### Creates a new `Renderable` instance from any JavaScript value.
@@ -281,6 +308,21 @@ class Result {
         Object.freeze(this);
     }
 
+    /**
+     * Creates a dereferenced copy of the `Result` instance.
+     *
+     * @returns {Result}
+     *    Returns the deep clone.
+     */
+    clone() {
+        return new Result(
+            this.actually.clone(),
+            this.expected.clone(),
+            this.notes.split('\n'), // creates a new array
+            this.sectionIndex,
+            this.status,
+        );
+    }
 }
 
 // Define a regular expression for validating `subtitle`.
@@ -448,6 +490,8 @@ class Suite {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
+     * @returns {Result}
+     *    Returns a deep clone of the added `Result` instance.
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
@@ -482,7 +526,9 @@ class Suite {
         }
 
         // Add the new `Result` to the private `resultsAndSections` array.
+        // Return a deep clone of the added `Result` instance.
         this.#resultsAndSections.push(result);
+        return result.clone();
     }
 
     /** ### Adds a new section to the test suite.
@@ -611,8 +657,8 @@ function addSection(subtitle) {
  *    An optional description of the test, as an array of strings.
  *    - 0 to 100 items, where each item is a line
  *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
- * @returns {void}
- *    Does not return anything.
+ * @returns {Result}
+ *    Returns a deep clone of the `Result` instance which was added to the suite.
  * @throws
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  */
@@ -621,7 +667,9 @@ function isAlike(actually, expected, notes) {
 
     // Check that this function has been bound to a `Suite` instance.
     // @TODO cache this result for performance
-    const aSuite = aintaObject(this, 'suite', { begin, is:[Suite], open:true });
+    /** @type Suite */
+    const suite = this;
+    const aSuite = aintaObject(suite, 'suite', { begin, is:[Suite], open:true });
     if (aSuite) throw Error(aSuite);
 
     // Check that the optional `notes` argument is an array of some kind.
@@ -635,9 +683,8 @@ function isAlike(actually, expected, notes) {
     const generated = [ 'actual:', '{{actually}}', '!== expected:', '{{expected}}' ];
     const notesCombined = notes ? [ ...notes, ...generated ] : generated;
 
-    // The brackets around `this` make JSDoc see `(this)` as a `Suite` instance.
-    /** @type Suite */
-    (this).addResult(
+    // Add the test result to the suite, and also return the test result.
+    return suite.addResult(
         Renderable.from(actually),
         Renderable.from(expected),
         notesCombined,

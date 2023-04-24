@@ -116,6 +116,8 @@ export default class Suite {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
+     * @returns {Result}
+     *    Returns a deep clone of the added `Result` instance.
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
@@ -150,7 +152,9 @@ export default class Suite {
         }
 
         // Add the new `Result` to the private `resultsAndSections` array.
+        // Return a deep clone of the added `Result` instance.
         this.#resultsAndSections.push(result);
+        return result.clone();
     }
 
     /** ### Adds a new section to the test suite.
@@ -354,35 +358,39 @@ export function suiteTest() {
     equal(usual.resultsAndSections.length, 0);
     equal(usual.passTally, 0);
     const renUsual = new Renderable([ new Highlight('BOOLNUM', 6, 11) ], '{ ok:"Café" }');
-    equal(usual.addResult(renUsual, renUsual, ['The Cafe is','still ok.'], 'PASS'), void 0);
+    const resUsualActually = usual.addResult(renUsual, renUsual, ['The Cafe is','still ok.'], 'PASS');
+    const resUsualExpectedStr = toLines(
+        `{`,
+        `  "actually": {`,
+        `    "highlights": [`,
+        `      {`,
+        `        "kind": "BOOLNUM",`,
+        `        "start": 6,`,
+        `        "stop": 11`,
+        `      }`,
+        `    ],`,
+        `    "text": "{ ok:\\"Café\\" }"`,
+        `  },`,
+        `  "expected": {`,
+        `    "highlights": [`,
+        `      {`,
+        `        "kind": "BOOLNUM",`,
+        `        "start": 6,`,
+        `        "stop": 11`,
+        `      }`,
+        `    ],`,
+        `    "text": "{ ok:\\"Café\\" }"`,
+        `  },`,
+        `  "notes": "The Cafe is\\nstill ok.",`,
+        `  "sectionIndex": 0,`,
+        `  "status": "PASS"`,
+        `}`,
+    );
+    equal(toStr(resUsualActually), resUsualExpectedStr);
     equal(usual.resultsAndSections.length, 1);
     equal(usual.passTally, 1);
-    equal(toStr(usual.resultsAndSections[0]),
-        `{\n` +
-        `  "actually": {\n` +
-        `    "highlights": [\n` +
-        `      {\n` +
-        `        "kind": "BOOLNUM",\n` +
-        `        "start": 6,\n` +
-        `        "stop": 11\n` +
-        `      }\n` +
-        `    ],\n` +
-        `    "text": "{ ok:\\"Café\\" }"\n` +
-        `  },\n` +
-        `  "expected": {\n` +
-        `    "highlights": [\n` +
-        `      {\n` +
-        `        "kind": "BOOLNUM",\n` +
-        `        "start": 6,\n` +
-        `        "stop": 11\n` +
-        `      }\n` +
-        `    ],\n` +
-        `    "text": "{ ok:\\"Café\\" }"\n` +
-        `  },\n` +
-        `  "notes": "The Cafe is\\nstill ok.",\n` +
-        `  "sectionIndex": 0,\n` +
-        `  "status": "PASS"\n` +
-        `}`);
+    equal(toStr(usual.resultsAndSections[0]), resUsualExpectedStr);
+    equal(usual.resultsAndSections[0] === resUsualActually, false); // not the same object
 
     // addSection() should fail if the `subtitle` argument is invalid.
     // @ts-expect-error
@@ -395,11 +403,12 @@ export function suiteTest() {
     equal(usual.resultsAndSections.length, 1);
     equal(usual.addSection('The 1st Section'), void 0);
     equal(usual.resultsAndSections.length, 2);
-    equal(toStr(usual.resultsAndSections[1]),
-        `{\n` +
-        `  "index": 1,\n` +
-        `  "subtitle": "The 1st Section"\n` +
-        `}`);
+    equal(toStr(usual.resultsAndSections[1]), toLines(
+        `{`,
+        `  "index": 1,`,
+        `  "subtitle": "The 1st Section"`,
+        `}`,
+    ));
 
     // An invalid `subtitle` argument should not increment the suite's private
     // `currentSectionIndex` property.
@@ -411,33 +420,38 @@ export function suiteTest() {
     equal(usual.resultsAndSections.length, 2);
     equal(usual.addSection('The 2nd Section'), void 0);
     equal(usual.resultsAndSections.length, 3);
-    equal(toStr(usual.resultsAndSections[2]),
-        `{\n` +
-        `  "index": 2,\n` +
-        `  "subtitle": "The 2nd Section"\n` +
-        `}`);
+    equal(toStr(usual.resultsAndSections[2]), toLines(
+        `{`,
+        `  "index": 2,`,
+        `  "subtitle": "The 2nd Section"`,
+        `}`,
+    ));
 
     // After calling `addSection()`, a call to `addResult()` should be assigned
     // to the most recent section, and increment the correct tally.
     equal(usual.resultsAndSections.length, 3);
     equal(usual.failTally, 0);
     const renMin = new Renderable([], "''");
-    equal(usual.addResult(renMin, renMin, [], 'UNEXPECTED_EXCEPTION'), void 0);
+    const resMinActually = usual.addResult(renMin, renMin, [], 'UNEXPECTED_EXCEPTION');
+    const resMinStr = toLines(
+        `{`,
+        `  "actually": {`,
+        `    "highlights": [],`,
+        `    "text": "''"`,
+        `  },`,
+        `  "expected": {`,
+        `    "highlights": [],`,
+        `    "text": "''"`,
+        `  },`,
+        `  "notes": "",`,
+        `  "sectionIndex": 2,`,
+        `  "status": "UNEXPECTED_EXCEPTION"`,
+        `}`,
+    );
+    equal(toStr(resMinActually), resMinStr);
     equal(usual.resultsAndSections.length, 4);
     equal(usual.failTally, 1);
-    equal(toStr(usual.resultsAndSections[3]),
-        `{\n` +
-        `  "actually": {\n` +
-        `    "highlights": [],\n` +
-        `    "text": "''"\n` +
-        `  },\n` +
-        `  "expected": {\n` +
-        `    "highlights": [],\n` +
-        `    "text": "''"\n` +
-        `  },\n` +
-        `  "notes": "",\n` +
-        `  "sectionIndex": 2,\n` +
-        `  "status": "UNEXPECTED_EXCEPTION"\n` +
-        `}`);
+    equal(toStr(usual.resultsAndSections[3]), resMinStr);
+    equal(usual.resultsAndSections[3] === resMinActually, false); // not the same object
 
 }

@@ -1,5 +1,5 @@
 import { aintaArray, aintaObject } from '@0bdx/ainta';
-import { Renderable, Suite } from "../classes/index.js";
+import { Renderable, Result, Suite } from "../classes/index.js";
 
 /** ### Uses deep-equal to compare two values.
  * 
@@ -13,8 +13,8 @@ import { Renderable, Suite } from "../classes/index.js";
  *    An optional description of the test, as an array of strings.
  *    - 0 to 100 items, where each item is a line
  *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
- * @returns {void}
- *    Does not return anything.
+ * @returns {Result}
+ *    Returns a deep clone of the `Result` instance which was added to the suite.
  * @throws
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  */
@@ -23,7 +23,9 @@ export default function isAlike(actually, expected, notes) {
 
     // Check that this function has been bound to a `Suite` instance.
     // @TODO cache this result for performance
-    const aSuite = aintaObject(this, 'suite', { begin, is:[Suite], open:true });
+    /** @type Suite */
+    const suite = this;
+    const aSuite = aintaObject(suite, 'suite', { begin, is:[Suite], open:true });
     if (aSuite) throw Error(aSuite);
 
     // Check that the optional `notes` argument is an array of some kind.
@@ -37,9 +39,8 @@ export default function isAlike(actually, expected, notes) {
     const generated = [ 'actual:', '{{actually}}', '!== expected:', '{{expected}}' ];
     const notesCombined = notes ? [ ...notes, ...generated ] : generated;
 
-    // The brackets around `this` make JSDoc see `(this)` as a `Suite` instance.
-    /** @type Suite */
-    (this).addResult(
+    // Add the test result to the suite, and also return the test result.
+    return suite.addResult(
         Renderable.from(actually),
         Renderable.from(expected),
         notesCombined,
@@ -87,9 +88,8 @@ export function isAlikeTest(f, R, S) {
     const suite = new S('Test Suite');
     /** @type f */
     const bound = f.bind(suite);
-    equal(bound(), void 0);
-    equal(suite.resultsAndSections.length, 1);
-    const highlightsUndefined = toLines(
+    const resultUndefinedActually = bound();
+    const highlightsUndefinedExpectedStr = toLines(
         `    "highlights": [`,
         `      {`,
         `        "kind": "NULLISH",`,
@@ -98,21 +98,25 @@ export function isAlikeTest(f, R, S) {
         `      }`,
         `    ],`,
     );
-    equal(toStr(suite.resultsAndSections[0]), toLines(
+    const resultUndefinedExpectedStr = toLines(
         `{`,
         `  "actually": {`,
-        highlightsUndefined,
+        highlightsUndefinedExpectedStr,
         `    "text": "undefined"`,
         `  },`,
         `  "expected": {`,
-        highlightsUndefined,
+        highlightsUndefinedExpectedStr,
         `    "text": "undefined"`,
         `  },`,
         `  "notes": "actual:\\n{{actually}}\\n!== expected:\\n{{expected}}",`,
         `  "sectionIndex": 0,`,
         `  "status": "PASS"`,
         `}`
-    ));
+    );
+    equal(toStr(resultUndefinedActually), resultUndefinedExpectedStr);
+    equal(suite.resultsAndSections.length, 1);
+    equal(toStr(suite.resultsAndSections[0]), resultUndefinedExpectedStr);
+    equal(suite.resultsAndSections[0] === resultUndefinedActually, false); // not the same object
 
     // `notes` should be 0 to 64 printable ASCII characters plus newlines, but
     // not backslashes.
@@ -133,9 +137,9 @@ export function isAlikeTest(f, R, S) {
     const longestValidLine =
         ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[' +
         'ABCDEFGHIJKLMNOPQRSTUVWXYZ]^_`abcdefghijklmnopqrstuvwxyz{|}~'
-    equal(bound(null,void 0,[]), void 0);
-    equal(bound(3,3,[longestValidLine]), void 0);
-    equal(bound('true',true), void 0);
+    bound(null,void 0,[]);
+    bound(3,3,[longestValidLine]);
+    bound('true',true);
     equal(suite.resultsAndSections.length, 4);
     equal(toStr(suite.resultsAndSections[1]), toLines(
         `{`,

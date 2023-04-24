@@ -31,6 +31,13 @@ export class Renderable {
     /** A string representation of the value, truncated to a maximum length.
      * - 1 to 65535 unicode characters (about 10,000 lorem ipsum words) */
     text: string;
+    /**
+     * Creates a dereferenced copy of the `Renderable` instance.
+     *
+     * @returns {Renderable}
+     *    Returns the deep clone.
+     */
+    clone(): Renderable;
 }
 /** ### A container for test results.
  *
@@ -105,10 +112,12 @@ export class Suite {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
+     * @returns {Result}
+     *    Returns a deep clone of the added `Result` instance.
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
-    addResult(actually: Renderable, expected: Renderable, notes: string[], status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION'): void;
+    addResult(actually: Renderable, expected: Renderable, notes: string[], status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION'): Result;
     /** ### Adds a new section to the test suite.
      *
      * @param {string} subtitle
@@ -189,12 +198,12 @@ declare function bindAlikeTools(titleOrSuite: string | Suite, ...tools: Function
  *    An optional description of the test, as an array of strings.
  *    - 0 to 100 items, where each item is a line
  *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
- * @returns {void}
- *    Does not return anything.
+ * @returns {Result}
+ *    Returns a deep clone of the `Result` instance which was added to the suite.
  * @throws
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  */
-export function isAlike(actually: any, expected: any, notes?: string[]): void;
+export function isAlike(actually: any, expected: any, notes?: string[]): Result;
 /** ### Renders a test suite without colours or typographic styling.
  *
  * @TODO describe with examples
@@ -238,6 +247,13 @@ declare class Highlight {
     start: number;
     /** A non-zero integer greater than `start`, where highlighting stops. */
     stop: number;
+    /**
+     * Creates a copy of the `Highlight` instance.
+     *
+     * @returns {Highlight}
+     *    Returns the clone.
+     */
+    clone(): Highlight;
 }
 /** ### Records the outcome of one test.
  *
@@ -291,6 +307,13 @@ declare class Result {
      * - `"PENDING"` if the test has not completed yet
      * - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception */
     status: "FAIL" | "PASS" | "PENDING" | "UNEXPECTED_EXCEPTION";
+    /**
+     * Creates a dereferenced copy of the `Result` instance.
+     *
+     * @returns {Result}
+     *    Returns the deep clone.
+     */
+    clone(): Result;
 }
 /** ### Marks the start of a new section in the test suite.
  *

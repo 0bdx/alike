@@ -98,6 +98,21 @@ export default class Result {
         Object.freeze(this);
     }
 
+    /**
+     * Creates a dereferenced copy of the `Result` instance.
+     *
+     * @returns {Result}
+     *    Returns the deep clone.
+     */
+    clone() {
+        return new Result(
+            this.actually.clone(),
+            this.expected.clone(),
+            this.notes.split('\n'), // creates a new array
+            this.sectionIndex,
+            this.status,
+        );
+    }
 }
 
 
@@ -282,5 +297,12 @@ export function resultTest() {
     // as their passed-in arguments. So, the arguments should not be frozen, and
     // modifying them after `new Result()` should not change the properties.
     // @TODO
+
+
+    /* ------------------------------- clone() ------------------------------ */
+
+    const clonedUsual = usual.clone();
+    equal(toStr(clonedUsual), expectedUsual);
+    equal(usual === clonedUsual, false); // not the same object
 
 }

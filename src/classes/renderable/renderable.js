@@ -53,6 +53,19 @@ export default class Renderable {
         Object.freeze(this);
     }
 
+    /**
+     * Creates a dereferenced copy of the `Renderable` instance.
+     *
+     * @returns {Renderable}
+     *    Returns the deep clone.
+     */
+    clone() {
+        return new Renderable(
+            this.highlights.map(h => h.clone()),
+            this.text,
+        );
+    }
+
     /** ### Creates a new `Renderable` instance from any JavaScript value.
      *
      * @param {any} value
@@ -214,5 +227,12 @@ export function renderableTest() {
     // modifying its items after `new Renderable()` should not change the
     // `highlights` property.
     // @TODO
+
+
+    /* ------------------------------- clone() ------------------------------ */
+
+    const clonedUsual = usual.clone();
+    equal(toStr(clonedUsual), expectedUsual);
+    equal(usual === clonedUsual, false); // not the same object
 
 }
