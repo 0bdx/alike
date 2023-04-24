@@ -143,19 +143,19 @@ export function addSection(subtitle: string): void;
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindAlikeTools, { addSection, isEqual, renderPlain }
+ * import bindAlikeTools, { addSection, isAlike, renderPlain }
  *     from '@0bdx/alike';
  *
  * // Give the test suite a title, and bind some functions to it.
- * const [ section,    isEq,    render ] = bindAlikeTools('Mathsy Test Suite',
- *         addSection, isEqual, renderPlain);
+ * const [ section,    alike,   render ] = bindAlikeTools('Mathsy Test Suite',
+ *         addSection, isAlike, renderPlain);
  *
  * // Optionally, begin a new addSection.
  * section('Check that factorialise() works');
  *
  * // Run the tests. The third argument, `description`, is optional.
- * isEq(factorialise(0), 1);
- * isEq(factorialise(5), 120,
+ * alike(factorialise(0), 1);
+ * alike(factorialise(5), 120,
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
  * // Output the test results to the console, as plain text.
@@ -194,7 +194,7 @@ declare function bindAlikeTools(titleOrSuite: string | Suite, ...tools: Function
  * @throws
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  */
-export function isEqual(actually: any, expected: any, notes?: string[]): void;
+export function isAlike(actually: any, expected: any, notes?: string[]): void;
 /** ### Renders a test suite without colours or typographic styling.
  *
  * @TODO describe with examples

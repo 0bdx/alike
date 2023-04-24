@@ -521,19 +521,19 @@ class Suite {
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindAlikeTools, { addSection, isEqual, renderPlain }
+ * import bindAlikeTools, { addSection, isAlike, renderPlain }
  *     from '@0bdx/alike';
  *
  * // Give the test suite a title, and bind some functions to it.
- * const [ section,    isEq,    render ] = bindAlikeTools('Mathsy Test Suite',
- *         addSection, isEqual, renderPlain);
+ * const [ section,    alike,   render ] = bindAlikeTools('Mathsy Test Suite',
+ *         addSection, isAlike, renderPlain);
  *
  * // Optionally, begin a new addSection.
  * section('Check that factorialise() works');
  *
  * // Run the tests. The third argument, `description`, is optional.
- * isEq(factorialise(0), 1);
- * isEq(factorialise(5), 120,
+ * alike(factorialise(0), 1);
+ * alike(factorialise(5), 120,
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
  * // Output the test results to the console, as plain text.
@@ -616,8 +616,8 @@ function addSection(subtitle) {
  * @throws
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  */
-function isEqual(actually, expected, notes) {
-    const begin = 'isEqual()';
+function isAlike(actually, expected, notes) {
+    const begin = 'isAlike()';
 
     // Check that this function has been bound to a `Suite` instance.
     // @TODO cache this result for performance
@@ -690,4 +690,4 @@ function renderPlain() {
     }\n`;
 }
 
-export { Renderable, Suite, addSection, bindAlikeTools as default, isEqual, renderPlain };
+export { Renderable, Suite, addSection, bindAlikeTools as default, isAlike, renderPlain };

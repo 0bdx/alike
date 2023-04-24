@@ -18,8 +18,8 @@ import { Renderable, Suite } from "../classes/index.js";
  * @throws
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  */
-export default function isEqual(actually, expected, notes) {
-    const begin = 'isEqual()';
+export default function isAlike(actually, expected, notes) {
+    const begin = 'isAlike()';
 
     // Check that this function has been bound to a `Suite` instance.
     // @TODO cache this result for performance
@@ -50,10 +50,10 @@ export default function isEqual(actually, expected, notes) {
 
 /* ---------------------------------- Test ---------------------------------- */
 
-/** ### `isEqual()` unit tests.
+/** ### `isAlike()` unit tests.
  * 
- * @param {isEqual} f
- *    The `isEqual()` function to test.
+ * @param {isAlike} f
+ *    The `isAlike()` function to test.
  * @param {typeof Renderable} R
  *    The `Renderable` class, because `Renderable` in alike.js !== in src/.
  * @param {typeof Suite} S
@@ -63,7 +63,7 @@ export default function isEqual(actually, expected, notes) {
  * @throws
  *    Throws an `Error` if a test fails.
  */
-export function isEqualTest(f, R, S) {
+export function isAlikeTest(f, R, S) {
     const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
@@ -76,14 +76,14 @@ export function isEqualTest(f, R, S) {
     const toStr = value => JSON.stringify(value, null, '  ');
     const toLines = (...lines) => lines.join('\n');
 
-    // `isEqual()` should be bound to a `Suite` instance.
+    // `isAlike()` should be bound to a `Suite` instance.
     throws(()=>f(),
-        "isEqual(): `suite` is type 'undefined' not 'object'");
+        "isAlike(): `suite` is type 'undefined' not 'object'");
     const badlyBound = f.bind({});
     throws(()=>badlyBound(),
-        "isEqual(): `suite` is not in `options.is` 'Suite'");
+        "isAlike(): `suite` is not in `options.is` 'Suite'");
 
-    // When bound bound to a `Suite` instance, `isEqual()` should add a result.
+    // When bound bound to a `Suite` instance, `isAlike()` should add a result.
     const suite = new S('Test Suite');
     /** @type f */
     const bound = f.bind(suite);
@@ -118,7 +118,7 @@ export function isEqualTest(f, R, S) {
     // not backslashes.
     // @ts-expect-error
     throws(()=>bound(1,2,''),
-        "isEqual(): `notes` is type 'string' not an array");
+        "isAlike(): `notes` is type 'string' not an array");
     throws(()=>bound(1,2,['1234567890'.repeat(12),'','1234567890'.repeat(12) + '1']),
         "new Result(): `notes[2]` '123456789012345678901...45678901' is not max 120");
     throws(()=>bound(1,2,['\\']),
