@@ -30,15 +30,15 @@ export default function renderableFrom(value) {
     // Deal with a string.
     if (type === 'string') {
 
-        // If the string contains no single-quotes, wrap it in single-quotes.
-        if (!value.includes("'")) return { highlights:
+        // If the string contains double-quotes but no single-quotes, wrap it
+        // in single-quotes.
+        if (value.includes('"') && !value.includes("'")) return { highlights:
             [ new Highlight('STRING', 0, value.length+2) ], text:`'${value}'` };
 
-        // Otherwise, it contains single-quotes, and may contain double-quotes.
-        // `JSON.stringify()` will escape any double-quotes (plus backslashes),
-        // and then wrap it in double-quotes.
+        // Otherwise, `JSON.stringify()` will escape any double-quotes
+        // (plus backslashes), and then wrap it in double-quotes.
         const text = JSON.stringify(value);
-        return { highlights: [ new Highlight('STRING', 0, text.length) ], text }      
+        return { highlights: [ new Highlight('STRING', 0, text.length) ], text }
     }
 
     return { highlights:[], text:'@TODO' };
@@ -181,7 +181,7 @@ export function renderableFromTest() {
     const emptyStringRenderable = f('');
     equal(emptyStringRenderable.highlights[0].kind, 'STRING');
     equal(emptyStringRenderable.highlights[0].stop, 2);
-    equal(emptyStringRenderable.text, "''");
+    equal(emptyStringRenderable.text, '""');
     equal(toStr(emptyStringRenderable), toLines(
         `{`,
         `  "highlights": [`,
@@ -191,7 +191,7 @@ export function renderableFromTest() {
         `      "stop": 2`,
         `    }`,
         `  ],`,
-        `  "text": "''"`,
+        `  "text": "\\"\\""`,
         `}`,
     ));
     const containsDQRenderable = f('Contains "double-quotes".');
@@ -220,7 +220,7 @@ export function renderableFromTest() {
     equal(containsBQRenderable.text, `"\\"Contains\\" 'both-quotes'."`);
     const multiLineRenderable = f('Café ok!\n'.repeat(99));
     equal(multiLineRenderable.highlights[0].kind, 'STRING');
-    equal(multiLineRenderable.highlights[0].stop, 893);
-    equal(multiLineRenderable.text.slice(-19), "Café ok!\nCafé ok!\n'");
+    equal(multiLineRenderable.highlights[0].stop, 992);
+    equal(multiLineRenderable.text.slice(-21), 'Café ok!\\nCafé ok!\\n"');
 
 }

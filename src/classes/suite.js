@@ -108,7 +108,7 @@ export default class Suite {
      * @param {string[]} notes
      *    A description of the test, as an array of strings.
      *    - 0 to 100 items, where each item is a line
-     *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     *    - 0 to 120 printable ASCII characters (except `"\"`) per line
      *    - An empty array `[]` means that no notes have been supplied
      * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
      *    A string (effectively an enum) which can be one of four values:
@@ -116,8 +116,8 @@ export default class Suite {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @returns {Result}
-     *    Returns a deep clone of the added `Result` instance.
+     * @returns {void}
+     *    Does not return anything.
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
@@ -152,9 +152,7 @@ export default class Suite {
         }
 
         // Add the new `Result` to the private `resultsAndSections` array.
-        // Return a deep clone of the added `Result` instance.
         this.#resultsAndSections.push(result);
-        return result.clone();
     }
 
     /** ### Adds a new section to the test suite.
@@ -245,40 +243,6 @@ export function suiteTest() {
         `}`,
     );
     equal(toStr(usual), expectedStringifiedUsual);
-/*
-    const commonUsual = [
-        `        "highlights": [`,
-        `          {`,
-        `            "kind": "BOOLNUM",`,
-        `            "start": 6,`,
-        `            "stop": 11`,
-        `          }`,
-        `        ],`,
-        `        "text": "{ ok:\\"Café\\" }"`,
-    ];
-    const expectedUsual = toLines(
-        `{`,
-        `  "failTally": 0,`,
-        `  "passTally": 1,`,
-        `  "pendingTally": 0,`,
-        `  "title": "The Cafe is ok.",`,
-        `  "resultsAndSections": [`,
-        `    {`,
-        `      "actually": {`,
-        ...commonUsual,
-        `      },`,
-        `      "expected": {`,
-        ...commonUsual,
-        `      },`,
-        `      "sectionIndex": 77,`,
-        `      "status": "PASS",`,
-        `      "summary": "The Cafe is ok."`,
-        `    }`,
-        `  ]`,
-        `}`,
-    );
-    equal(toStr(usual), expectedUsual);
-*/
 
     // A minimal `Result` should `JSON.stringify()` as expected.
     // @TODO
@@ -358,7 +322,7 @@ export function suiteTest() {
     equal(usual.resultsAndSections.length, 0);
     equal(usual.passTally, 0);
     const renUsual = new Renderable([ new Highlight('BOOLNUM', 6, 11) ], '{ ok:"Café" }');
-    const resUsualActually = usual.addResult(renUsual, renUsual, ['The Cafe is','still ok.'], 'PASS');
+    const resUsualActually = usual.addResult(renUsual, renUsual, ['First line.','Second line.'], 'PASS');
     const resUsualExpectedStr = toLines(
         `{`,
         `  "actually": {`,
@@ -381,12 +345,12 @@ export function suiteTest() {
         `    ],`,
         `    "text": "{ ok:\\"Café\\" }"`,
         `  },`,
-        `  "notes": "The Cafe is\\nstill ok.",`,
+        `  "notes": "First line.\\nSecond line.",`,
         `  "sectionIndex": 0,`,
         `  "status": "PASS"`,
         `}`,
     );
-    equal(toStr(resUsualActually), resUsualExpectedStr);
+    equal(resUsualActually, void 0);
     equal(usual.resultsAndSections.length, 1);
     equal(usual.passTally, 1);
     equal(toStr(usual.resultsAndSections[0]), resUsualExpectedStr);
@@ -448,7 +412,7 @@ export function suiteTest() {
         `  "status": "UNEXPECTED_EXCEPTION"`,
         `}`,
     );
-    equal(toStr(resMinActually), resMinStr);
+    equal(resMinActually, void 0);
     equal(usual.resultsAndSections.length, 4);
     equal(usual.failTally, 1);
     equal(toStr(usual.resultsAndSections[3]), resMinStr);

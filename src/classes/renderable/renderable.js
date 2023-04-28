@@ -15,7 +15,7 @@ export default class Renderable {
     /** Zero or more 'strokes of the highlighter pen' on `text`. */
     highlights;
 
-    /** A string representation of the value, truncated to a maximum length.
+    /** A string representation of the value.
      * - 1 to 65535 unicode characters (about 10,000 lorem ipsum words) */
     text;
 
@@ -24,7 +24,7 @@ export default class Renderable {
      * @param {Highlight[]} highlights
      *    Zero or more 'strokes of the highlighter pen' on `text`.
      * @param {string} text
-     *    A string representation of the value, truncated to a maximum length.
+     *    A string representation of the value.
      *     - 1 to 65535 unicode characters (about 10,000 lorem ipsum words)
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
@@ -53,17 +53,42 @@ export default class Renderable {
         Object.freeze(this);
     }
 
-    /**
-     * Creates a dereferenced copy of the `Renderable` instance.
+    /** ### Determines whether the full value could be rendered on one line.
      *
-     * @returns {Renderable}
-     *    Returns the deep clone.
+     * The maximum line length is 120 characters, which may begin "actually: "
+     * or "expected: ", leaving 110 characters for the value.
+     * 
+     * @returns {boolean}
+     *    Returns `true` if this instance is short enough to render on one line.
      */
-    clone() {
-        return new Renderable(
-            this.highlights.map(h => h.clone()),
-            this.text,
-        );
+    isShort() {
+        return this.text.length <= 110;
+    }
+
+    /** ### The value as a plain string, for a test-result overview.
+     * 
+     * An overview which passes will be one line:
+     * ```
+     * PASS: actually: 123
+     * ```
+     * 
+     * An overview which fails will be two lines:
+     * ```
+     * FAIL: actually: 123
+     *       expected: 546
+     * ```
+     *
+     * The maximum line length is 120 characters, so `this.text` may need to be
+     * truncated to 104 characters. @TODO truncate
+     *
+     * @returns {string}
+     *    Xx.
+     */
+    get overview() {
+        const c0 = this.text[0];
+        return c0 === "'" || c0 === '"'
+            ? this.text
+            : `\`${this.text}\``;
     }
 
     /** ### Creates a new `Renderable` instance from any JavaScript value.
@@ -227,12 +252,5 @@ export function renderableTest() {
     // modifying its items after `new Renderable()` should not change the
     // `highlights` property.
     // @TODO
-
-
-    /* ------------------------------- clone() ------------------------------ */
-
-    const clonedUsual = usual.clone();
-    equal(toStr(clonedUsual), expectedUsual);
-    equal(usual === clonedUsual, false); // not the same object
 
 }

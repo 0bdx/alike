@@ -105,5 +105,5 @@ export function addSectionTest(f, S) {
         `  "index": 4,`,
         `  "subtitle": ""`,
         `}`));
-    
+
 }

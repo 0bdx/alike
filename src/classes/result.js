@@ -97,22 +97,6 @@ export default class Result {
         // Prevent this instance from being modified.
         Object.freeze(this);
     }
-
-    /**
-     * Creates a dereferenced copy of the `Result` instance.
-     *
-     * @returns {Result}
-     *    Returns the deep clone.
-     */
-    clone() {
-        return new Result(
-            this.actually.clone(),
-            this.expected.clone(),
-            this.notes.split('\n'), // creates a new array
-            this.sectionIndex,
-            this.status,
-        );
-    }
 }
 
 
@@ -267,7 +251,7 @@ export function resultTest() {
         /read only|read-only|readonly/);
     throws(()=>{usual.expected = aUsual},
         /read only|read-only|readonly/);
-    throws(()=>{usual.notes = 'This would be valid\n summary text'},
+    throws(()=>{usual.notes = 'This would be valid\n\n notes text'},
         /read only|read-only|readonly/);
     throws(()=>{usual.sectionIndex = 44},
         /read only|read-only|readonly/);
@@ -299,12 +283,5 @@ export function resultTest() {
     // as their passed-in arguments. So, the arguments should not be frozen, and
     // modifying them after `new Result()` should not change the properties.
     // @TODO
-
-
-    /* ------------------------------- clone() ------------------------------ */
-
-    const clonedUsual = usual.clone();
-    equal(toStr(clonedUsual), expectedUsual);
-    equal(usual === clonedUsual, false); // not the same object
 
 }

@@ -11,12 +11,12 @@ import {
 
 import bindAlikeTools, {
     addSection,
-    isAlike,
+    areAlike,
     renderPlain,
 } from './index.js';
 import { bindAlikeToolsTest } from './bind-alike-tools.js';
 import { addSectionTest } from './tools/add-section.js';
-import { isAlikeTest } from './tools/is-alike.js';
+import { areAlikeTest } from './tools/are-alike.js';
 import { renderPlainTest } from './tools/render-plain.js';
 
 highlightTest();
@@ -28,5 +28,5 @@ suiteTest();
 
 bindAlikeToolsTest(bindAlikeTools);
 addSectionTest(addSection, Suite);
-isAlikeTest(isAlike, Renderable, Suite);
+areAlikeTest(areAlike, Renderable, Suite);
 renderPlainTest(renderPlain, Renderable, Suite);

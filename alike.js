@@ -75,20 +75,6 @@ class Highlight {
         Object.freeze(this);
     }
 
-    /**
-     * Creates a copy of the `Highlight` instance.
-     *
-     * @returns {Highlight}
-     *    Returns the clone.
-     */
-    clone() {
-        return new Highlight(
-            this.kind,
-            this.start,
-            this.stop,
-        );
-    }
-
 }
 
 /** ### Prepares arguments for a new `Renderable`, from any JavaScript value.
@@ -121,15 +107,15 @@ function renderableFrom(value) {
     // Deal with a string.
     if (type === 'string') {
 
-        // If the string contains no single-quotes, wrap it in single-quotes.
-        if (!value.includes("'")) return { highlights:
+        // If the string contains double-quotes but no single-quotes, wrap it
+        // in single-quotes.
+        if (value.includes('"') && !value.includes("'")) return { highlights:
             [ new Highlight('STRING', 0, value.length+2) ], text:`'${value}'` };
 
-        // Otherwise, it contains single-quotes, and may contain double-quotes.
-        // `JSON.stringify()` will escape any double-quotes (plus backslashes),
-        // and then wrap it in double-quotes.
+        // Otherwise, `JSON.stringify()` will escape any double-quotes
+        // (plus backslashes), and then wrap it in double-quotes.
         const text = JSON.stringify(value);
-        return { highlights: [ new Highlight('STRING', 0, text.length) ], text }      
+        return { highlights: [ new Highlight('STRING', 0, text.length) ], text }
     }
 
     return { highlights:[], text:'@TODO' };
@@ -148,7 +134,7 @@ class Renderable {
     /** Zero or more 'strokes of the highlighter pen' on `text`. */
     highlights;
 
-    /** A string representation of the value, truncated to a maximum length.
+    /** A string representation of the value.
      * - 1 to 65535 unicode characters (about 10,000 lorem ipsum words) */
     text;
 
@@ -157,7 +143,7 @@ class Renderable {
      * @param {Highlight[]} highlights
      *    Zero or more 'strokes of the highlighter pen' on `text`.
      * @param {string} text
-     *    A string representation of the value, truncated to a maximum length.
+     *    A string representation of the value.
      *     - 1 to 65535 unicode characters (about 10,000 lorem ipsum words)
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
@@ -186,17 +172,42 @@ class Renderable {
         Object.freeze(this);
     }
 
-    /**
-     * Creates a dereferenced copy of the `Renderable` instance.
+    /** ### Determines whether the full value could be rendered on one line.
      *
-     * @returns {Renderable}
-     *    Returns the deep clone.
+     * The maximum line length is 120 characters, which may begin "actually: "
+     * or "expected: ", leaving 110 characters for the value.
+     * 
+     * @returns {boolean}
+     *    Returns `true` if this instance is short enough to render on one line.
      */
-    clone() {
-        return new Renderable(
-            this.highlights.map(h => h.clone()),
-            this.text,
-        );
+    isShort() {
+        return this.text.length <= 110;
+    }
+
+    /** ### The value as a plain string, for a test-result overview.
+     * 
+     * An overview which passes will be one line:
+     * ```
+     * PASS: actually: 123
+     * ```
+     * 
+     * An overview which fails will be two lines:
+     * ```
+     * FAIL: actually: 123
+     *       expected: 546
+     * ```
+     *
+     * The maximum line length is 120 characters, so `this.text` may need to be
+     * truncated to 104 characters. @TODO truncate
+     *
+     * @returns {string}
+     *    Xx.
+     */
+    get overview() {
+        const c0 = this.text[0];
+        return c0 === "'" || c0 === '"'
+            ? this.text
+            : `\`${this.text}\``;
     }
 
     /** ### Creates a new `Renderable` instance from any JavaScript value.
@@ -214,8 +225,8 @@ class Renderable {
 }
 
 // Define a regular expression for validating each item in `notes`.
-const noteRx = /^[ -\[\]-~]*$/;
-noteRx.toString = () => "'Printable ASCII characters except backslashes'";
+const noteRx$1 = /^[ -\[\]-~]*$/;
+noteRx$1.toString = () => "'Printable ASCII characters except backslashes'";
 
 // Define an enum for validating `status`.
 const validStatus = [ 'FAIL', 'PASS', 'PENDING', 'UNEXPECTED_EXCEPTION' ];
@@ -291,7 +302,7 @@ class Result {
             aintaArray, aintaObject, aintaNumber, aintaString);
         aObj(actually, 'actually', { is:[Renderable], open:true });
         aObj(expected, 'expected', { is:[Renderable], open:true });
-        aArr(notes, 'notes', { most:100, max:120, pass:true, rx:noteRx, types:['string'] });
+        aArr(notes, 'notes', { most:100, max:120, pass:true, rx:noteRx$1, types:['string'] });
         aNum(sectionIndex, 'sectionIndex', {
             gte:0, lte:Number.MAX_SAFE_INTEGER, mod:1 });
         aStr(status, 'status', { is:validStatus });
@@ -306,22 +317,6 @@ class Result {
 
         // Prevent this instance from being modified.
         Object.freeze(this);
-    }
-
-    /**
-     * Creates a dereferenced copy of the `Result` instance.
-     *
-     * @returns {Result}
-     *    Returns the deep clone.
-     */
-    clone() {
-        return new Result(
-            this.actually.clone(),
-            this.expected.clone(),
-            this.notes.split('\n'), // creates a new array
-            this.sectionIndex,
-            this.status,
-        );
     }
 }
 
@@ -482,7 +477,7 @@ class Suite {
      * @param {string[]} notes
      *    A description of the test, as an array of strings.
      *    - 0 to 100 items, where each item is a line
-     *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     *    - 0 to 120 printable ASCII characters (except `"\"`) per line
      *    - An empty array `[]` means that no notes have been supplied
      * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
      *    A string (effectively an enum) which can be one of four values:
@@ -490,8 +485,8 @@ class Suite {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @returns {Result}
-     *    Returns a deep clone of the added `Result` instance.
+     * @returns {void}
+     *    Does not return anything.
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
@@ -526,9 +521,7 @@ class Suite {
         }
 
         // Add the new `Result` to the private `resultsAndSections` array.
-        // Return a deep clone of the added `Result` instance.
         this.#resultsAndSections.push(result);
-        return result.clone();
     }
 
     /** ### Adds a new section to the test suite.
@@ -567,19 +560,19 @@ class Suite {
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindAlikeTools, { addSection, isAlike, renderPlain }
+ * import bindAlikeTools, { addSection, areAlike, renderPlain }
  *     from '@0bdx/alike';
  *
  * // Give the test suite a title, and bind some functions to it.
- * const [ section,    alike,   render ] = bindAlikeTools('Mathsy Test Suite',
- *         addSection, isAlike, renderPlain);
+ * const [ section,    areA,     render ] = bindAlikeTools('Mathsy Test Suite',
+ *         addSection, areAlike, renderPlain);
  *
  * // Optionally, begin a new addSection.
  * section('Check that factorialise() works');
  *
  * // Run the tests. The third argument, `description`, is optional.
- * alike(factorialise(0), 1);
- * alike(factorialise(5), 120,
+ * areA(factorialise(0), 1);
+ * areA(factorialise(5), 120,
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
  * // Output the test results to the console, as plain text.
@@ -645,9 +638,21 @@ function addSection(subtitle) {
     (this).addSection(subtitle);
 }
 
-/** ### Compares two values in a developer-friendly way.
+// Define a regular expression for validating each item in `notes`.
+const noteRx = /^[ -\[\]-~]*$/;
+noteRx.toString = () => "'Printable ASCII characters except backslashes'";
+
+const truncate = (t, l) => t.slice(0, l);
+
+/** ### Compares two JavaScript values in a user-friendly way.
  * 
- * @TODO describe with examples
+ * `areAlike()` operates in one of two modes:
+ * 1. If it has been bound to an object with an `addResult()` method, it sends
+ *    that method the full test results, and then returns an overview.
+ * 2. Otherwise, it either throws an `Error` if the test fails, or returns
+ *    an overview if the test passes.
+ * 
+ * @TODO finish the description, with examples
  *
  * @param {any} actually
  *    The value that the test actually got.
@@ -655,47 +660,78 @@ function addSection(subtitle) {
  *    The value that the test expected.
  * @param {string|string[]} [notes]
  *    An optional description of the test, as a string or array of strings.
- *    - A string is treated identically to an array containing one string
+ *    - A string is treated identically to an array containing just that string
  *    - 0 to 100 items, where each item is a line
  *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
- * @returns {Result}
- *    Returns a deep clone of the `Result` instance which was added to the suite.
+ *    - An empty array `[]` means that no notes have been supplied
+ *    - The first item (index 0), if present, is used for the overview
+ * @returns {string}
+ *    Returns an overview of the test result.
  * @throws
  *    Throws an `Error` if `notes` or the `this` context are invalid.
+ *    Also throws an `Error` if the test fails.
  */
-function isAlike(actually, expected, notes) {
-    const begin = 'isAlike()';
+function areAlike(actually, expected, notes) {
+    const begin = 'areAlike()';
 
-    // Check that this function has been bound to a `Suite` instance.
-    // @TODO cache this result for performance
-    /** @type Suite */
-    const suite = this;
-    const aSuite = aintaObject(suite, 'suite', { begin, is:[Suite], open:true });
-    if (aSuite) throw Error(aSuite);
+    // Validate the `notes` argument. `this.addResult()`, if it exists, will
+    // do some similar validation, but its error message would be confusing.
+    const notesIsArray = Array.isArray(notes); // used again, further below
+    const options = { begin, max:120, most:100, pass:true, rx:noteRx };
+    const aNotes = notesIsArray // @TODO make ainta able to handle 'or' types
+        ? aintaArray(notes, 'notes', { ...options, types:['string'] })
+        : typeof notes !== 'undefined'
+            ? aintaString(notes, 'notes', options)
+            : ''; // no `notes` argument was passed in
+    if (aNotes) throw Error(aNotes);
 
-    // Check that the optional `notes` argument is an array of some kind.
-    // `addResult()` will run more stringent checks on `notes`.
-    const type = typeof notes;
-    if (type !== 'undefined' && type !== 'string') {
-        const aNotes = aintaArray(notes, 'notes', { begin });
-        if (aNotes) throw Error(aNotes);
+    // Determine whether `actually` and `expected` are alike, and then generate
+    // the overview which `areAlike()` will throw or return.
+    // @TODO should be more subtle than `actually === expected`
+    const didFail = actually !== expected;
+    const status = didFail ? 'FAIL' : 'PASS';
+    const actuallyRenderable = Renderable.from(actually);
+    const expectedRenderable = Renderable.from(expected);
+    const overview = `${status}: ${notesIsArray
+        ? (notes[0] ? `${truncate(notes[0],114)}\n    ` : '') // `notes` is an array
+        : (notes ? `${truncate(notes,114)}\n    ` : '') // `notes` should be undefined or a string
+    }\`actually\` is ${actuallyRenderable.overview}${didFail
+        ? `\n    \`expected\` is ${expectedRenderable.overview}`
+        : ' as expected'
+    }`;
+
+    // If there's no `this.addResult()`, throw or return the overview.
+    if (typeof this?.addResult !== 'function') {
+        if (didFail) throw Error(overview);
+        return overview;
     }
 
-    // @TODO describe
-    const auto = [ 'actual:', '{{actually}}', '!== expected:', '{{expected}}' ];
-    const notesCombined = typeof notes === 'object'
-        ? [ ...notes, ...auto ] // a string
-        : type === 'string'
-            ? [ notes, ...auto ] // an array
-            : auto; // undefined
+    // Normalise the `notes` argument into an array.
+    const notesArr = Array.isArray(notes)
+        ? notes // was already an array
+        : typeof notes === 'undefined'
+            ? [] // no `notes` argument was passed in
+            : [ notes ]; // hopefully a string, but that will be validated below
 
-    // Add the test result to the suite, and also return the test result.
-    return suite.addResult(
-        Renderable.from(actually),
-        Renderable.from(expected),
-        notesCombined,
-        actually === expected ? 'PASS' : 'FAIL',
+    // Prepare an array of strings to pass to the `addResult()` `notes` argument.
+    // This array will end with some auto-generated notes about the test.
+    const auto = !didFail
+        ? [ '{{actually}} as expected' ]
+        : actuallyRenderable.isShort() && expectedRenderable.isShort()
+            ? [ 'actually: {{actually}}', 'expected: {{expected}}' ]
+            : [ 'actually:', '{{actually}}', 'expected:', '{{expected}}' ];
+    const notesPlusAuto = [ ...notesArr, ...auto ];
+
+    // Add the test result to the object that this function has been bound to.
+    this.addResult(
+        actuallyRenderable,
+        expectedRenderable,
+        notesPlusAuto,
+        status,
     );
+
+    // Return an overview of the test result.
+    return overview;
 }
 
 /** ### Renders a test suite without colours or typographic styling.
@@ -743,4 +779,4 @@ function renderPlain() {
     }\n`;
 }
 
-export { Renderable, Suite, addSection, bindAlikeTools as default, isAlike, renderPlain };
+export { Renderable, Suite, addSection, areAlike, bindAlikeTools as default, renderPlain };

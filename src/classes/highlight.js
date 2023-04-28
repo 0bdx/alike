@@ -69,20 +69,6 @@ export default class Highlight {
         Object.freeze(this);
     }
 
-    /**
-     * Creates a copy of the `Highlight` instance.
-     *
-     * @returns {Highlight}
-     *    Returns the clone.
-     */
-    clone() {
-        return new Highlight(
-            this.kind,
-            this.start,
-            this.stop,
-        );
-    }
-
 }
 
 
@@ -243,12 +229,5 @@ export function highlightTest() {
     // that none of the attempts to modify it worked.
     equal(Object.isFrozen(usual), true);
     equal(toStr(usual), expectedUsual);
-
-
-    /* ------------------------------- clone() ------------------------------ */
-
-    const clonedUsual = usual.clone();
-    equal(toStr(clonedUsual), expectedUsual);
-    equal(usual === clonedUsual, false); // not the same object
 
 }

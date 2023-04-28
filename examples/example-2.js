@@ -1,17 +1,17 @@
-import bindAlikeTools, { addSection, isAlike, renderPlain }
+import bindAlikeTools, { addSection, areAlike, renderPlain }
     from '../alike.js';
 
 // Give the test suite a title, and bind some functions to it.
-const [ section,    alike,   render ] = bindAlikeTools('Mathsy Test Suite',
-        addSection, isAlike, renderPlain);
+const [ section,    areA,     render ] = bindAlikeTools('Mathsy Test Suite',
+        addSection, areAlike, renderPlain);
 
-// Optionally, begin a new `addSection`.
+// Optionally, begin a new section.
 section('Check that factorialise() works');
 
 // Run the tests. The third argument, `description`, is optional.
-alike(factorialise(0), 1);
-alike(factorialise(5), 120,
-    ['factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1']);
+areA(factorialise(0), 1);
+areA(factorialise(5), 120,
+    'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
 
 // Output the test results to the console, as plain text.
 console.log(render());

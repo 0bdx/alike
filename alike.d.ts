@@ -20,7 +20,7 @@ export class Renderable {
      * @param {Highlight[]} highlights
      *    Zero or more 'strokes of the highlighter pen' on `text`.
      * @param {string} text
-     *    A string representation of the value, truncated to a maximum length.
+     *    A string representation of the value.
      *     - 1 to 65535 unicode characters (about 10,000 lorem ipsum words)
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
@@ -28,16 +28,38 @@ export class Renderable {
     constructor(highlights: Highlight[], text: string);
     /** Zero or more 'strokes of the highlighter pen' on `text`. */
     highlights: Highlight[];
-    /** A string representation of the value, truncated to a maximum length.
+    /** A string representation of the value.
      * - 1 to 65535 unicode characters (about 10,000 lorem ipsum words) */
     text: string;
-    /**
-     * Creates a dereferenced copy of the `Renderable` instance.
+    /** ### Determines whether the full value could be rendered on one line.
      *
-     * @returns {Renderable}
-     *    Returns the deep clone.
+     * The maximum line length is 120 characters, which may begin "actually: "
+     * or "expected: ", leaving 110 characters for the value.
+     *
+     * @returns {boolean}
+     *    Returns `true` if this instance is short enough to render on one line.
      */
-    clone(): Renderable;
+    isShort(): boolean;
+    /** ### The value as a plain string, for a test-result overview.
+     *
+     * An overview which passes will be one line:
+     * ```
+     * PASS: actually: 123
+     * ```
+     *
+     * An overview which fails will be two lines:
+     * ```
+     * FAIL: actually: 123
+     *       expected: 546
+     * ```
+     *
+     * The maximum line length is 120 characters, so `this.text` may need to be
+     * truncated to 104 characters. @TODO truncate
+     *
+     * @returns {string}
+     *    Xx.
+     */
+    get overview(): string;
 }
 /** ### A container for test results.
  *
@@ -104,7 +126,7 @@ export class Suite {
      * @param {string[]} notes
      *    A description of the test, as an array of strings.
      *    - 0 to 100 items, where each item is a line
-     *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+     *    - 0 to 120 printable ASCII characters (except `"\"`) per line
      *    - An empty array `[]` means that no notes have been supplied
      * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
      *    A string (effectively an enum) which can be one of four values:
@@ -112,12 +134,12 @@ export class Suite {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @returns {Result}
-     *    Returns a deep clone of the added `Result` instance.
+     * @returns {void}
+     *    Does not return anything.
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
-    addResult(actually: Renderable, expected: Renderable, notes: string[], status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION'): Result;
+    addResult(actually: Renderable, expected: Renderable, notes: string[], status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION'): void;
     /** ### Adds a new section to the test suite.
      *
      * @param {string} subtitle
@@ -142,6 +164,34 @@ export class Suite {
  *    Throws an `Error` if `subtitle` or the `this` context are invalid.
  */
 export function addSection(subtitle: string): void;
+/** ### Compares two JavaScript values in a user-friendly way.
+ *
+ * `areAlike()` operates in one of two modes:
+ * 1. If it has been bound to an object with an `addResult()` method, it sends
+ *    that method the full test results, and then returns an overview.
+ * 2. Otherwise, it either throws an `Error` if the test fails, or returns
+ *    an overview if the test passes.
+ *
+ * @TODO finish the description, with examples
+ *
+ * @param {any} actually
+ *    The value that the test actually got.
+ * @param {any} expected
+ *    The value that the test expected.
+ * @param {string|string[]} [notes]
+ *    An optional description of the test, as a string or array of strings.
+ *    - A string is treated identically to an array containing just that string
+ *    - 0 to 100 items, where each item is a line
+ *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+ *    - An empty array `[]` means that no notes have been supplied
+ *    - The first item (index 0), if present, is used for the overview
+ * @returns {string}
+ *    Returns an overview of the test result.
+ * @throws
+ *    Throws an `Error` if `notes` or the `this` context are invalid.
+ *    Also throws an `Error` if the test fails.
+ */
+export function areAlike(actually: any, expected: any, notes?: string | string[]): string;
 /** ### Binds various test tools to a shared `Suite` instance.
  *
  * Takes an existing `Suite` or creates a new one, binds any number of functions
@@ -152,19 +202,19 @@ export function addSection(subtitle: string): void;
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindAlikeTools, { addSection, isAlike, renderPlain }
+ * import bindAlikeTools, { addSection, areAlike, renderPlain }
  *     from '@0bdx/alike';
  *
  * // Give the test suite a title, and bind some functions to it.
- * const [ section,    alike,   render ] = bindAlikeTools('Mathsy Test Suite',
- *         addSection, isAlike, renderPlain);
+ * const [ section,    areA,     render ] = bindAlikeTools('Mathsy Test Suite',
+ *         addSection, areAlike, renderPlain);
  *
  * // Optionally, begin a new addSection.
  * section('Check that factorialise() works');
  *
  * // Run the tests. The third argument, `description`, is optional.
- * alike(factorialise(0), 1);
- * alike(factorialise(5), 120,
+ * areA(factorialise(0), 1);
+ * areA(factorialise(5), 120,
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
  * // Output the test results to the console, as plain text.
@@ -186,25 +236,6 @@ export function addSection(subtitle: string): void;
  *    Throws an `Error` if any of the arguments are invalid.
  */
 declare function bindAlikeTools(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
-/** ### Compares two values in a developer-friendly way.
- *
- * @TODO describe with examples
- *
- * @param {any} actually
- *    The value that the test actually got.
- * @param {any} expected
- *    The value that the test expected.
- * @param {string|string[]} [notes]
- *    An optional description of the test, as a string or array of strings.
- *    - A string is treated identically to an array containing one string
- *    - 0 to 100 items, where each item is a line
- *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
- * @returns {Result}
- *    Returns a deep clone of the `Result` instance which was added to the suite.
- * @throws
- *    Throws an `Error` if `notes` or the `this` context are invalid.
- */
-export function isAlike(actually: any, expected: any, notes?: string | string[]): Result;
 /** ### Renders a test suite without colours or typographic styling.
  *
  * @TODO describe with examples
@@ -248,13 +279,6 @@ declare class Highlight {
     start: number;
     /** A non-zero integer greater than `start`, where highlighting stops. */
     stop: number;
-    /**
-     * Creates a copy of the `Highlight` instance.
-     *
-     * @returns {Highlight}
-     *    Returns the clone.
-     */
-    clone(): Highlight;
 }
 /** ### Records the outcome of one test.
  *
@@ -308,13 +332,6 @@ declare class Result {
      * - `"PENDING"` if the test has not completed yet
      * - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception */
     status: "FAIL" | "PASS" | "PENDING" | "UNEXPECTED_EXCEPTION";
-    /**
-     * Creates a dereferenced copy of the `Result` instance.
-     *
-     * @returns {Result}
-     *    Returns the deep clone.
-     */
-    clone(): Result;
 }
 /** ### Marks the start of a new section in the test suite.
  *
