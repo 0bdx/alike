@@ -638,11 +638,86 @@ function addSection(subtitle) {
     (this).addSection(subtitle);
 }
 
+/** ### Determines whether two arguments are alike.
+ *
+ * @private
+ * @param {any} actually
+ *    The value that the test actually got.
+ * @param {any} expected
+ *    The value that the test expected.
+ * @returns {boolean}
+ *    Returns `true` if the arguments are alike, and `false` if not.
+ */
+const determineWhetherAlike = (actually, expected) => {
+
+    // If either argument is `null`, return `true` or `false` right away.
+    const actuallyIsNull = actually === null;
+    const expectedIsNull = expected === null;
+    if (actuallyIsNull && expectedIsNull) return true; // both `null`
+    if (actuallyIsNull || expectedIsNull) return false; // only one is `null`
+
+    // If the arguments are not the same type, `false`.
+    const typeActually = typeof actually;
+    const typeExpected = typeof expected;
+    if (typeActually !== typeExpected) return false; // not the same type
+
+    // The arguments are the same type. If they're scalar, return `true/false`.
+    if (isScalarType(typeActually)) return actually === expected;
+
+    // The arguments are arrays, functions or objects. If they are references
+    // to the same thing, return `true`.
+    if (actually === expected) return true;
+
+    // If the arguments are both functions, return `false`.
+    if (actually === 'function') return false;
+
+    // If they are both arrays, compare each argument recursively.
+    // @TODO protect against infinite recursion
+    const actuallyIsArray = Array.isArray(actually);
+    const expectedIsArray = Array.isArray(expected);
+    if (actuallyIsArray && expectedIsArray) {
+        const len = actually.length;
+        if (expected.length !== len) return false;
+        for (let i=0; i<len; i++) {
+            if (!determineWhetherAlike(actually[i], expected[i])) return false;
+        }
+        return true;
+    }
+
+    // The arguments are both objects. Compare them recursively.
+    // @TODO maybe check the constructor, prototype, methods, etc
+    // @TODO protect against infinite recursion
+    for (const key in actually) {
+        if (!determineWhetherAlike(actually[key], expected[key])) return false;
+    }
+};
+
+/** ### Xx.
+ *
+ * @private
+ * @param {string} type
+ *    Xx.
+ */
+const isScalarType = (type) => ({
+    bigint:1,boolean:1,number:1,string:1,symbol:1,undefined:1
+}[type]);
+
+/** ### Truncates text to a given length.
+ *
+ * @private
+ * @param {string} text
+ *    Text to truncate.
+ * @param {number} length
+ *    The maximum allowed length of the truncated string.
+ */
+const truncate = (text, length) => {
+    return text.length <= length ? text
+        : `${text.slice(0, length - 11)}...${text.slice(-8)}`;
+};
+
 // Define a regular expression for validating each item in `notes`.
 const noteRx = /^[ -\[\]-~]*$/;
 noteRx.toString = () => "'Printable ASCII characters except backslashes'";
-
-const truncate = (t, l) => t.slice(0, l);
 
 /** ### Compares two JavaScript values in a user-friendly way.
  * 
@@ -685,10 +760,10 @@ function areAlike(actually, expected, notes) {
             : ''; // no `notes` argument was passed in
     if (aNotes) throw Error(aNotes);
 
-    // Determine whether `actually` and `expected` are alike, and then generate
-    // the overview which `areAlike()` will throw or return.
-    // @TODO should be more subtle than `actually === expected`
-    const didFail = actually !== expected;
+    // Determine whether `actually` and `expected` are alike.
+    const didFail = !determineWhetherAlike(actually, expected);
+
+    // Generate the overview which `areAlike()` will throw or return.
     const status = didFail ? 'FAIL' : 'PASS';
     const actuallyRenderable = Renderable.from(actually);
     const expectedRenderable = Renderable.from(expected);

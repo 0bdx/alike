@@ -9,6 +9,8 @@ import {
     suiteTest,
 } from './classes/index.js';
 
+import { helperTest } from './tools/helpers.js';
+
 import bindAlikeTools, {
     addSection,
     areAlike,
@@ -25,6 +27,8 @@ renderableTest();
 resultTest();
 sectionTest();
 suiteTest();
+
+helperTest();
 
 bindAlikeToolsTest(bindAlikeTools);
 addSectionTest(addSection, Suite);

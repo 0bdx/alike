@@ -1,11 +1,10 @@
 import { aintaArray, aintaString } from '@0bdx/ainta';
 import { Renderable, Suite } from "../classes/index.js";
+import { determineWhetherAlike, isScalarType, truncate } from './helpers.js';
 
 // Define a regular expression for validating each item in `notes`.
 const noteRx = /^[ -\[\]-~]*$/;
 noteRx.toString = () => "'Printable ASCII characters except backslashes'";
-
-const truncate = (t, l) => t.slice(0, l);
 
 /** ### Compares two JavaScript values in a user-friendly way.
  * 
@@ -48,10 +47,10 @@ export default function areAlike(actually, expected, notes) {
             : '' // no `notes` argument was passed in
     if (aNotes) throw Error(aNotes);
 
-    // Determine whether `actually` and `expected` are alike, and then generate
-    // the overview which `areAlike()` will throw or return.
-    // @TODO should be more subtle than `actually === expected`
-    const didFail = actually !== expected;
+    // Determine whether `actually` and `expected` are alike.
+    const didFail = !determineWhetherAlike(actually, expected);
+
+    // Generate the overview which `areAlike()` will throw or return.
     const status = didFail ? 'FAIL' : 'PASS';
     const actuallyRenderable = Renderable.from(actually);
     const expectedRenderable = Renderable.from(expected);
@@ -197,16 +196,12 @@ export function areAlikeTest(f, R, S) {
     throws(()=>f(1234567890, '1234567890', [longestValidLine, 'Scalar values fail strict-equal']),
         toLines(
             'FAIL:  !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[' +
-                'ABCDEFGHIJKLMNOPQRSTUVWXYZ]^_`abcdefghijklmnopqrstuvwx',
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ]^_`abcdefghijklm...wxyz{|}~',
             '    `actually` is `1234567890`',
             '    `expected` is "1234567890"'));
 
-    // 64 printable ASCII characters except backslashes, is a
-    // valid `summary`, and so is an empty string.
-    bound(null,void 0,[]);
-    bound(3,3,longestValidLine);
-    bound('true',true);
-    equal(suite.resultsAndSections.length, 4);
+    // An array containing an empty string is a valid `notes` line.
+    bound(null, void 0, ['']);
     equal(toStr(suite.resultsAndSections[1]), toLines(
         `{`,
         `  "actually": {`,
@@ -229,11 +224,14 @@ export function areAlikeTest(f, R, S) {
         `    ],`,
         `    "text": "undefined"`,
         `  },`,
-        `  "notes": "actually: {{actually}}\\nexpected: {{expected}}",`,
+        `  "notes": "\\nactually: {{actually}}\\nexpected: {{expected}}",`,
         `  "sectionIndex": 0,`,
         `  "status": "FAIL"`,
         `}`
     ));
+
+    // 120 printable ASCII characters except backslashes, is a valid `notes` line.
+    bound(3, Number(3), longestValidLine);
     equal(toStr(suite.resultsAndSections[2]), toLines(
         `{`,
         `  "actually": {`,
@@ -262,6 +260,10 @@ export function areAlikeTest(f, R, S) {
         `  "status": "PASS"`,
         `}`
     ));
+
+    // `notes` can be undefined.
+    bound('true', true);
+    equal(suite.resultsAndSections.length, 4);
     equal(toStr(suite.resultsAndSections[3]), toLines(
         `{`,
         `  "actually": {`,
