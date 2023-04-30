@@ -4,14 +4,16 @@ import Highlight from '../highlight.js';
  *
  * @param {any} value
  *    The JavaScript value which needs rendering.
+ * @param {number} [start=0]
+ *    Xx.
  * @returns {{highlights:Highlight[],text:string}}
  *    Arguments ready to pass into `new Renderable()`.
  */
-export default function renderableFrom(value) {
+export default function renderableFrom(value, start=0) {
 
     // Deal with `null`, which might otherwise be confused with an object.
     if (value === null) return { highlights:
-        [ new Highlight('NULLISH', 0, 4) ], text:'null'};
+        [ new Highlight('NULLISH', start, start+4) ], text:'null'};
 
     // Deal with a scalar: bigint, boolean, number, symbol or undefined.
     const type = typeof value;
@@ -19,16 +21,16 @@ export default function renderableFrom(value) {
         case 'bigint':
         case 'number': // treat `NaN` like a regular number
             const n = value.toString() + (type === 'bigint' ? 'n' : '');
-            return { highlights:[ new Highlight('BOOLNUM', 0, n.length) ], text:n};
+            return { highlights:[ new Highlight('BOOLNUM', start, start+n.length) ], text:n};
         case 'boolean':
             return value
-                ? { highlights:[ new Highlight('BOOLNUM', 0, 4) ], text:'true' }
-                : { highlights:[ new Highlight('BOOLNUM', 0, 5) ], text:'false' };
+                ? { highlights:[ new Highlight('BOOLNUM', start, start+4) ], text:'true' }
+                : { highlights:[ new Highlight('BOOLNUM', start, start+5) ], text:'false' };
         case 'undefined':
-            return { highlights:[ new Highlight('NULLISH', 0, 9) ], text:'undefined' };
+            return { highlights:[ new Highlight('NULLISH', start, start+9) ], text:'undefined' };
         case 'symbol':
             const s = value.toString();
-            return { highlights:[ new Highlight('SYMBOL', 0, s.length) ], text:s };
+            return { highlights:[ new Highlight('SYMBOL', start, start+s.length) ], text:s };
     }
 
     // Deal with a string.
@@ -37,27 +39,73 @@ export default function renderableFrom(value) {
         // If the string contains double-quotes but no single-quotes, wrap it
         // in single-quotes.
         if (value.includes('"') && !value.includes("'")) return { highlights:
-            [ new Highlight('STRING', 0, value.length+2) ], text:`'${value}'` };
+            [ new Highlight('STRING', start, start+value.length+2) ], text:`'${value}'` };
 
         // Otherwise, `JSON.stringify()` will escape any double-quotes
         // (plus backslashes), and then wrap it in double-quotes.
         const text = JSON.stringify(value);
-        return { highlights: [ new Highlight('STRING', 0, text.length) ], text }
+        return { highlights: [ new Highlight('STRING', start, start+text.length) ], text }
     }
 
     // Deal with a function.
+    // Based on <https://stackoverflow.com/a/39253854>
+    // @TODO test this in more detail
     if (type === 'function') {
         const params = new RegExp('(?:'+value.name+'\\s*|^)\\s*\\((.*?)\\)')
-            .exec(String.toString.call(value)
-            .replace(/\n/g, ''))[1]
+            .exec(String.toString.call(value).replace(/\n/g, ''))[1]
             .replace(/\/\*.*?\*\//g, '')
             .replace(/ /g, '');
         const name = value.name || '<anon>';
         const f = `${name}(${params})`;
-        return { highlights: [ new Highlight('FUNCTION', 0, f.length) ], text:f }
+        return { highlights: [ new Highlight('FUNCTION', start, start+f.length) ], text:f }
     }
 
-    return { highlights:[], text:'@TODO' };
+    // Deal with an array.
+    if (Array.isArray(value)) {
+        let pos = start + 2; // `2` is te position after the opening "[ "
+        const { allHighlights, allText } = value
+        .reduce(
+            ({ allHighlights, allText }, item) => {
+                const { highlights, text } = renderableFrom(item, pos);
+                pos += text.length + 2; // `+ 2` for the comma and space ", "
+                return {
+                    allHighlights: [ ...allHighlights, ...highlights ],
+                    allText: [ ...allText, text ],
+                };
+            },
+            { allHighlights:[], allText:[] },
+        );
+        return {
+            highlights: allHighlights,
+            text: allText.length ? `[ ${allText.join(', ')} ]` : '[]',
+        };
+    }
+
+    // Deal with a regular expression.
+    if (value instanceof RegExp) {
+        const r = value.toString();
+        return { highlights: [ new Highlight('REGEXP', start, start+r.length) ], text:r }
+    }
+
+    // Deal with an object.
+    let pos = start + 2; // `2` is te position after the opening "{ "
+    const { allHighlights, allText } = Object.entries(value)
+        .reduce(
+            ({ allHighlights, allText }, [ key, val ]) => {
+                pos += key.length + 1; // `+ 1` for the colon ":"
+                const { highlights, text } = renderableFrom(val, pos);
+                pos += text.length + 2; // `+ 2` for the comma and space ", "
+                return {
+                    allHighlights: [ ...allHighlights, ...highlights ],
+                    allText: [ ...allText, `${key}:${text}` ],
+                };
+            },
+            { allHighlights:[], allText:[] },
+        );
+    return {
+        highlights: allHighlights,
+        text: allText.length ? `{ ${allText.join(', ')} }` : '{}',
+    };
 }
 
 
@@ -75,11 +123,6 @@ export function renderableFromTest() {
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
             `!== expected:\n${expected}\n...at ${e2l(err)}\n`) } };
-    const throws = (actual, exp) => { try { actual() } catch (err) {
-        if (typeof exp.test=='function'?!exp.test(err.message):err.message!==exp)
-        { throw Error(`actual message:\n${err.message}\n!== expected message:\n${
-            exp}\n...at ${e2l(err)}\n`)} return }
-        throw Error(`expected message:\n${exp}\nbut nothing was thrown\n`) };
     const toLines = (...lines) => lines.join('\n');
     const toStr = value => JSON.stringify(value, null, '  ');
 
@@ -198,6 +241,44 @@ export function renderableFromTest() {
         `    }`,
         `  ],`,
         `  "text": "NaN"`,
+        `}`,
+    ));
+
+    // RegExps should return 'REGEXP' `Renderable` instances with varying lengths.
+    equal(toStr(f(RegExp('a'))), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "REGEXP",`,
+        `      "start": 0,`,
+        `      "stop": 3`,
+        `    }`,
+        `  ],`,
+        `  "text": "/a/"`,
+        `}`,
+    ));
+    equal(toStr(f(RegExp(''))), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "REGEXP",`,
+        `      "start": 0,`,
+        `      "stop": 6`,
+        `    }`,
+        `  ],`,
+        `  "text": "/(?:)/"`,
+        `}`,
+    ));
+    equal(toStr(f(/^[^abc]{3,9}$/gi)), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "REGEXP",`,
+        `      "start": 0,`,
+        `      "stop": 17`,
+        `    }`,
+        `  ],`,
+        `  "text": "/^[^abc]{3,9}$/gi"`,
         `}`,
     ));
 
@@ -325,4 +406,78 @@ export function renderableFromTest() {
         `}`,
     ));
 
+    // Arrays should return `Renderable` instances with varying kinds and lengths.
+    equal(toStr(f([])), toLines(
+        `{`,
+        `  "highlights": [],`,
+        `  "text": "[]"`,
+        `}`,
+    ));
+    equal(toStr(f([1,true,'ok',[null]])), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "BOOLNUM",`,
+        `      "start": 2,`,
+        `      "stop": 3`,
+        `    },`,
+        `    {`,
+        `      "kind": "BOOLNUM",`,
+        `      "start": 5,`,
+        `      "stop": 9`,
+        `    },`,
+        `    {`,
+        `      "kind": "STRING",`,
+        `      "start": 11,`,
+        `      "stop": 15`,
+        `    },`,
+        `    {`,
+        `      "kind": "NULLISH",`,
+        `      "start": 19,`,
+        `      "stop": 23`,
+        `    }`,
+        `  ],`,
+        `  "text": "[ 1, true, \\"ok\\", [ null ] ]"`,
+        `}`,
+    ));
+
+    // Objects should return `Renderable` instances with varying kinds and lengths.
+    equal(toStr(f({})), toLines(
+        `{`,
+        `  "highlights": [],`,
+        `  "text": "{}"`,
+        `}`,
+    ));
+    equal(toStr(f({num:1,rx:/abc?/,str:'ok',arr:[NaN],obj:{x:null}})), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "BOOLNUM",`,
+        `      "start": 6,`,
+        `      "stop": 7`,
+        `    },`,
+        `    {`,
+        `      "kind": "REGEXP",`,
+        `      "start": 12,`,
+        `      "stop": 18`,
+        `    },`,
+        `    {`,
+        `      "kind": "STRING",`,
+        `      "start": 24,`,
+        `      "stop": 28`,
+        `    },`,
+        `    {`,
+        `      "kind": "BOOLNUM",`,
+        `      "start": 36,`,
+        `      "stop": 39`,
+        `    },`,
+        `    {`,
+        `      "kind": "NULLISH",`,
+        `      "start": 51,`,
+        `      "stop": 55`,
+        `    }`,
+        `  ],`,
+        `  "text": "{ num:1, rx:/abc?/, str:\\"ok\\", arr:[ NaN ], obj:{ x:null } }"`,
+        `}`,
+    ));
 }

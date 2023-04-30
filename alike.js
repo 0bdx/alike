@@ -8,7 +8,7 @@ import narrowAintas, { aintaNumber, aintaString, aintaArray, aintaObject } from 
 
 // Define an enum for validating `kind`.
 const validKind = [ 'ARRAY', 'BOOLNUM', 'DOM', 'ERROR', 'EXCEPTION',
-    'FUNCTION', 'NULLISH', 'OBJECT', 'STRING', 'SYMBOL' ];
+    'FUNCTION', 'NULLISH', 'OBJECT', 'REGEXP', 'STRING', 'SYMBOL' ];
 
 /** ### A single 'stroke of the highlighter pen' when rendering JS values.
  *
@@ -34,7 +34,7 @@ class Highlight {
     /** ### Creates a `Highlight` instance from the supplied arguments.
      * 
      * @param {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|
-     *         'FUNCTION'|'NULLISH'|'OBJECT'|'STRING'|'SYMBOL'} kind
+     *         'FUNCTION'|'NULLISH'|'OBJECT'|'REGEXP'|'STRING'|'SYMBOL'} kind
      *    How the value should be rendered.
      *    - Booleans and numbers highlight the same way
      *    - A `BigInt` is a number rendered with the `"n"` suffix
@@ -81,14 +81,16 @@ class Highlight {
  *
  * @param {any} value
  *    The JavaScript value which needs rendering.
+ * @param {number} [start=0]
+ *    Xx.
  * @returns {{highlights:Highlight[],text:string}}
  *    Arguments ready to pass into `new Renderable()`.
  */
-function renderableFrom(value) {
+function renderableFrom(value, start=0) {
 
     // Deal with `null`, which might otherwise be confused with an object.
     if (value === null) return { highlights:
-        [ new Highlight('NULLISH', 0, 4) ], text:'null'};
+        [ new Highlight('NULLISH', start, start+4) ], text:'null'};
 
     // Deal with a scalar: bigint, boolean, number, symbol or undefined.
     const type = typeof value;
@@ -96,16 +98,16 @@ function renderableFrom(value) {
         case 'bigint':
         case 'number': // treat `NaN` like a regular number
             const n = value.toString() + (type === 'bigint' ? 'n' : '');
-            return { highlights:[ new Highlight('BOOLNUM', 0, n.length) ], text:n};
+            return { highlights:[ new Highlight('BOOLNUM', start, start+n.length) ], text:n};
         case 'boolean':
             return value
-                ? { highlights:[ new Highlight('BOOLNUM', 0, 4) ], text:'true' }
-                : { highlights:[ new Highlight('BOOLNUM', 0, 5) ], text:'false' };
+                ? { highlights:[ new Highlight('BOOLNUM', start, start+4) ], text:'true' }
+                : { highlights:[ new Highlight('BOOLNUM', start, start+5) ], text:'false' };
         case 'undefined':
-            return { highlights:[ new Highlight('NULLISH', 0, 9) ], text:'undefined' };
+            return { highlights:[ new Highlight('NULLISH', start, start+9) ], text:'undefined' };
         case 'symbol':
             const s = value.toString();
-            return { highlights:[ new Highlight('SYMBOL', 0, s.length) ], text:s };
+            return { highlights:[ new Highlight('SYMBOL', start, start+s.length) ], text:s };
     }
 
     // Deal with a string.
@@ -114,27 +116,73 @@ function renderableFrom(value) {
         // If the string contains double-quotes but no single-quotes, wrap it
         // in single-quotes.
         if (value.includes('"') && !value.includes("'")) return { highlights:
-            [ new Highlight('STRING', 0, value.length+2) ], text:`'${value}'` };
+            [ new Highlight('STRING', start, start+value.length+2) ], text:`'${value}'` };
 
         // Otherwise, `JSON.stringify()` will escape any double-quotes
         // (plus backslashes), and then wrap it in double-quotes.
         const text = JSON.stringify(value);
-        return { highlights: [ new Highlight('STRING', 0, text.length) ], text }
+        return { highlights: [ new Highlight('STRING', start, start+text.length) ], text }
     }
 
     // Deal with a function.
+    // Based on <https://stackoverflow.com/a/39253854>
+    // @TODO test this in more detail
     if (type === 'function') {
         const params = new RegExp('(?:'+value.name+'\\s*|^)\\s*\\((.*?)\\)')
-            .exec(String.toString.call(value)
-            .replace(/\n/g, ''))[1]
+            .exec(String.toString.call(value).replace(/\n/g, ''))[1]
             .replace(/\/\*.*?\*\//g, '')
             .replace(/ /g, '');
         const name = value.name || '<anon>';
         const f = `${name}(${params})`;
-        return { highlights: [ new Highlight('FUNCTION', 0, f.length) ], text:f }
+        return { highlights: [ new Highlight('FUNCTION', start, start+f.length) ], text:f }
     }
 
-    return { highlights:[], text:'@TODO' };
+    // Deal with an array.
+    if (Array.isArray(value)) {
+        let pos = start + 2; // `2` is te position after the opening "[ "
+        const { allHighlights, allText } = value
+        .reduce(
+            ({ allHighlights, allText }, item) => {
+                const { highlights, text } = renderableFrom(item, pos);
+                pos += text.length + 2; // `+ 2` for the comma and space ", "
+                return {
+                    allHighlights: [ ...allHighlights, ...highlights ],
+                    allText: [ ...allText, text ],
+                };
+            },
+            { allHighlights:[], allText:[] },
+        );
+        return {
+            highlights: allHighlights,
+            text: allText.length ? `[ ${allText.join(', ')} ]` : '[]',
+        };
+    }
+
+    // Deal with a regular expression.
+    if (value instanceof RegExp) {
+        const r = value.toString();
+        return { highlights: [ new Highlight('REGEXP', start, start+r.length) ], text:r }
+    }
+
+    // Deal with an object.
+    let pos = start + 2; // `2` is te position after the opening "{ "
+    const { allHighlights, allText } = Object.entries(value)
+        .reduce(
+            ({ allHighlights, allText }, [ key, val ]) => {
+                pos += key.length + 1; // `+ 1` for the colon ":"
+                const { highlights, text } = renderableFrom(val, pos);
+                pos += text.length + 2; // `+ 2` for the comma and space ", "
+                return {
+                    allHighlights: [ ...allHighlights, ...highlights ],
+                    allText: [ ...allText, `${key}:${text}` ],
+                };
+            },
+            { allHighlights:[], allText:[] },
+        );
+    return {
+        highlights: allHighlights,
+        text: allText.length ? `{ ${allText.join(', ')} }` : '{}',
+    };
 }
 
 /** ### A representation of a JavaScript value, ready to render.

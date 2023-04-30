@@ -2,7 +2,7 @@ import narrowAintas, { aintaNumber, aintaString } from '@0bdx/ainta';
 
 // Define an enum for validating `kind`.
 const validKind = [ 'ARRAY', 'BOOLNUM', 'DOM', 'ERROR', 'EXCEPTION',
-    'FUNCTION', 'NULLISH', 'OBJECT', 'STRING', 'SYMBOL' ];
+    'FUNCTION', 'NULLISH', 'OBJECT', 'REGEXP', 'STRING', 'SYMBOL' ];
 
 /** ### A single 'stroke of the highlighter pen' when rendering JS values.
  *
@@ -28,7 +28,7 @@ export default class Highlight {
     /** ### Creates a `Highlight` instance from the supplied arguments.
      * 
      * @param {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|
-     *         'FUNCTION'|'NULLISH'|'OBJECT'|'STRING'|'SYMBOL'} kind
+     *         'FUNCTION'|'NULLISH'|'OBJECT'|'REGEXP'|'STRING'|'SYMBOL'} kind
      *    How the value should be rendered.
      *    - Booleans and numbers highlight the same way
      *    - A `BigInt` is a number rendered with the `"n"` suffix

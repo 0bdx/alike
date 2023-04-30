@@ -257,7 +257,7 @@ declare class Highlight {
     /** ### Creates a `Highlight` instance from the supplied arguments.
      *
      * @param {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|
-     *         'FUNCTION'|'NULLISH'|'OBJECT'|'STRING'|'SYMBOL'} kind
+     *         'FUNCTION'|'NULLISH'|'OBJECT'|'REGEXP'|'STRING'|'SYMBOL'} kind
      *    How the value should be rendered.
      *    - Booleans and numbers highlight the same way
      *    - A `BigInt` is a number rendered with the `"n"` suffix
@@ -269,12 +269,12 @@ declare class Highlight {
      * @throws
      *    Throws an `Error` if any of the arguments are invalid.
      */
-    constructor(kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'STRING' | 'SYMBOL', start: number, stop: number);
+    constructor(kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'REGEXP' | 'STRING' | 'SYMBOL', start: number, stop: number);
     /** How the value should be rendered.
      * - Booleans and numbers highlight the same way
      * - A `BigInt` is a number rendered with the `"n"` suffix
      * - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}` */
-    kind: "ARRAY" | "BOOLNUM" | "DOM" | "ERROR" | "EXCEPTION" | "FUNCTION" | "NULLISH" | "OBJECT" | "STRING" | "SYMBOL";
+    kind: "ARRAY" | "BOOLNUM" | "DOM" | "ERROR" | "EXCEPTION" | "FUNCTION" | "NULLISH" | "OBJECT" | "REGEXP" | "STRING" | "SYMBOL";
     /** A non-negative integer. The position that highlighting starts. */
     start: number;
     /** A non-zero integer greater than `start`, where highlighting stops. */
