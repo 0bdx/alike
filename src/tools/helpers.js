@@ -79,6 +79,33 @@ export const determineWhetherAlike = (actually, expected, maxDepth=99) => {
     return true;
 };
 
+/** ### Protects `JSON.stringify()` agains cyclic references.
+ *
+ * See <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cyclic_object_value>
+ * 
+ * @private
+ * @returns {function(string,any):any}
+ */
+export function getCircularReplacer() {
+    const ancestors = [];
+    /**
+     * @param {string} key
+     * @param {any} value
+     */
+    return function (key, value) {
+        // ignore xxx.
+        if (value === null || typeof value !== 'object') { return value }
+
+        // `this` is the object that `value` is contained in - its direct parent.
+        while (ancestors.length > 0 && ancestors.at(-1) !== this) {
+          ancestors.pop();
+        }
+        if (ancestors.includes(value)) { return '[Circular]' }
+        ancestors.push(value);
+        return value;
+    };
+}
+
 /** ### Shortens text to a given length, by inserting `"..."` near the end.
  *
  * @private
@@ -247,6 +274,42 @@ export function helperTest() {
     equal(dwa(objA1, objA2), true);
     equal(dwa(objA1, { b:{ a:{ b:{} } } }), false);
     equal(dwa({ b:{ a:{ b:{} } } }, objA1), false);
+
+
+    /* ------------------------ getCircularReplacer() ----------------------- */
+
+    const gcr = getCircularReplacer;
+
+    // Should detect a circular reference in an array.
+    const arrA3 = []; const arrB3 = [ arrA3 ]; arrA3[0] = arrB3;
+    equal(JSON.stringify(arrA3, gcr()),
+        '[["[Circular]"]]');
+    const circularReferenceInArr = [];
+    circularReferenceInArr.push(123);
+    circularReferenceInArr.push([ 456, circularReferenceInArr, 789 ]);
+    equal(JSON.stringify(circularReferenceInArr, gcr()),
+        '[123,[456,"[Circular]",789]]');
+
+    // Should detect a circular reference in an object.
+    const objA3 = {}; const objB3 = { a:objA3 }; objA3.b = objB3;
+    equal(JSON.stringify(objA3, gcr()),
+        '{"b":{"a":"[Circular]"}}');
+    const circularReferenceInObj = { otherData: 123 };
+    circularReferenceInObj.myself = circularReferenceInObj;
+    equal(JSON.stringify(circularReferenceInObj, gcr()),
+        '{"otherData":123,"myself":"[Circular]"}');
+
+    // Should ignore two references to the same array.
+    const a = [1];
+    const notCircularReferenceInArr = [a, a];
+    equal(JSON.stringify(notCircularReferenceInArr, gcr()),
+        '[[1],[1]]');
+
+    // Should ignore two references to the same object.
+    const o = {};
+    const notCircularReference = { a:o, b:o };
+    equal(JSON.stringify(notCircularReference, gcr()),
+        '{"a":{},"b":{}}');
 
 
     /* ----------------------------- truncate() ----------------------------- */
