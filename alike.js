@@ -90,18 +90,22 @@ function renderableFrom(value) {
     if (value === null) return { highlights:
         [ new Highlight('NULLISH', 0, 4) ], text:'null'};
 
-    // Deal with a straightforward value: boolean, number or undefined.
+    // Deal with a scalar: bigint, boolean, number, symbol or undefined.
     const type = typeof value;
     switch (type) {
+        case 'bigint':
+        case 'number': // treat `NaN` like a regular number
+            const n = value.toString() + (type === 'bigint' ? 'n' : '');
+            return { highlights:[ new Highlight('BOOLNUM', 0, n.length) ], text:n};
         case 'boolean':
             return value
                 ? { highlights:[ new Highlight('BOOLNUM', 0, 4) ], text:'true' }
                 : { highlights:[ new Highlight('BOOLNUM', 0, 5) ], text:'false' };
-        case 'number': // treat `NaN` like a regular number
-            const text = value.toString();
-            return { highlights:[ new Highlight('BOOLNUM', 0, text.length) ], text};
         case 'undefined':
             return { highlights:[ new Highlight('NULLISH', 0, 9) ], text:'undefined' };
+        case 'symbol':
+            const s = value.toString();
+            return { highlights:[ new Highlight('SYMBOL', 0, s.length) ], text:s };
     }
 
     // Deal with a string.
@@ -116,6 +120,18 @@ function renderableFrom(value) {
         // (plus backslashes), and then wrap it in double-quotes.
         const text = JSON.stringify(value);
         return { highlights: [ new Highlight('STRING', 0, text.length) ], text }
+    }
+
+    // Deal with a function.
+    if (type === 'function') {
+        const params = new RegExp('(?:'+value.name+'\\s*|^)\\s*\\((.*?)\\)')
+            .exec(String.toString.call(value)
+            .replace(/\n/g, ''))[1]
+            .replace(/\/\*.*?\*\//g, '')
+            .replace(/ /g, '');
+        const name = value.name || '<anon>';
+        const f = `${name}(${params})`;
+        return { highlights: [ new Highlight('FUNCTION', 0, f.length) ], text:f }
     }
 
     return { highlights:[], text:'@TODO' };

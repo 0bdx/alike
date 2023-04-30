@@ -13,18 +13,22 @@ export default function renderableFrom(value) {
     if (value === null) return { highlights:
         [ new Highlight('NULLISH', 0, 4) ], text:'null'};
 
-    // Deal with a straightforward value: boolean, number or undefined.
+    // Deal with a scalar: bigint, boolean, number, symbol or undefined.
     const type = typeof value;
     switch (type) {
+        case 'bigint':
+        case 'number': // treat `NaN` like a regular number
+            const n = value.toString() + (type === 'bigint' ? 'n' : '');
+            return { highlights:[ new Highlight('BOOLNUM', 0, n.length) ], text:n};
         case 'boolean':
             return value
                 ? { highlights:[ new Highlight('BOOLNUM', 0, 4) ], text:'true' }
                 : { highlights:[ new Highlight('BOOLNUM', 0, 5) ], text:'false' };
-        case 'number': // treat `NaN` like a regular number
-            const text = value.toString();
-            return { highlights:[ new Highlight('BOOLNUM', 0, text.length) ], text};
         case 'undefined':
             return { highlights:[ new Highlight('NULLISH', 0, 9) ], text:'undefined' };
+        case 'symbol':
+            const s = value.toString();
+            return { highlights:[ new Highlight('SYMBOL', 0, s.length) ], text:s };
     }
 
     // Deal with a string.
@@ -39,6 +43,18 @@ export default function renderableFrom(value) {
         // (plus backslashes), and then wrap it in double-quotes.
         const text = JSON.stringify(value);
         return { highlights: [ new Highlight('STRING', 0, text.length) ], text }
+    }
+
+    // Deal with a function.
+    if (type === 'function') {
+        const params = new RegExp('(?:'+value.name+'\\s*|^)\\s*\\((.*?)\\)')
+            .exec(String.toString.call(value)
+            .replace(/\n/g, ''))[1]
+            .replace(/\/\*.*?\*\//g, '')
+            .replace(/ /g, '');
+        const name = value.name || '<anon>';
+        const f = `${name}(${params})`;
+        return { highlights: [ new Highlight('FUNCTION', 0, f.length) ], text:f }
     }
 
     return { highlights:[], text:'@TODO' };
@@ -70,8 +86,7 @@ export function renderableFromTest() {
     const f = renderableFrom;
 
     // `null` should return a 4-character 'NULLISH' `Renderable`.
-    const nullRenderable = f(null);
-    equal(toStr(nullRenderable), toLines(
+    equal(toStr(f(null)), toLines(
         `{`,
         `  "highlights": [`,
         `    {`,
@@ -84,9 +99,34 @@ export function renderableFromTest() {
         `}`,
     ));
 
+    // BigInts should return 'BOOLNUM' `Renderable` instances with varying lengths.
+    equal(toStr(f(BigInt(0))), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "BOOLNUM",`,
+        `      "start": 0,`,
+        `      "stop": 2`,
+        `    }`,
+        `  ],`,
+        `  "text": "0n"`,
+        `}`,
+    ));
+    equal(toStr(f(BigInt(-12.34e5))), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "BOOLNUM",`,
+        `      "start": 0,`,
+        `      "stop": 9`,
+        `    }`,
+        `  ],`,
+        `  "text": "-1234000n"`,
+        `}`,
+    ));
+
     // Boolean `true` and `false` should return a 4- or 5-character 'BOOLNUM' `Renderable`.
-    const trueRenderable = f(true);
-    equal(toStr(trueRenderable), toLines(
+    equal(toStr(f(true)), toLines(
         `{`,
         `  "highlights": [`,
         `    {`,
@@ -112,8 +152,7 @@ export function renderableFromTest() {
     ));
 
     // Numbers should return 'BOOLNUM' `Renderable` instances with varying lengths.
-    const oneDigitRenderable = f(0);
-    equal(toStr(oneDigitRenderable), toLines(
+    equal(toStr(f(0)), toLines(
         `{`,
         `  "highlights": [`,
         `    {`,
@@ -162,9 +201,46 @@ export function renderableFromTest() {
         `}`,
     ));
 
+    // Symbols should return 'SYMBOL' `Renderable` instances with varying lengths.
+    equal(toStr(f(Symbol())), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "SYMBOL",`,
+        `      "start": 0,`,
+        `      "stop": 8`,
+        `    }`,
+        `  ],`,
+        `  "text": "Symbol()"`,
+        `}`,
+    ));
+    equal(toStr(f(Symbol("'"))), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "SYMBOL",`,
+        `      "start": 0,`,
+        `      "stop": 9`,
+        `    }`,
+        `  ],`,
+        `  "text": "Symbol(')"`,
+        `}`,
+    ));
+    equal(toStr(f(Symbol(`"'`))), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "SYMBOL",`,
+        `      "start": 0,`,
+        `      "stop": 10`,
+        `    }`,
+        `  ],`,
+        `  "text": "Symbol(\\"')"`,
+        `}`,
+    ));
+
     // `undefined` should return a 9-character 'NULLISH' `Renderable`.
-    const undefinedRenderable = f();
-    equal(toStr(undefinedRenderable), toLines(
+    equal(toStr(f()), toLines(
         `{`,
         `  "highlights": [`,
         `    {`,
@@ -222,5 +298,31 @@ export function renderableFromTest() {
     equal(multiLineRenderable.highlights[0].kind, 'STRING');
     equal(multiLineRenderable.highlights[0].stop, 992);
     equal(multiLineRenderable.text.slice(-21), 'Café ok!\\nCafé ok!\\n"');
+
+    // Functions should return 'FUNCTION' `Renderable` instances with varying lengths.
+    equal(toStr(f(()=>{})), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "FUNCTION",`,
+        `      "start": 0,`,
+        `      "stop": 8`,
+        `    }`,
+        `  ],`,
+        `  "text": "<anon>()"`,
+        `}`,
+    ));
+    equal(toStr(f(function foo(a, b=2, ...rest){})), toLines(
+        `{`,
+        `  "highlights": [`,
+        `    {`,
+        `      "kind": "FUNCTION",`,
+        `      "start": 0,`,
+        `      "stop": 18`,
+        `    }`,
+        `  ],`,
+        `  "text": "foo(a,b=2,...rest)"`,
+        `}`,
+    ));
 
 }
