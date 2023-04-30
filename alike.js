@@ -791,13 +791,14 @@ function areAlike(actually, expected, notes) {
     const status = didFail ? 'FAIL' : 'PASS';
     const actuallyRenderable = Renderable.from(actually);
     const expectedRenderable = Renderable.from(expected);
-    const overview = `${status}: ${notesIsArray
-        ? (notes[0] ? `${truncate(notes[0],114)}\n    ` : '') // `notes` is an array
-        : (notes ? `${truncate(notes,114)}\n    ` : '') // `notes` should be undefined or a string
-    }\`actually\` is ${actuallyRenderable.overview}${didFail
-        ? `\n    \`expected\` is ${expectedRenderable.overview}`
-        : ' as expected'
-    }`;
+    const firstNotesLine = notesIsArray
+        ? (notes[0] || '') // `notes` is an array
+        : (notes || ''); // `notes` should be undefined or a string
+    const overview = status +
+        `: ${firstNotesLine && truncate(firstNotesLine,114) + '\n    : '}` +
+        `\`actually\` is ${actuallyRenderable.overview}${didFail
+            ? `\n    : \`expected\` is ${expectedRenderable.overview}`
+            : ' as expected'}`;
 
     // If there's no `this.addResult()`, throw or return the overview.
     if (typeof this?.addResult !== 'function') {

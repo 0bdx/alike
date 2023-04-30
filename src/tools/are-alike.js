@@ -54,13 +54,14 @@ export default function areAlike(actually, expected, notes) {
     const status = didFail ? 'FAIL' : 'PASS';
     const actuallyRenderable = Renderable.from(actually);
     const expectedRenderable = Renderable.from(expected);
-    const overview = `${status}: ${notesIsArray
-        ? (notes[0] ? `${truncate(notes[0],114)}\n    ` : '') // `notes` is an array
-        : (notes ? `${truncate(notes,114)}\n    ` : '') // `notes` should be undefined or a string
-    }\`actually\` is ${actuallyRenderable.overview}${didFail
-        ? `\n    \`expected\` is ${expectedRenderable.overview}`
-        : ' as expected'
-    }`;
+    const firstNotesLine = notesIsArray
+        ? (notes[0] || '') // `notes` is an array
+        : (notes || ''); // `notes` should be undefined or a string
+    const overview = status +
+        `: ${firstNotesLine && truncate(firstNotesLine,114) + '\n    : '}` +
+        `\`actually\` is ${actuallyRenderable.overview}${didFail
+            ? `\n    : \`expected\` is ${expectedRenderable.overview}`
+            : ' as expected'}`;
 
     // If there's no `this.addResult()`, throw or return the overview.
     if (typeof this?.addResult !== 'function') {
@@ -125,6 +126,18 @@ export function areAlikeTest(f, R, S) {
     const toStr = value => JSON.stringify(value, null, '  ');
     const toLines = (...lines) => lines.join('\n');
 
+    const simpleResultMocker = (kind, stop, text) => toLines(
+        `    "highlights": [`,
+        `      {`,
+        `        "kind": "${kind}",`,
+        `        "start": 0,`,
+        `        "stop": ${stop}`,
+        `      }`,
+        `    ],`,
+        `    "text": "${text}"`,
+        `  },`,
+    );
+
     // Create a version of `areAlike()` which is bound to a `Suite` instance.
     const suite = new S('Test Suite');
     /** @type f */
@@ -159,23 +172,12 @@ export function areAlikeTest(f, R, S) {
     // With no arguments supplied and when bound to a `Suite` instance, `areAlike()`
     // should add a full result, in addition to returning a one-line overview.
     const resultUndefinedActually = bound();
-    const highlightsUndefinedExpectedStr = toLines(
-        `    "highlights": [`,
-        `      {`,
-        `        "kind": "NULLISH",`,
-        `        "start": 0,`,
-        `        "stop": 9`,
-        `      }`,
-        `    ],`,
-        `    "text": "undefined"`,
-        `  },`,
-    );
     const resultUndefinedExpectedStr = toLines(
         `{`,
         `  "actually": {`,
-        highlightsUndefinedExpectedStr,
+        simpleResultMocker('NULLISH', 9, 'undefined'),
         `  "expected": {`,
-        highlightsUndefinedExpectedStr,
+        simpleResultMocker('NULLISH', 9, 'undefined'),
         `  "notes": "{{actually}} as expected",`,
         `  "sectionIndex": 0,`,
         `  "status": "PASS"`,
@@ -197,33 +199,18 @@ export function areAlikeTest(f, R, S) {
         toLines(
             'FAIL:  !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[' +
                 'ABCDEFGHIJKLMNOP...Z]^_`abcdefghijklmnopqrstuvwxyz{|}~',
-            '    `actually` is `1234567890`',
-            '    `expected` is "1234567890"'));
+            '    : `actually` is `1234567890`',
+            '    : `expected` is "1234567890"'));
 
     // An array containing an empty string is a valid `notes` line.
-    bound(null, void 0, ['']);
+    equal(bound(null, void 0, ['']),
+        'FAIL: `actually` is `null`\n    : `expected` is `undefined`');
     equal(toStr(suite.resultsAndSections[1]), toLines(
         `{`,
         `  "actually": {`,
-        `    "highlights": [`,
-        `      {`,
-        `        "kind": "NULLISH",`,
-        `        "start": 0,`,
-        `        "stop": 4`,
-        `      }`,
-        `    ],`,
-        `    "text": "null"`,
-        `  },`,
+        simpleResultMocker('NULLISH', 4, 'null'),
         `  "expected": {`,
-        `    "highlights": [`,
-        `      {`,
-        `        "kind": "NULLISH",`,
-        `        "start": 0,`,
-        `        "stop": 9`,
-        `      }`,
-        `    ],`,
-        `    "text": "undefined"`,
-        `  },`,
+        simpleResultMocker('NULLISH', 9, 'undefined'),
         `  "notes": "\\nactually: {{actually}}\\nexpected: {{expected}}",`,
         `  "sectionIndex": 0,`,
         `  "status": "FAIL"`,
@@ -231,29 +218,15 @@ export function areAlikeTest(f, R, S) {
     ));
 
     // 120 printable ASCII characters except backslashes, is a valid `notes` line.
-    bound(3, Number(3), longestValidLine);
+    equal(bound(3, Number(3), longestValidLine),
+        'PASS:  !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[ABCDEFGHIJKLMNOP...Z' +
+            ']^_`abcdefghijklmnopqrstuvwxyz{|}~\n    : `actually` is `3` as expected');
     equal(toStr(suite.resultsAndSections[2]), toLines(
         `{`,
         `  "actually": {`,
-        `    "highlights": [`,
-        `      {`,
-        `        "kind": "BOOLNUM",`,
-        `        "start": 0,`,
-        `        "stop": 1`,
-        `      }`,
-        `    ],`,
-        `    "text": "3"`,
-        `  },`,
+        simpleResultMocker('BOOLNUM', 1, '3'),
         `  "expected": {`,
-        `    "highlights": [`,
-        `      {`,
-        `        "kind": "BOOLNUM",`,
-        `        "start": 0,`,
-        `        "stop": 1`,
-        `      }`,
-        `    ],`,
-        `    "text": "3"`,
-        `  },`,
+        simpleResultMocker('BOOLNUM', 1, '3'),
         `  "notes": " !\\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[ABCDEFGHIJKLMNOPQRSTUVWXYZ` +
             `]^_\`abcdefghijklmnopqrstuvwxyz{|}~\\n{{actually}} as expected",`,
         `  "sectionIndex": 0,`,
@@ -262,34 +235,26 @@ export function areAlikeTest(f, R, S) {
     ));
 
     // `notes` can be undefined.
-    bound('true', true);
+    equal(bound('true', true),
+        'FAIL: `actually` is "true"\n    : `expected` is `true`');
     equal(suite.resultsAndSections.length, 4);
     equal(toStr(suite.resultsAndSections[3]), toLines(
         `{`,
         `  "actually": {`,
-        `    "highlights": [`,
-        `      {`,
-        `        "kind": "STRING",`,
-        `        "start": 0,`,
-        `        "stop": 6`,
-        `      }`,
-        `    ],`,
-        `    "text": "\\"true\\""`,
-        `  },`,
+        simpleResultMocker('STRING', 6, '\\"true\\"'),
         `  "expected": {`,
-        `    "highlights": [`,
-        `      {`,
-        `        "kind": "BOOLNUM",`,
-        `        "start": 0,`,
-        `        "stop": 4`,
-        `      }`,
-        `    ],`,
-        `    "text": "true"`,
-        `  },`,
+        simpleResultMocker('BOOLNUM', 4, 'true'),
         `  "notes": "actually: {{actually}}\\nexpected: {{expected}}",`,
         `  "sectionIndex": 0,`,
         `  "status": "FAIL"`,
         `}`
     ));
+
+    // @TODO more unit tests
+
+    // `notes` can be an empty array.
+    // throws(()=>f('true', true, []), 'foo');
+
+    // equal(f(true, true, ['First line here','Second line here']), 'foo');
 
 }
