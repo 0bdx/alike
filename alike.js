@@ -645,74 +645,98 @@ function addSection(subtitle) {
  *    The value that the test actually got.
  * @param {any} expected
  *    The value that the test expected.
+ * @param {number} [maxDepth=99]
+ *    Prevents infinite recursion.
  * @returns {boolean}
  *    Returns `true` if the arguments are alike, and `false` if not.
  */
-const determineWhetherAlike = (actually, expected) => {
+const determineWhetherAlike = (actually, expected, maxDepth=99) => {
 
-    // If either argument is `null`, return `true` or `false` right away.
+    // If either argument is `null`, we can return `true` or `false` early.
     const actuallyIsNull = actually === null;
     const expectedIsNull = expected === null;
     if (actuallyIsNull && expectedIsNull) return true; // both `null`
     if (actuallyIsNull || expectedIsNull) return false; // only one is `null`
+
+    // If either argument is `NaN`, we can return `true` or `false` early.
+    const actuallyIsNaN = Number.isNaN(actually);
+    const expectedIsNaN = Number.isNaN(expected);
+    if (actuallyIsNaN && expectedIsNaN) return true; // both 'not-a-number'
+    if (actuallyIsNaN || expectedIsNaN) return false; // only one is `NaN`
 
     // If the arguments are not the same type, `false`.
     const typeActually = typeof actually;
     const typeExpected = typeof expected;
     if (typeActually !== typeExpected) return false; // not the same type
 
-    // The arguments are the same type. If they're scalar, return `true/false`.
-    if (isScalarType(typeActually)) return actually === expected;
+    // They're the same type. If they're also scalar, return `true` or `false`.
+    if ({ bigint:1, boolean:1, number:1, string:1, symbol:1, undefined:1
+        }[typeActually]) return actually === expected;
 
     // The arguments are arrays, functions or objects. If they are references
     // to the same thing, return `true`.
     if (actually === expected) return true;
 
     // If the arguments are both functions, return `false`.
-    if (actually === 'function') return false;
+    // @TODO maybe compare static properties on a class
+    if (typeActually === 'function' && typeExpected === 'function') return false;
 
     // If they are both arrays, compare each argument recursively.
-    // @TODO protect against infinite recursion
+    // @TODO improve cyclic reference detection, by passing down a `foundObjects` argument
     const actuallyIsArray = Array.isArray(actually);
     const expectedIsArray = Array.isArray(expected);
     if (actuallyIsArray && expectedIsArray) {
+        if (maxDepth === 0) return true; // prevent infinite recursion
         const len = actually.length;
         if (expected.length !== len) return false;
         for (let i=0; i<len; i++) {
-            if (!determineWhetherAlike(actually[i], expected[i])) return false;
+            if (!determineWhetherAlike(actually[i], expected[i], maxDepth - 1))
+                return false;
         }
         return true;
     }
 
-    // The arguments are both objects. Compare them recursively.
-    // @TODO maybe check the constructor, prototype, methods, etc
-    // @TODO protect against infinite recursion
-    for (const key in actually) {
-        if (!determineWhetherAlike(actually[key], expected[key])) return false;
+    // If one argument is an array but the other is an object, return `false`.
+    if (actuallyIsArray || expectedIsArray) return false;
+
+    // The arguments are both objects. Compare their constructors.
+    if (actually.constructor !== expected.constructor) return false;
+
+    // Check they have the same number of properties, ignoring non-enumerables.
+    const actuallyKeys = Object.keys(actually);
+    const expectedKeys = Object.keys(expected);
+    if (actuallyKeys.length !== expectedKeys.length) return false;
+
+    // Prevent infinite recursion.
+    if (maxDepth === 0) return true;
+
+    // Compare the two objects recursively, ignoring non-enumerable properties.
+    // @TODO improve cyclic reference detection, by passing down a `foundObjects` argument
+    for (const key of actuallyKeys) {
+        if (!determineWhetherAlike(actually[key], expected[key], maxDepth - 1))
+            return false;
     }
+    return true;
 };
 
-/** ### Xx.
- *
- * @private
- * @param {string} type
- *    Xx.
- */
-const isScalarType = (type) => ({
-    bigint:1,boolean:1,number:1,string:1,symbol:1,undefined:1
-}[type]);
-
-/** ### Truncates text to a given length.
+/** ### Shortens text to a given length, by inserting `"..."` near the end.
  *
  * @private
  * @param {string} text
- *    Text to truncate.
+ *    Text to shorten.
  * @param {number} length
  *    The maximum allowed length of the truncated string.
+ * @throws
+ *    Throws an `Error` if `text` has no `length` property or `slice()` method.
+ *    Also throws an `Error` if `length` is less than 12.
  */
 const truncate = (text, length) => {
-    return text.length <= length ? text
-        : `${text.slice(0, length - 11)}...${text.slice(-8)}`;
+    if (length < 12) throw Error('truncate(): `length` ' + length + ' is < 12');
+    const textLength = text.length;
+    if (textLength <= length) return text;
+    const postLen = Math.max(4, length - ~~(length * 0.7));
+    const preLen = length - postLen - 3;
+    return `${text.slice(0, preLen)}...${text.slice(-postLen)}`;
 };
 
 // Define a regular expression for validating each item in `notes`.

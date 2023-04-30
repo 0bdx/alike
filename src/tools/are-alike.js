@@ -1,6 +1,6 @@
 import { aintaArray, aintaString } from '@0bdx/ainta';
 import { Renderable, Suite } from "../classes/index.js";
-import { determineWhetherAlike, isScalarType, truncate } from './helpers.js';
+import { determineWhetherAlike, truncate } from './helpers.js';
 
 // Define a regular expression for validating each item in `notes`.
 const noteRx = /^[ -\[\]-~]*$/;
@@ -196,7 +196,7 @@ export function areAlikeTest(f, R, S) {
     throws(()=>f(1234567890, '1234567890', [longestValidLine, 'Scalar values fail strict-equal']),
         toLines(
             'FAIL:  !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[' +
-                'ABCDEFGHIJKLMNOPQRSTUVWXYZ]^_`abcdefghijklm...wxyz{|}~',
+                'ABCDEFGHIJKLMNOP...Z]^_`abcdefghijklmnopqrstuvwxyz{|}~',
             '    `actually` is `1234567890`',
             '    `expected` is "1234567890"'));
 
