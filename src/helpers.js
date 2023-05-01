@@ -79,7 +79,7 @@ export const determineWhetherAlike = (actually, expected, maxDepth=99) => {
     return true;
 };
 
-/** ### Protects `JSON.stringify()` agains cyclic references.
+/** ### Protects `JSON.stringify()` against cyclic references.
  *
  * See <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cyclic_object_value>
  * 

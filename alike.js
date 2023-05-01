@@ -437,6 +437,94 @@ class Section {
 
 }
 
+// Define styling-strings for all possible `formatting`.
+const STYLING_STRINGS = {
+    ANSI: {
+        failIn: '\x1B[38;5;198;48;5;52m', // bright red on dull red
+        failOut: '\x1B[0m',
+    },
+    PLAIN: {
+        failIn: '',
+        failOut: '',
+    },
+};
+
+/** ### Renders a given test suite.
+ *
+ * @param {string} begin
+ *    Overrides the `begin` string sent to `Ainta` functions.
+ * @param {string} filterSections
+ *    Optional string, which hides sections whose subtitles do not match.
+ *    - The empty string `""` is treated the same as `undefined`
+ * @param {string} filterResults
+ *    A string, which hides results whose notes do not match.
+ *    - The empty string `""` is treated the same as `undefined`
+ * @param {'ANSI'|'HTML'|'JSON'|'PLAIN'} formatting
+ *    Controls how the render should be styled. One of `"ANSI|HTML|JSON|PLAIN"`.
+ * @param {'QUIET'|'VERY'|'VERYVERY'} verbosity
+ *    Controls how detailed the render should be. One of `"QUIET|VERY|VERYVERY"`.
+ * @returns {string}
+ *    Returns the rendered test suite.
+ * @throws
+ *    Throws an `Error` if either of the arguments are invalid.
+ */
+function suiteRender(
+    begin,
+    filterSections,
+    filterResults,
+    formatting,
+    verbosity,
+) {
+    // Validate the `begin` argument.
+    const aBegin = aintaString(begin, 'begin', { begin:'suiteRender()' });
+    if (aBegin) throw Error(aBegin);
+
+    // Validate the other arguments.
+    const [ aResults, aStr ] = narrowAintas({ begin }, aintaString);
+    aStr(filterSections, 'filterSections');
+    aStr(filterResults, 'filterResults');
+    aStr(formatting, 'formatting', { is:['ANSI','HTML','JSON','PLAIN'] });
+    aStr(verbosity, 'verbosity', { is:['QUIET','VERY','VERYVERY'] });
+    if (aResults.length) throw Error(aResults.join('\n'));
+
+    // Get the number of tests which failed, passed, and have not completed yet.
+    const fail = this.failTally;
+    const pass = this.passTally;
+    const pending = this.pendingTally;
+    const numTests = fail + pass + pending;
+
+    // Set up the appropriate styling-strings for the current `formatting`.
+    const { failIn, failOut } = STYLING_STRINGS[formatting];
+
+    // Return the test this's title, followed by a summary of the test results.
+    return `${'-'.repeat(this.title.length)}\n` +
+        `${this.title}\n` +
+        `${'='.repeat(this.title.length)}\n\n${
+        numTests === 0
+            ? 'No tests were run.'
+            : pending
+                ? `${pending} test${pending === 1 ? '' : 's' } still pending.`
+                : fail
+                  ? `${failIn}${
+                    numTests === fail
+                        ? (
+                            fail === 1
+                            ? 'The test failed.'
+                            : fail === 2
+                                ? 'Both tests failed.'
+                                : `All ${fail} tests passed.`)
+                        : (
+                            `${fail} of ${numTests} tests failed.`
+                        )
+                  }${failOut}`
+                  : pass === 1
+                    ? 'The test passed.'
+                    : pass === 2
+                        ? 'Both tests passed.'
+                        : `All ${pass} tests passed.`
+    }\n`;
+}
+
 // Define a regular expression for validating `title`.
 const titleRx = /^[ -\[\]-~]*$/;
 titleRx.toString = () => "'Printable ASCII characters except backslashes'";
@@ -472,7 +560,7 @@ class Suite {
     #pendingTally;
 
     /** ### An array containing zero or more test results and sections.
-     * @property {(Result|Section)[]} pendingTally */
+     * @property {(Result|Section)[]} resultsAndSections */
     get resultsAndSections() { return [...this.#resultsAndSections] };
     #resultsAndSections;
 
@@ -480,7 +568,7 @@ class Suite {
     #currentSectionIndex;
 
     /** ### Creates an empty `Suite` instance with the supplied title.
-     * 
+     *
      * @param {string} title
      *    The test suite's title, usually rendered as a heading above the results.
      *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
@@ -612,36 +700,103 @@ class Suite {
         // Add the new `Section` to the private `resultsAndSections` array.
         this.#resultsAndSections.push(section);
     }
+
+    /** ### Stringifies the test suite.
+     *
+     * @param {string} [begin='render()']
+     *    An optional way to override the `begin` string sent to `Ainta` functions.
+     * @param {string} [filterSections='']
+     *    Optional string, which hides sections whose subtitles do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {string} [filterResults='']
+     *    Optional string, which hides results whose notes do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {'ANSI'|'HTML'|'JSON'|'PLAIN'} [formatting='PLAIN']
+     *    Optional enum, which controls how the render should be styled.
+     *    - One of `"ANSI|HTML|JSON|PLAIN"`
+     *    - Defaults to `"PLAIN"`
+     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     *    Optional enum, which controls how detailed the render should be.
+     *    - One of `"QUIET|VERY|VERYVERY"`
+     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
+     * @returns {string}
+     *    Returns the rendered test suite.
+     * @throws
+     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     */
+    render(
+        begin = 'render()',
+        filterSections = '',
+        filterResults = '',
+        formatting = 'PLAIN',
+        verbosity = 'QUIET',
+    ) {
+        return suiteRender(
+            begin,
+            filterSections,
+            filterResults,
+            formatting,
+            verbosity,
+        );
+    }
+
+    /** ### Stringifies the test suite with ANSI colours for the terminal.
+     *
+     * @param {string} [filterSections='']
+     *    Optional string, which hides sections whose subtitles do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {string} [filterResults='']
+     *    Optional string, which hides results whose notes do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     *    Optional enum, which controls how detailed the render should be.
+     *    - One of `"QUIET|VERY|VERYVERY"`
+     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
+     * @returns {string}
+     *    Returns the rendered test suite.
+     * @throws
+     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     */
+    renderAnsi(filterSections='', filterResults='', verbosity='QUIET') {
+        return this.render(
+            'renderAnsi()',
+            filterSections,
+            filterResults,
+            'ANSI',
+            verbosity,
+        );
+    }
+
 }
 
 /** ### Binds various test tools to a shared `Suite` instance.
  * 
  * Takes an existing `Suite` or creates a new one, binds any number of functions
- * to it, and returns those functions in an array. Each function can then access
- * the shared `Suite` instance using the `this` keyword.
+ * to it, and returns the suite and those functions in an array. Each function
+ * can then access the shared `Suite` instance using the `this` keyword.
  *
  * This pattern of dependency injection allows lots of flexibility, and works
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindAlikeTools, { addSection, areAlike, renderPlain }
- *     from '@0bdx/alike';
- *
- * // Give the test suite a title, and bind some functions to it.
- * const [ section,    areA,     render ] = bindAlikeTools('Mathsy Test Suite',
- *         addSection, areAlike, renderPlain);
- *
- * // Optionally, begin a new addSection.
+ * import alike, { addSection, bindToSuite } from '@0bdx/alike';
+ * 
+ * // Give the test suite a title, and bind two functions to it.
+ * // A suite from previous tests can be used instead of a title.
+ * const [ suite, section,    like ] = bindToSuite('Mathsy Tests',
+ *                addSection, alike);
+ * 
+ * // Optionally, begin a new section.
  * section('Check that factorialise() works');
- *
- * // Run the tests. The third argument, `description`, is optional.
- * areA(factorialise(0), 1);
- * areA(factorialise(5), 120,
+ * 
+ * // Run the tests. The third argument, `notes`, is optional.
+ * like(factorialise(0), 1);
+ * like(factorialise(5), 120,
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
- *
- * // Output the test results to the console, as plain text.
- * console.log(render());
- *
+ * 
+ * // Output a test results summary to the console, as plain text.
+ * console.log(suite.renderPlain());
+ * 
  * function factorialise(n) {
  *     if (n === 0 || n === 1) return 1;
  *     for (let i=n-1; i>0; i--) n *= i;
@@ -898,49 +1053,4 @@ function areAlike(actually, expected, notes) {
     return overview;
 }
 
-/** ### Renders a test suite without colours or typographic styling.
- * 
- * @TODO describe with examples
- *
- * @returns {string}
- *    Returns the test suite's title, followed by a summary of the test results.
- * @throws
- *    Throws an `Error` if the `this` context is invalid.
- */
-function renderPlain() {
-    const begin = 'renderPlain()';
-
-    // Tell JSDoc that the `this` context is a `Suite` instance.
-    /** @type Suite */
-    const suite = this;
-
-    // Check that this function has been bound to a `Suite` instance.
-    // @TODO cache this result for performance
-    const aSuite = aintaObject(suite, 'suite', { begin, is:[Suite], open:true });
-    if (aSuite) throw Error(aSuite);
-
-    // Get the number of tests which failed, passed, and have not completed yet.
-    const fail = suite.failTally;
-    const pass = suite.passTally;
-    const pending = suite.pendingTally;
-    const numTests = fail + pass + pending;
-
-    // Return the test suite's title, followed by a summary of the test results.
-    return `${'-'.repeat(suite.title.length)}\n` +
-        `${suite.title}\n` +
-        `${'='.repeat(suite.title.length)}\n\n${
-        numTests === 0
-            ? 'No tests were run.'
-            : pending
-                ? `${pending} test${pending === 1 ? '' : 's' } still pending.`
-                : fail
-                  ? '@TODO fails'
-                  : pass === 1
-                    ? 'The test passed.'
-                    : pass === 2
-                        ? 'Both tests passed.'
-                        : `All ${pass} tests passed.`
-    }\n`;
-}
-
-export { Renderable, Suite, addSection, areAlike, bindAlikeTools as default, renderPlain };
+export { Renderable, Suite, addSection, areAlike, bindAlikeTools as default };

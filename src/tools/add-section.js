@@ -58,7 +58,7 @@ export function addSectionTest(f, S) {
     throws(()=>badlyBound('Valid title.'),
         "addSection(): `suite` is not in `options.is` 'Suite'");
 
-    // When bound bound to a `Suite` instance, `addSection()` should add a section.
+    // When bound to a `Suite` instance, `addSection()` should add a section.
     const suite = new S('Test Suite');
     /** @type f */
     const bound = f.bind(suite);

@@ -1,8 +1,9 @@
 import { aintaString } from '@0bdx/ainta';
-import Highlight from './highlight.js';
-import Renderable from './renderable/renderable.js';
-import Result from './result.js';
-import Section from './section.js';
+import Highlight from '../highlight.js';
+import Renderable from '../renderable/renderable.js';
+import Result from '../result.js';
+import Section from '../section.js';
+import suiteRender from './suite-render.js';
 
 // Define a regular expression for validating `title`.
 const titleRx = /^[ -\[\]-~]*$/;
@@ -39,7 +40,7 @@ export default class Suite {
     #pendingTally;
 
     /** ### An array containing zero or more test results and sections.
-     * @property {(Result|Section)[]} pendingTally */
+     * @property {(Result|Section)[]} resultsAndSections */
     get resultsAndSections() { return [...this.#resultsAndSections] };
     #resultsAndSections;
 
@@ -47,7 +48,7 @@ export default class Suite {
     #currentSectionIndex;
 
     /** ### Creates an empty `Suite` instance with the supplied title.
-     * 
+     *
      * @param {string} title
      *    The test suite's title, usually rendered as a heading above the results.
      *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
@@ -179,6 +180,73 @@ export default class Suite {
         // Add the new `Section` to the private `resultsAndSections` array.
         this.#resultsAndSections.push(section);
     }
+
+    /** ### Stringifies the test suite.
+     *
+     * @param {string} [begin='render()']
+     *    An optional way to override the `begin` string sent to `Ainta` functions.
+     * @param {string} [filterSections='']
+     *    Optional string, which hides sections whose subtitles do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {string} [filterResults='']
+     *    Optional string, which hides results whose notes do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {'ANSI'|'HTML'|'JSON'|'PLAIN'} [formatting='PLAIN']
+     *    Optional enum, which controls how the render should be styled.
+     *    - One of `"ANSI|HTML|JSON|PLAIN"`
+     *    - Defaults to `"PLAIN"`
+     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     *    Optional enum, which controls how detailed the render should be.
+     *    - One of `"QUIET|VERY|VERYVERY"`
+     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
+     * @returns {string}
+     *    Returns the rendered test suite.
+     * @throws
+     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     */
+    render(
+        begin = 'render()',
+        filterSections = '',
+        filterResults = '',
+        formatting = 'PLAIN',
+        verbosity = 'QUIET',
+    ) {
+        return suiteRender(
+            begin,
+            filterSections,
+            filterResults,
+            formatting,
+            verbosity,
+        );
+    }
+
+    /** ### Stringifies the test suite with ANSI colours for the terminal.
+     *
+     * @param {string} [filterSections='']
+     *    Optional string, which hides sections whose subtitles do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {string} [filterResults='']
+     *    Optional string, which hides results whose notes do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     *    Optional enum, which controls how detailed the render should be.
+     *    - One of `"QUIET|VERY|VERYVERY"`
+     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
+     * @returns {string}
+     *    Returns the rendered test suite.
+     * @throws
+     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     */
+    renderAnsi(filterSections='', filterResults='', verbosity='QUIET') {
+        return this.render(
+            'renderAnsi()',
+            filterSections,
+            filterResults,
+            'ANSI',
+            verbosity,
+        );
+    }
+
 }
 
 

@@ -1,6 +1,6 @@
 import { aintaArray, aintaString } from '@0bdx/ainta';
 import { Renderable, Suite } from "../classes/index.js";
-import { determineWhetherAlike, truncate } from './helpers.js';
+import { determineWhetherAlike, truncate } from '../helpers.js';
 
 // Define a regular expression for validating each item in `notes`.
 const noteRx = /^[ -\[\]-~]*$/;

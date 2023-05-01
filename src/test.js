@@ -6,20 +6,19 @@ import {
     resultTest,
     sectionTest,
     Suite,
+    suiteRenderTest,
     suiteTest,
 } from './classes/index.js';
 
-import { helperTest } from './tools/helpers.js';
+import { helperTest } from './helpers.js';
 
 import bindAlikeTools, {
     addSection,
     areAlike,
-    renderPlain,
 } from './index.js';
 import { bindAlikeToolsTest } from './bind-alike-tools.js';
 import { addSectionTest } from './tools/add-section.js';
 import { areAlikeTest } from './tools/are-alike.js';
-import { renderPlainTest } from './tools/render-plain.js';
 
 highlightTest();
 renderableFromTest();
@@ -27,10 +26,10 @@ renderableTest();
 resultTest();
 sectionTest();
 suiteTest();
+suiteRenderTest(Suite);
 
 helperTest();
 
 bindAlikeToolsTest(bindAlikeTools);
 addSectionTest(addSection, Suite);
 areAlikeTest(areAlike, Renderable, Suite);
-renderPlainTest(renderPlain, Renderable, Suite);

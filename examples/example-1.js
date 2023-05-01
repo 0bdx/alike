@@ -1,14 +1,18 @@
-import { areAlike } from '../alike.js';
+import alike from '../alike.js';
 
 // Compare two numbers.
-console.log(areAlike(0, -0, 'Zero and minus-zero are alike'));
+console.log(alike(0, -0, 'Zero and minus-zero are alike'));
 // PASS: Zero and minus-zero are alike
+//     : `actually` is `0` as expected
 
 // Compare two booleans.
-console.log(areAlike(true, false, 'true and false are not alike.'));
+try { alike(true, false, 'true and false are not alike.');
+} catch (err) { console.log(err.message) }
 // FAIL: true and false are not alike.
+//     : `actually` is `true`
+//     : `expected` is `false`
 
 // Compare two plain objects.
-// @TODO fix this
-console.log(areAlike({a:1}, {a:1}, 'Identical-looking objects are alike.'));
-// PASS: Identical-looking objects are alike.
+console.log(alike({a:1}, {a:1}, 'Similar objects are alike.'));
+// PASS: Similar objects are alike.
+//     : `actually` is `{ a:1 }` as expected

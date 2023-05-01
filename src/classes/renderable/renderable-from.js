@@ -128,7 +128,7 @@ export function renderableFromTest() {
 
     const f = renderableFrom;
 
-    // `null` should return a 4-character 'NULLISH' `Renderable`.
+    // `null` should be a 4-character 'NULLISH'.
     equal(toStr(f(null)), toLines(
         `{`,
         `  "highlights": [`,
@@ -142,7 +142,7 @@ export function renderableFromTest() {
         `}`,
     ));
 
-    // BigInts should return 'BOOLNUM' `Renderable` instances with varying lengths.
+    // BigInts should be 'BOOLNUM' with varying lengths.
     equal(toStr(f(BigInt(0))), toLines(
         `{`,
         `  "highlights": [`,
@@ -168,7 +168,7 @@ export function renderableFromTest() {
         `}`,
     ));
 
-    // Boolean `true` and `false` should return a 4- or 5-character 'BOOLNUM' `Renderable`.
+    // Boolean `true` and `false` should be a 4- or 5-character 'BOOLNUM'.
     equal(toStr(f(true)), toLines(
         `{`,
         `  "highlights": [`,
@@ -194,7 +194,7 @@ export function renderableFromTest() {
         `}`,
     ));
 
-    // Numbers should return 'BOOLNUM' `Renderable` instances with varying lengths.
+    // Numbers should be 'BOOLNUM' with varying lengths.
     equal(toStr(f(0)), toLines(
         `{`,
         `  "highlights": [`,
@@ -244,7 +244,7 @@ export function renderableFromTest() {
         `}`,
     ));
 
-    // RegExps should return 'REGEXP' `Renderable` instances with varying lengths.
+    // RegExps should be 'REGEXP' with varying lengths.
     equal(toStr(f(RegExp('a'))), toLines(
         `{`,
         `  "highlights": [`,
@@ -266,7 +266,7 @@ export function renderableFromTest() {
         `      "stop": 6`,
         `    }`,
         `  ],`,
-        `  "text": "/(?:)/"`,
+        `  "text": "/(?:)/"`, // @TODO test on different browsers
         `}`,
     ));
     equal(toStr(f(/^[^abc]{3,9}$/gi)), toLines(
@@ -282,7 +282,7 @@ export function renderableFromTest() {
         `}`,
     ));
 
-    // Symbols should return 'SYMBOL' `Renderable` instances with varying lengths.
+    // Symbols should be 'SYMBOL' with varying lengths.
     equal(toStr(f(Symbol())), toLines(
         `{`,
         `  "highlights": [`,
@@ -320,7 +320,7 @@ export function renderableFromTest() {
         `}`,
     ));
 
-    // `undefined` should return a 9-character 'NULLISH' `Renderable`.
+    // `undefined` should be a 9-character 'NULLISH'.
     equal(toStr(f()), toLines(
         `{`,
         `  "highlights": [`,
@@ -334,7 +334,7 @@ export function renderableFromTest() {
         `}`,
     ));
 
-    // Strings should return 'STRING' `Renderable` instances with varying lengths.
+    // Strings should be 'STRING' with varying lengths.
     const emptyStringRenderable = f('');
     equal(emptyStringRenderable.highlights[0].kind, 'STRING');
     equal(emptyStringRenderable.highlights[0].stop, 2);
@@ -380,7 +380,7 @@ export function renderableFromTest() {
     equal(multiLineRenderable.highlights[0].stop, 992);
     equal(multiLineRenderable.text.slice(-21), 'Café ok!\\nCafé ok!\\n"');
 
-    // Functions should return 'FUNCTION' `Renderable` instances with varying lengths.
+    // Functions should be 'FUNCTION' with varying lengths.
     equal(toStr(f(()=>{})), toLines(
         `{`,
         `  "highlights": [`,
@@ -406,7 +406,7 @@ export function renderableFromTest() {
         `}`,
     ));
 
-    // Arrays should return `Renderable` instances with varying kinds and lengths.
+    // Arrays should be varying kinds and lengths.
     equal(toStr(f([])), toLines(
         `{`,
         `  "highlights": [],`,
@@ -441,7 +441,7 @@ export function renderableFromTest() {
         `}`,
     ));
 
-    // Objects should return `Renderable` instances with varying kinds and lengths.
+    // Objects should be varying kinds and lengths.
     equal(toStr(f({})), toLines(
         `{`,
         `  "highlights": [],`,

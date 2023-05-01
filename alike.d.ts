@@ -94,7 +94,7 @@ export class Suite {
      * @property {number} pendingTally */
     get pendingTally(): number;
     /** ### An array containing zero or more test results and sections.
-     * @property {(Result|Section)[]} pendingTally */
+     * @property {(Result|Section)[]} resultsAndSections */
     get resultsAndSections(): any[];
     /** ### Returns the suite's public properties as an object.
      *
@@ -151,6 +151,48 @@ export class Suite {
      *    Throws an `Error` if `subtitle` or the `this` context are invalid.
      */
     addSection(subtitle: string): void;
+    /** ### Stringifies the test suite.
+     *
+     * @param {string} [begin='render()']
+     *    An optional way to override the `begin` string sent to `Ainta` functions.
+     * @param {string} [filterSections='']
+     *    Optional string, which hides sections whose subtitles do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {string} [filterResults='']
+     *    Optional string, which hides results whose notes do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {'ANSI'|'HTML'|'JSON'|'PLAIN'} [formatting='PLAIN']
+     *    Optional enum, which controls how the render should be styled.
+     *    - One of `"ANSI|HTML|JSON|PLAIN"`
+     *    - Defaults to `"PLAIN"`
+     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     *    Optional enum, which controls how detailed the render should be.
+     *    - One of `"QUIET|VERY|VERYVERY"`
+     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
+     * @returns {string}
+     *    Returns the rendered test suite.
+     * @throws
+     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     */
+    render(begin?: string, filterSections?: string, filterResults?: string, formatting?: 'ANSI' | 'HTML' | 'JSON' | 'PLAIN', verbosity?: 'QUIET' | 'VERY' | 'VERYVERY'): string;
+    /** ### Stringifies the test suite with ANSI colours for the terminal.
+     *
+     * @param {string} [filterSections='']
+     *    Optional string, which hides sections whose subtitles do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {string} [filterResults='']
+     *    Optional string, which hides results whose notes do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     *    Optional enum, which controls how detailed the render should be.
+     *    - One of `"QUIET|VERY|VERYVERY"`
+     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
+     * @returns {string}
+     *    Returns the rendered test suite.
+     * @throws
+     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     */
+    renderAnsi(filterSections?: string, filterResults?: string, verbosity?: 'QUIET' | 'VERY' | 'VERYVERY'): string;
     #private;
 }
 /** ### Adds a new section to the test suite.
@@ -195,30 +237,30 @@ export function areAlike(actually: any, expected: any, notes?: string | string[]
 /** ### Binds various test tools to a shared `Suite` instance.
  *
  * Takes an existing `Suite` or creates a new one, binds any number of functions
- * to it, and returns those functions in an array. Each function can then access
- * the shared `Suite` instance using the `this` keyword.
+ * to it, and returns the suite and those functions in an array. Each function
+ * can then access the shared `Suite` instance using the `this` keyword.
  *
  * This pattern of dependency injection allows lots of flexibility, and works
  * well with Rollup's tree shaking.
  *
  * @example
- * import bindAlikeTools, { addSection, areAlike, renderPlain }
- *     from '@0bdx/alike';
+ * import alike, { addSection, bindToSuite } from '@0bdx/alike';
  *
- * // Give the test suite a title, and bind some functions to it.
- * const [ section,    areA,     render ] = bindAlikeTools('Mathsy Test Suite',
- *         addSection, areAlike, renderPlain);
+ * // Give the test suite a title, and bind two functions to it.
+ * // A suite from previous tests can be used instead of a title.
+ * const [ suite, section,    like ] = bindToSuite('Mathsy Tests',
+ *                addSection, alike);
  *
- * // Optionally, begin a new addSection.
+ * // Optionally, begin a new section.
  * section('Check that factorialise() works');
  *
- * // Run the tests. The third argument, `description`, is optional.
- * areA(factorialise(0), 1);
- * areA(factorialise(5), 120,
+ * // Run the tests. The third argument, `notes`, is optional.
+ * like(factorialise(0), 1);
+ * like(factorialise(5), 120,
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
- * // Output the test results to the console, as plain text.
- * console.log(render());
+ * // Output a test results summary to the console, as plain text.
+ * console.log(suite.renderPlain());
  *
  * function factorialise(n) {
  *     if (n === 0 || n === 1) return 1;
@@ -236,16 +278,6 @@ export function areAlike(actually: any, expected: any, notes?: string | string[]
  *    Throws an `Error` if any of the arguments are invalid.
  */
 declare function bindAlikeTools(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
-/** ### Renders a test suite without colours or typographic styling.
- *
- * @TODO describe with examples
- *
- * @returns {string}
- *    Returns the test suite's title, followed by a summary of the test results.
- * @throws
- *    Throws an `Error` if the `this` context is invalid.
- */
-export function renderPlain(): string;
 /** ### A single 'stroke of the highlighter pen' when rendering JS values.
  *
  * - __Consistent:__ related data in different properties always agrees
