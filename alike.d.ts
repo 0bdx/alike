@@ -206,34 +206,6 @@ export class Suite {
  *    Throws an `Error` if `subtitle` or the `this` context are invalid.
  */
 export function addSection(subtitle: string): void;
-/** ### Compares two JavaScript values in a user-friendly way.
- *
- * `areAlike()` operates in one of two modes:
- * 1. If it has been bound to an object with an `addResult()` method, it sends
- *    that method the full test results, and then returns an overview.
- * 2. Otherwise, it either throws an `Error` if the test fails, or returns
- *    an overview if the test passes.
- *
- * @TODO finish the description, with examples
- *
- * @param {any} actually
- *    The value that the test actually got.
- * @param {any} expected
- *    The value that the test expected.
- * @param {string|string[]} [notes]
- *    An optional description of the test, as a string or array of strings.
- *    - A string is treated identically to an array containing just that string
- *    - 0 to 100 items, where each item is a line
- *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
- *    - An empty array `[]` means that no notes have been supplied
- *    - The first item (index 0), if present, is used for the overview
- * @returns {string}
- *    Returns an overview of the test result.
- * @throws
- *    Throws an `Error` if `notes` or the `this` context are invalid.
- *    Also throws an `Error` if the test fails.
- */
-export function areAlike(actually: any, expected: any, notes?: string | string[]): string;
 /** ### Binds various test tools to a shared `Suite` instance.
  *
  * Takes an existing `Suite` or creates a new one, binds any number of functions
@@ -277,7 +249,35 @@ export function areAlike(actually: any, expected: any, notes?: string | string[]
  * @throws
  *    Throws an `Error` if any of the arguments are invalid.
  */
-declare function bindToSuite(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
+export function bindToSuite(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
+/** ### Compares two JavaScript values in a user-friendly way.
+ *
+ * `alike()` operates in one of two modes:
+ * 1. If it has been bound to an object with an `addResult()` method, it sends
+ *    that method the full test results, and then returns an overview.
+ * 2. Otherwise, it either throws an `Error` if the test fails, or returns
+ *    an overview if the test passes.
+ *
+ * @TODO finish the description, with examples
+ *
+ * @param {any} actually
+ *    The value that the test actually got.
+ * @param {any} expected
+ *    The value that the test expected.
+ * @param {string|string[]} [notes]
+ *    An optional description of the test, as a string or array of strings.
+ *    - A string is treated identically to an array containing just that string
+ *    - 0 to 100 items, where each item is a line
+ *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+ *    - An empty array `[]` means that no notes have been supplied
+ *    - The first item (index 0), if present, is used for the overview
+ * @returns {string}
+ *    Returns an overview of the test result.
+ * @throws
+ *    Throws an `Error` if `notes` or the `this` context are invalid.
+ *    Also throws an `Error` if the test fails.
+ */
+declare function alike(actually: any, expected: any, notes?: string | string[]): string;
 /** ### A single 'stroke of the highlighter pen' when rendering JS values.
  *
  * - __Consistent:__ related data in different properties always agrees
@@ -390,4 +390,4 @@ declare class Section {
      * - An empty string `""` means that a default should be used */
     subtitle: string;
 }
-export { bindToSuite as default };
+export { alike as default };

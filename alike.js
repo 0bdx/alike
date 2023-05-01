@@ -769,6 +769,29 @@ class Suite {
 
 }
 
+/** ### Adds a new section to the test suite.
+ * 
+ * @param {string} subtitle
+ *    The section title, usually rendered as a sub-heading in the results.
+ *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
+ * @returns {void}
+ *    Does not return anything.
+ * @throws
+ *    Throws an `Error` if `subtitle` or the `this` context are invalid.
+ */
+function addSection(subtitle) {
+    const begin = 'addSection()';
+
+    // Check that this function has been bound to a `Suite` instance.
+    // @TODO cache this result for performance
+    const aSuite = aintaObject(this, 'suite', { begin, is:[Suite], open:true });
+    if (aSuite) throw Error(aSuite);
+
+    // The brackets around `this` make JSDoc see `(this)` as a `Suite` instance.
+    /** @type Suite */
+    (this).addSection(subtitle);
+}
+
 /** ### Binds various test tools to a shared `Suite` instance.
  * 
  * Takes an existing `Suite` or creates a new one, binds any number of functions
@@ -832,29 +855,6 @@ function bindToSuite(titleOrSuite, ...tools) {
 
     // Bind the `Suite` instance to each test tool.
     return tools.map(tool => tool.bind(suite));
-}
-
-/** ### Adds a new section to the test suite.
- * 
- * @param {string} subtitle
- *    The section title, usually rendered as a sub-heading in the results.
- *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
- * @returns {void}
- *    Does not return anything.
- * @throws
- *    Throws an `Error` if `subtitle` or the `this` context are invalid.
- */
-function addSection(subtitle) {
-    const begin = 'addSection()';
-
-    // Check that this function has been bound to a `Suite` instance.
-    // @TODO cache this result for performance
-    const aSuite = aintaObject(this, 'suite', { begin, is:[Suite], open:true });
-    if (aSuite) throw Error(aSuite);
-
-    // The brackets around `this` make JSDoc see `(this)` as a `Suite` instance.
-    /** @type Suite */
-    (this).addSection(subtitle);
 }
 
 /** ### Determines whether two arguments are alike.
@@ -964,7 +964,7 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 /** ### Compares two JavaScript values in a user-friendly way.
  * 
- * `areAlike()` operates in one of two modes:
+ * `alike()` operates in one of two modes:
  * 1. If it has been bound to an object with an `addResult()` method, it sends
  *    that method the full test results, and then returns an overview.
  * 2. Otherwise, it either throws an `Error` if the test fails, or returns
@@ -989,8 +989,8 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  *    Also throws an `Error` if the test fails.
  */
-function areAlike(actually, expected, notes) {
-    const begin = 'areAlike()';
+function alike(actually, expected, notes) {
+    const begin = 'alike()';
 
     // Validate the `notes` argument. `this.addResult()`, if it exists, will
     // do some similar validation, but its error message would be confusing.
@@ -1006,7 +1006,7 @@ function areAlike(actually, expected, notes) {
     // Determine whether `actually` and `expected` are alike.
     const didFail = !determineWhetherAlike(actually, expected);
 
-    // Generate the overview which `areAlike()` will throw or return.
+    // Generate the overview which `alike()` will throw or return.
     const status = didFail ? 'FAIL' : 'PASS';
     const actuallyRenderable = Renderable.from(actually);
     const expectedRenderable = Renderable.from(expected);
@@ -1053,4 +1053,4 @@ function areAlike(actually, expected, notes) {
     return overview;
 }
 
-export { Renderable, Suite, addSection, areAlike, bindToSuite as default };
+export { Renderable, Suite, addSection, bindToSuite, alike as default };

@@ -10,15 +10,15 @@ import {
     suiteTest,
 } from './classes/index.js';
 
-import { helperTest } from './helpers.js';
+import { helpersTest } from './helpers.js';
 
-import bindToSuite, {
+import alike, {
     addSection,
-    areAlike,
+    bindToSuite,
 } from './index.js';
-import { bindToSuiteTest } from './tools/bind-to-suite.js';
+import { alikeTest } from './alike.js';
 import { addSectionTest } from './tools/add-section.js';
-import { areAlikeTest } from './tools/are-alike.js';
+import { bindToSuiteTest } from './tools/bind-to-suite.js';
 
 highlightTest();
 renderableFromTest();
@@ -28,8 +28,8 @@ sectionTest();
 suiteTest();
 suiteRenderTest(Suite);
 
-helperTest();
+helpersTest();
 
-bindToSuiteTest(bindToSuite);
+alikeTest(alike, Renderable, Suite);
 addSectionTest(addSection, Suite);
-areAlikeTest(areAlike, Renderable, Suite);
+bindToSuiteTest(bindToSuite);

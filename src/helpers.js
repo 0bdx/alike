@@ -93,13 +93,11 @@ export function getCircularReplacer() {
      * @param {any} value
      */
     return function (key, value) {
-        // ignore xxx.
+        // Ignore `null`, and ignore anything which is not an array or object.
         if (value === null || typeof value !== 'object') { return value }
 
         // `this` is the object that `value` is contained in - its direct parent.
-        while (ancestors.length > 0 && ancestors.at(-1) !== this) {
-          ancestors.pop();
-        }
+        while (ancestors.length && ancestors.at(-1) !== this) ancestors.pop();
         if (ancestors.includes(value)) { return '[Circular]' }
         ancestors.push(value);
         return value;
@@ -136,7 +134,7 @@ export const truncate = (text, length) => {
  * @throws
  *    Throws an `Error` if a test fails.
  */
-export function helperTest() {
+export function helpersTest() {
     const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +

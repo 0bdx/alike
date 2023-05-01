@@ -1,13 +1,13 @@
-import bindToSuite, {
+import alike, {
     addSection,
-    areAlike,
+    bindToSuite,
     Renderable,
     Suite,
 } from './alike.js';
-import { bindToSuiteTest } from './src/tools/bind-to-suite.js';
+import { alikeTest } from './src/alike.js';
 import { addSectionTest } from './src/tools/add-section.js';
-import { areAlikeTest } from './src/tools/are-alike.js';
+import { bindToSuiteTest } from './src/tools/bind-to-suite.js';
 
-bindToSuiteTest(bindToSuite);
+alikeTest(alike, Renderable, Suite);
 addSectionTest(addSection, Suite);
-areAlikeTest(areAlike, Renderable, Suite);
+bindToSuiteTest(bindToSuite);

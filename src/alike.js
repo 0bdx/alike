@@ -1,6 +1,6 @@
 import { aintaArray, aintaString } from '@0bdx/ainta';
-import { Renderable, Suite } from "../classes/index.js";
-import { determineWhetherAlike, truncate } from '../helpers.js';
+import { Renderable, Suite } from "./classes/index.js";
+import { determineWhetherAlike, truncate } from './helpers.js';
 
 // Define a regular expression for validating each item in `notes`.
 const noteRx = /^[ -\[\]-~]*$/;
@@ -8,7 +8,7 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 /** ### Compares two JavaScript values in a user-friendly way.
  * 
- * `areAlike()` operates in one of two modes:
+ * `alike()` operates in one of two modes:
  * 1. If it has been bound to an object with an `addResult()` method, it sends
  *    that method the full test results, and then returns an overview.
  * 2. Otherwise, it either throws an `Error` if the test fails, or returns
@@ -33,8 +33,8 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  *    Also throws an `Error` if the test fails.
  */
-export default function areAlike(actually, expected, notes) {
-    const begin = 'areAlike()';
+export default function alike(actually, expected, notes) {
+    const begin = 'alike()';
 
     // Validate the `notes` argument. `this.addResult()`, if it exists, will
     // do some similar validation, but its error message would be confusing.
@@ -50,7 +50,7 @@ export default function areAlike(actually, expected, notes) {
     // Determine whether `actually` and `expected` are alike.
     const didFail = !determineWhetherAlike(actually, expected);
 
-    // Generate the overview which `areAlike()` will throw or return.
+    // Generate the overview which `alike()` will throw or return.
     const status = didFail ? 'FAIL' : 'PASS';
     const actuallyRenderable = Renderable.from(actually);
     const expectedRenderable = Renderable.from(expected);
@@ -100,10 +100,10 @@ export default function areAlike(actually, expected, notes) {
 
 /* ---------------------------------- Test ---------------------------------- */
 
-/** ### `areAlike()` unit tests.
+/** ### `alike()` unit tests.
  * 
- * @param {areAlike} f
- *    The `areAlike()` function to test.
+ * @param {alike} f
+ *    The `alike()` function to test.
  * @param {typeof Renderable} R
  *    The `Renderable` class, because `Renderable` in alike.js !== in src/.
  * @param {typeof Suite} S
@@ -113,7 +113,7 @@ export default function areAlike(actually, expected, notes) {
  * @throws
  *    Throws an `Error` if a test fails.
  */
-export function areAlikeTest(f, R, S) {
+export function alikeTest(f, R, S) {
     const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
@@ -138,38 +138,38 @@ export function areAlikeTest(f, R, S) {
         `  },`,
     );
 
-    // Create a version of `areAlike()` which is bound to a `Suite` instance.
+    // Create a version of `alike()` which is bound to a `Suite` instance.
     const suite = new S('Test Suite');
     /** @type f */
     const bound = f.bind(suite);
 
-    // Whether `areAlike()` is bound or not, `notes` should be a valid string, or array of strings.
+    // Whether `alike()` is bound or not, `notes` should be a valid string, or array of strings.
     // @ts-expect-error
     throws(()=>f(1,2,3),
-        "areAlike(): `notes` is type 'number' not 'string'");
+        "alike(): `notes` is type 'number' not 'string'");
     throws(()=>bound(1,2,null),
-        "areAlike(): `notes` is null not type 'string'");
+        "alike(): `notes` is null not type 'string'");
     throws(()=>f(1,2,['ok','ok',void 0,'ok']),
-        "areAlike(): `notes[2]` is type 'undefined', not the `options.types` 'string'");
+        "alike(): `notes[2]` is type 'undefined', not the `options.types` 'string'");
     // @ts-expect-error
     throws(()=>bound(1,2,['ok','ok',['nope!'],'ok']),
-        "areAlike(): `notes[2]` is an array, not the `options.types` 'string'");
+        "alike(): `notes[2]` is an array, not the `options.types` 'string'");
     throws(()=>f(1,2,'1234567890'.repeat(12) + '1'),
-        "areAlike(): `notes` '123456789012345678901...45678901' is not max 120");
+        "alike(): `notes` '123456789012345678901...45678901' is not max 120");
     throws(()=>bound(1,2,['1234567890'.repeat(12),'','1234567890'.repeat(12) + '1']),
-        "areAlike(): `notes[2]` '123456789012345678901...45678901' is not max 120");
+        "alike(): `notes[2]` '123456789012345678901...45678901' is not max 120");
     throws(()=>f(1,2,['\n']),
-        "areAlike(): `notes[0]` '%0A' fails 'Printable ASCII characters except backslashes'");
+        "alike(): `notes[0]` '%0A' fails 'Printable ASCII characters except backslashes'");
     throws(()=>bound(1,2,'\\'),
-        "areAlike(): `notes` '%5C' fails 'Printable ASCII characters except backslashes'");
+        "alike(): `notes` '%5C' fails 'Printable ASCII characters except backslashes'");
     throws(()=>f(1,2,['Ok','Café']),
-        "areAlike(): `notes[1]` 'Caf%C3%A9' fails 'Printable ASCII characters except backslashes'");
+        "alike(): `notes[1]` 'Caf%C3%A9' fails 'Printable ASCII characters except backslashes'");
 
-    // With no arguments supplied, `areAlike()` should compare the two `undefined`
+    // With no arguments supplied, `alike()` should compare the two `undefined`
     // `actually` and `expected` arguments, and return a one-line overview.
     equal(f(), 'PASS: `actually` is `undefined` as expected');
 
-    // With no arguments supplied and when bound to a `Suite` instance, `areAlike()`
+    // With no arguments supplied and when bound to a `Suite` instance, `alike()`
     // should add a full result, in addition to returning a one-line overview.
     const resultUndefinedActually = bound();
     const resultUndefinedExpectedStr = toLines(
@@ -193,7 +193,7 @@ export function areAlikeTest(f, R, S) {
         ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[' +
         'ABCDEFGHIJKLMNOPQRSTUVWXYZ]^_`abcdefghijklmnopqrstuvwxyz{|}~'
 
-    // `areAlike()` should throw an `Error` where the message is a three-line overview,
+    // `alike()` should throw an `Error` where the message is a three-line overview,
     // if `actually` is a number, `expected` is a string, and `notes` contains several lines.
     throws(()=>f(1234567890, '1234567890', [longestValidLine, 'Scalar values fail strict-equal']),
         toLines(
