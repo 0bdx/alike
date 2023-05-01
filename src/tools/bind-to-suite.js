@@ -1,5 +1,5 @@
 import narrowAintas, { aintaArray, aintaObject, aintaString } from '@0bdx/ainta';
-import { Suite } from "./classes/index.js";
+import { Suite } from "../classes/index.js";
 
 /** ### Binds various test tools to a shared `Suite` instance.
  * 
@@ -44,8 +44,8 @@ import { Suite } from "./classes/index.js";
  * @throws
  *    Throws an `Error` if any of the arguments are invalid.
  */
-export default function bindAlikeTools(titleOrSuite, ...tools) {
-    const begin = 'bindAlikeTools():';
+export default function bindToSuite(titleOrSuite, ...tools) {
+    const begin = 'bindToSuite():';
 
     // Validate the arguments.
     const [ aResults, aArr, aObj, aStr ] = narrowAintas({ begin },
@@ -69,16 +69,16 @@ export default function bindAlikeTools(titleOrSuite, ...tools) {
 
 /* ---------------------------------- Test ---------------------------------- */
 
-/** ### `bindAlikeTools()` unit tests.
+/** ### `bindToSuite()` unit tests.
  * 
- * @param {bindAlikeTools} f
- *    The `bindAlikeTools()` function to test.
+ * @param {bindToSuite} f
+ *    The `bindToSuite()` function to test.
  * @returns {void}
  *    Does not return anything.
  * @throws
  *    Throws an `Error` if a test fails.
  */
-export function bindAlikeToolsTest(f) {
+export function bindToSuiteTest(f) {
     const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
@@ -92,11 +92,11 @@ export function bindAlikeToolsTest(f) {
     // The `titleOrSuite` argument should be one of the correct types.
     // @ts-expect-error
     throws(()=>f(),
-        "bindAlikeTools():: `titleOrSuite` is type 'undefined' not 'string'\n" +
-        "bindAlikeTools():: `titleOrSuite` is type 'undefined' not 'object'");
+        "bindToSuite():: `titleOrSuite` is type 'undefined' not 'string'\n" +
+        "bindToSuite():: `titleOrSuite` is type 'undefined' not 'object'");
     throws(()=>f(null),
-        "bindAlikeTools():: `titleOrSuite` is null not type 'string'\n" +
-        "bindAlikeTools():: `titleOrSuite` is null not a regular object");
+        "bindToSuite():: `titleOrSuite` is null not type 'string'\n" +
+        "bindToSuite():: `titleOrSuite` is null not a regular object");
 
     // If the `titleOrSuite` argument is a string, it should be a valid title.
     throws(()=>f('Café'),
@@ -105,12 +105,12 @@ export function bindAlikeToolsTest(f) {
     // If the `titleOrSuite` argument is an object, it should be a `Suite` instance.
     // @ts-expect-error
     throws(()=>f({}),
-        "bindAlikeTools():: `titleOrSuite` is type 'object' not 'string'\n" +
-        "bindAlikeTools():: `titleOrSuite` is not in `options.is` 'Suite'");
+        "bindToSuite():: `titleOrSuite` is type 'object' not 'string'\n" +
+        "bindToSuite():: `titleOrSuite` is not in `options.is` 'Suite'");
 
     // The `tools` arguments should all be functions.
     // @ts-expect-error
     throws(()=>f('', ()=>{}, 123),
-        "bindAlikeTools():: `tools[1]` is type 'number', not the `options.types` 'function'");
+        "bindToSuite():: `tools[1]` is type 'number', not the `options.types` 'function'");
 
 }

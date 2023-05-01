@@ -277,7 +277,7 @@ export function areAlike(actually: any, expected: any, notes?: string | string[]
  * @throws
  *    Throws an `Error` if any of the arguments are invalid.
  */
-declare function bindAlikeTools(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
+declare function bindToSuite(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
 /** ### A single 'stroke of the highlighter pen' when rendering JS values.
  *
  * - __Consistent:__ related data in different properties always agrees
@@ -390,4 +390,4 @@ declare class Section {
      * - An empty string `""` means that a default should be used */
     subtitle: string;
 }
-export { bindAlikeTools as default };
+export { bindToSuite as default };

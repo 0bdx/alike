@@ -12,11 +12,11 @@ import {
 
 import { helperTest } from './helpers.js';
 
-import bindAlikeTools, {
+import bindToSuite, {
     addSection,
     areAlike,
 } from './index.js';
-import { bindAlikeToolsTest } from './bind-alike-tools.js';
+import { bindToSuiteTest } from './tools/bind-to-suite.js';
 import { addSectionTest } from './tools/add-section.js';
 import { areAlikeTest } from './tools/are-alike.js';
 
@@ -30,6 +30,6 @@ suiteRenderTest(Suite);
 
 helperTest();
 
-bindAlikeToolsTest(bindAlikeTools);
+bindToSuiteTest(bindToSuite);
 addSectionTest(addSection, Suite);
 areAlikeTest(areAlike, Renderable, Suite);

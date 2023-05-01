@@ -812,8 +812,8 @@ class Suite {
  * @throws
  *    Throws an `Error` if any of the arguments are invalid.
  */
-function bindAlikeTools(titleOrSuite, ...tools) {
-    const begin = 'bindAlikeTools():';
+function bindToSuite(titleOrSuite, ...tools) {
+    const begin = 'bindToSuite():';
 
     // Validate the arguments.
     const [ aResults, aArr, aObj, aStr ] = narrowAintas({ begin },
@@ -1053,4 +1053,4 @@ function areAlike(actually, expected, notes) {
     return overview;
 }
 
-export { Renderable, Suite, addSection, areAlike, bindAlikeTools as default };
+export { Renderable, Suite, addSection, areAlike, bindToSuite as default };
