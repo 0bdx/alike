@@ -22,7 +22,7 @@ export class Renderable {
      * @param {string} text
      *    A string representation of the value.
      *     - 1 to 65535 unicode characters (about 10,000 lorem ipsum words)
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(highlights: Highlight[], text: string);
@@ -76,7 +76,7 @@ export class Suite {
      *    The test suite's title, usually rendered as a heading above the results.
      *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
      *    - An empty string `""` means that a default should be used
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(title: string);
@@ -136,7 +136,7 @@ export class Suite {
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @returns {void}
      *    Does not return anything.
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     addResult(actually: Renderable, expected: Renderable, notes: string[], status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION'): void;
@@ -147,10 +147,28 @@ export class Suite {
      *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
      * @returns {void}
      *    Does not return anything.
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if `subtitle` or the `this` context are invalid.
      */
     addSection(subtitle: string): void;
+    /** ### Stringifies the test suite with ANSI colours for the terminal.
+     *
+     * @param {string} [filterSections='']
+     *    Optional string, which hides sections whose subtitles do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {string} [filterResults='']
+     *    Optional string, which hides results whose notes do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     *    Optional enum, which controls how detailed the render should be.
+     *    - One of `"QUIET|VERBOSE|VERY|VERYVERY"`
+     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
+     * @returns {string}
+     *    Returns the rendered test suite.
+     * @throws {Error}
+     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     */
+    renderAnsi(filterSections?: string, filterResults?: string, verbosity?: 'QUIET' | 'VERBOSE' | 'VERY' | 'VERYVERY'): string;
     /** ### Stringifies the test suite.
      *
      * @param {string} [begin='render()']
@@ -165,34 +183,16 @@ export class Suite {
      *    Optional enum, which controls how the render should be styled.
      *    - One of `"ANSI|HTML|JSON|PLAIN"`
      *    - Defaults to `"PLAIN"`
-     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     * @param {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} [verbosity='QUIET']
      *    Optional enum, which controls how detailed the render should be.
-     *    - One of `"QUIET|VERY|VERYVERY"`
+     *    - One of `"QUIET|VERBOSE|VERY|VERYVERY"`
      *    - Defaults to `"QUIET"`, which just shows a summary of all tests
      * @returns {string}
      *    Returns the rendered test suite.
-     * @throws
+     * @throws {Error}
      *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
      */
-    render(begin?: string, filterSections?: string, filterResults?: string, formatting?: 'ANSI' | 'HTML' | 'JSON' | 'PLAIN', verbosity?: 'QUIET' | 'VERY' | 'VERYVERY'): string;
-    /** ### Stringifies the test suite with ANSI colours for the terminal.
-     *
-     * @param {string} [filterSections='']
-     *    Optional string, which hides sections whose subtitles do not match.
-     *    - Defaults to the empty string `""`, which does not filter anything
-     * @param {string} [filterResults='']
-     *    Optional string, which hides results whose notes do not match.
-     *    - Defaults to the empty string `""`, which does not filter anything
-     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
-     *    Optional enum, which controls how detailed the render should be.
-     *    - One of `"QUIET|VERY|VERYVERY"`
-     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
-     * @returns {string}
-     *    Returns the rendered test suite.
-     * @throws
-     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
-     */
-    renderAnsi(filterSections?: string, filterResults?: string, verbosity?: 'QUIET' | 'VERY' | 'VERYVERY'): string;
+    render(begin?: string, filterSections?: string, filterResults?: string, formatting?: 'ANSI' | 'HTML' | 'JSON' | 'PLAIN', verbosity?: 'QUIET' | 'VERBOSE' | 'VERY' | 'VERYVERY'): string;
     #private;
 }
 /** ### Adds a new section to the test suite.
@@ -202,7 +202,7 @@ export class Suite {
  *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if `subtitle` or the `this` context are invalid.
  */
 export function addSection(subtitle: string): void;
@@ -246,7 +246,7 @@ export function addSection(subtitle: string): void;
  *    Any number of functions, which will be bound to a shared `Suite` instance.
  * @returns {function[]}
  *    The functions which were passed in, now bound to a shared `Suite` instance.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if any of the arguments are invalid.
  */
 export function bindToSuite(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
@@ -273,7 +273,7 @@ export function bindToSuite(titleOrSuite: string | Suite, ...tools: Function[]):
  *    - The first item (index 0), if present, is used for the overview
  * @returns {string}
  *    Returns an overview of the test result.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  *    Also throws an `Error` if the test fails.
  */
@@ -298,7 +298,7 @@ declare class Highlight {
      *    A non-negative integer. The position that highlighting starts.
      * @param {number} stop
      *    A non-zero integer greater than `start`, where highlighting stops.
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'REGEXP' | 'STRING' | 'SYMBOL', start: number, stop: number);
@@ -341,7 +341,7 @@ declare class Result {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(actually: Renderable, expected: Renderable, notes: string[], sectionIndex: number, status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION');
@@ -379,7 +379,7 @@ declare class Section {
      * @param {string} subtitle
      *    The section title, usually rendered as a sub-heading in the results.
      *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(index: number, subtitle: string);

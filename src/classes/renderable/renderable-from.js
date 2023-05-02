@@ -112,10 +112,10 @@ export default function renderableFrom(value, start=0) {
 /* ---------------------------------- Test ---------------------------------- */
 
 /** ### `renderableFrom()` unit tests.
- * 
+ *
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
 export function renderableFromTest() {

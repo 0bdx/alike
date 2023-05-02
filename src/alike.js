@@ -29,7 +29,7 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
  *    - The first item (index 0), if present, is used for the overview
  * @returns {string}
  *    Returns an overview of the test result.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  *    Also throws an `Error` if the test fails.
  */
@@ -110,7 +110,7 @@ export default function alike(actually, expected, notes) {
  *    The `Suite` class, because `Suite` in alike.js !== `Suite` in src/.
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
 export function alikeTest(f, R, S) {

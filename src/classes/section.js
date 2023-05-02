@@ -27,7 +27,7 @@ export default class Section {
      * @param {string} subtitle
      *    The section title, usually rendered as a sub-heading in the results.
      *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(
@@ -60,7 +60,7 @@ export default class Section {
  * 
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
 export function sectionTest() {

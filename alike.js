@@ -43,7 +43,7 @@ class Highlight {
      *    A non-negative integer. The position that highlighting starts.
      * @param {number} stop
      *    A non-zero integer greater than `start`, where highlighting stops.
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(
@@ -209,7 +209,7 @@ class Renderable {
      * @param {string} text
      *    A string representation of the value.
      *     - 1 to 65535 unicode characters (about 10,000 lorem ipsum words)
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(
@@ -349,7 +349,7 @@ class Result {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(
@@ -411,7 +411,7 @@ class Section {
      * @param {string} subtitle
      *    The section title, usually rendered as a sub-heading in the results.
      *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(
@@ -437,93 +437,7 @@ class Section {
 
 }
 
-// Define styling-strings for all possible `formatting`.
-const STYLING_STRINGS = {
-    ANSI: {
-        failIn: '\x1B[38;5;198;48;5;52m', // bright red on dull red
-        failOut: '\x1B[0m',
-    },
-    PLAIN: {
-        failIn: '',
-        failOut: '',
-    },
-};
-
-/** ### Renders a given test suite.
- *
- * @param {string} begin
- *    Overrides the `begin` string sent to `Ainta` functions.
- * @param {string} filterSections
- *    Optional string, which hides sections whose subtitles do not match.
- *    - The empty string `""` is treated the same as `undefined`
- * @param {string} filterResults
- *    A string, which hides results whose notes do not match.
- *    - The empty string `""` is treated the same as `undefined`
- * @param {'ANSI'|'HTML'|'JSON'|'PLAIN'} formatting
- *    Controls how the render should be styled. One of `"ANSI|HTML|JSON|PLAIN"`.
- * @param {'QUIET'|'VERY'|'VERYVERY'} verbosity
- *    Controls how detailed the render should be. One of `"QUIET|VERY|VERYVERY"`.
- * @returns {string}
- *    Returns the rendered test suite.
- * @throws
- *    Throws an `Error` if either of the arguments are invalid.
- */
-function suiteRender(
-    begin,
-    filterSections,
-    filterResults,
-    formatting,
-    verbosity,
-) {
-    // Validate the `begin` argument.
-    const aBegin = aintaString(begin, 'begin', { begin:'suiteRender()' });
-    if (aBegin) throw Error(aBegin);
-
-    // Validate the other arguments.
-    const [ aResults, aStr ] = narrowAintas({ begin }, aintaString);
-    aStr(filterSections, 'filterSections');
-    aStr(filterResults, 'filterResults');
-    aStr(formatting, 'formatting', { is:['ANSI','HTML','JSON','PLAIN'] });
-    aStr(verbosity, 'verbosity', { is:['QUIET','VERY','VERYVERY'] });
-    if (aResults.length) throw Error(aResults.join('\n'));
-
-    // Get the number of tests which failed, passed, and have not completed yet.
-    const fail = this.failTally;
-    const pass = this.passTally;
-    const pending = this.pendingTally;
-    const numTests = fail + pass + pending;
-
-    // Set up the appropriate styling-strings for the current `formatting`.
-    const { failIn, failOut } = STYLING_STRINGS[formatting];
-
-    // Return the test this's title, followed by a summary of the test results.
-    return `${'-'.repeat(this.title.length)}\n` +
-        `${this.title}\n` +
-        `${'='.repeat(this.title.length)}\n\n${
-        numTests === 0
-            ? 'No tests were run.'
-            : pending
-                ? `${pending} test${pending === 1 ? '' : 's' } still pending.`
-                : fail
-                  ? `${failIn}${
-                    numTests === fail
-                        ? (
-                            fail === 1
-                            ? 'The test failed.'
-                            : fail === 2
-                                ? 'Both tests failed.'
-                                : `All ${fail} tests passed.`)
-                        : (
-                            `${fail} of ${numTests} tests failed.`
-                        )
-                  }${failOut}`
-                  : pass === 1
-                    ? 'The test passed.'
-                    : pass === 2
-                        ? 'Both tests passed.'
-                        : `All ${pass} tests passed.`
-    }\n`;
-}
+// import suiteRender from './suite-render.js';
 
 // Define a regular expression for validating `title`.
 const titleRx = /^[ -\[\]-~]*$/;
@@ -573,7 +487,7 @@ class Suite {
      *    The test suite's title, usually rendered as a heading above the results.
      *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
      *    - An empty string `""` means that a default should be used
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(title) {
@@ -639,7 +553,7 @@ class Suite {
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @returns {void}
      *    Does not return anything.
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     addResult(
@@ -683,7 +597,7 @@ class Suite {
      *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
      * @returns {void}
      *    Does not return anything.
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if `subtitle` or the `this` context are invalid.
      */
     addSection(subtitle) {
@@ -701,6 +615,34 @@ class Suite {
         this.#resultsAndSections.push(section);
     }
 
+    /** ### Stringifies the test suite with ANSI colours for the terminal.
+     *
+     * @param {string} [filterSections='']
+     *    Optional string, which hides sections whose subtitles do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {string} [filterResults='']
+     *    Optional string, which hides results whose notes do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     *    Optional enum, which controls how detailed the render should be.
+     *    - One of `"QUIET|VERBOSE|VERY|VERYVERY"`
+     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
+     * @returns {string}
+     *    Returns the rendered test suite.
+     * @throws {Error}
+     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     */
+    renderAnsi(filterSections='', filterResults='', verbosity='QUIET') {
+        return this.render(
+            'renderAnsi()',
+            filterSections,
+            filterResults,
+            'ANSI',
+            verbosity,
+        );
+    }
+
+    // Interface for `Suite#render()`
     /** ### Stringifies the test suite.
      *
      * @param {string} [begin='render()']
@@ -715,13 +657,13 @@ class Suite {
      *    Optional enum, which controls how the render should be styled.
      *    - One of `"ANSI|HTML|JSON|PLAIN"`
      *    - Defaults to `"PLAIN"`
-     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     * @param {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} [verbosity='QUIET']
      *    Optional enum, which controls how detailed the render should be.
-     *    - One of `"QUIET|VERY|VERYVERY"`
+     *    - One of `"QUIET|VERBOSE|VERY|VERYVERY"`
      *    - Defaults to `"QUIET"`, which just shows a summary of all tests
      * @returns {string}
      *    Returns the rendered test suite.
-     * @throws
+     * @throws {Error}
      *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
      */
     render(
@@ -731,43 +673,176 @@ class Suite {
         formatting = 'PLAIN',
         verbosity = 'QUIET',
     ) {
-        return suiteRender(
-            begin,
-            filterSections,
-            filterResults,
-            formatting,
-            verbosity,
-        );
-    }
-
-    /** ### Stringifies the test suite with ANSI colours for the terminal.
-     *
-     * @param {string} [filterSections='']
-     *    Optional string, which hides sections whose subtitles do not match.
-     *    - Defaults to the empty string `""`, which does not filter anything
-     * @param {string} [filterResults='']
-     *    Optional string, which hides results whose notes do not match.
-     *    - Defaults to the empty string `""`, which does not filter anything
-     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
-     *    Optional enum, which controls how detailed the render should be.
-     *    - One of `"QUIET|VERY|VERYVERY"`
-     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
-     * @returns {string}
-     *    Returns the rendered test suite.
-     * @throws
-     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
-     */
-    renderAnsi(filterSections='', filterResults='', verbosity='QUIET') {
-        return this.render(
-            'renderAnsi()',
-            filterSections,
-            filterResults,
-            'ANSI',
-            verbosity,
-        );
+        return 'will be overridden';
     }
 
 }
+
+// Define styling-strings for all possible `formatting`.
+const STYLING_STRINGS = {
+    ANSI: {
+        failIn: '\x1B[38;5;198;48;5;52m', // bright red on dull red
+        failOut: '\x1B[0m',
+    },
+    PLAIN: {
+        failIn: '',
+        failOut: '',
+    },
+};
+
+/** ### Renders a given test suite.
+ *
+ * @param {string} begin
+ *    Overrides the `begin` string sent to `Ainta` functions.
+ * @param {string} filterSections
+ *    Optional string, which hides sections whose subtitles do not match.
+ *    - The empty string `""` is treated the same as `undefined`
+ * @param {string} filterResults
+ *    A string, which hides results whose notes do not match.
+ *    - The empty string `""` is treated the same as `undefined`
+ * @param {'ANSI'|'HTML'|'JSON'|'PLAIN'} formatting
+ *    How the render should be styled. One of `"ANSI|HTML|JSON|PLAIN"`.
+ * @param {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} verbosity
+ *    How detailed the render should be. One of `"QUIET|VERBOSE|VERY|VERYVERY"`.
+ * @returns {string}
+ *    Returns the rendered test suite.
+ * @throws {Error}
+ *    Throws an `Error` if either of the arguments are invalid.
+ */
+function suiteRender(
+    begin,
+    filterSections,
+    filterResults,
+    formatting,
+    verbosity,
+) {
+    // Validate the `begin` argument.
+    const aBegin = aintaString(begin, 'begin', { begin:'suiteRender()' });
+    if (aBegin) throw Error(aBegin);
+
+    // Validate the other arguments.
+    const [ aResults, aStr ] = narrowAintas({ begin }, aintaString);
+    aStr(filterSections, 'filterSections');
+    aStr(filterResults, 'filterResults');
+    aStr(formatting, 'formatting', { is:['ANSI','HTML','JSON','PLAIN'] });
+    aStr(verbosity, 'verbosity', { is:['QUIET','VERBOSE','VERY','VERYVERY'] });
+    if (aResults.length) throw Error(aResults.join('\n'));
+
+    /** @type {Suite} */
+    const suite = this;
+
+    // Get the number of tests which failed, passed, and have not completed yet.
+    const fail = suite.failTally;
+    const pass = suite.passTally;
+    const pending = suite.pendingTally;
+    const numTests = fail + pass + pending;
+
+    // Set up the appropriate styling-strings for the current `formatting`.
+    const { failIn, failOut } = STYLING_STRINGS[formatting];
+
+    // Create the test suite's heading.
+    const heading = [
+        '-'.repeat(suite.title.length),
+        suite.title,
+        '='.repeat(suite.title.length),
+    ].join('\n');
+
+    // Create a summary of the test results.
+    const summary =
+        numTests === 0
+            ? 'No tests were run.'
+            : pending
+                ? `${pending} test${pending === 1 ? '' : 's' } still pending.`
+                : fail
+                  ? `${failIn}${
+                    numTests === fail
+                        ? (
+                            fail === 1
+                            ? 'The test failed.'
+                            : fail === 2
+                                ? 'Both tests failed.'
+                                : `All ${fail} tests failed.`)
+                        : (
+                            `${fail} of ${numTests} tests failed.`
+                        )
+                  }${failOut}`
+                  : pass === 1
+                    ? 'The test passed.'
+                    : pass === 2
+                        ? 'Both tests passed.'
+                        : `All ${pass} tests passed.`
+    ;
+
+    // Create a more detailed report of the test results.
+    const details = verbosity === 'QUIET'
+        ? !fail
+            ? ''
+            : '\n\n' + getQuietFailDetails(this)
+        : '\n\n' + getVerboseDetails()
+    ;
+
+    // Return the rendered test suite.
+    return `${heading}\n\n${summary}${details}\n`;
+}
+
+/** ### [getQuietFailDetails description]
+ *
+ * @param {Suite} suite
+ *    [suite description]
+ * @returns {string}
+ *    Returns details about a failed test suite.
+ */
+const getQuietFailDetails = (suite) => {
+    const sections = { 0:{ results:[] } };
+    for (const resultOrSection of suite.resultsAndSections) {
+        if (resultOrSection instanceof Section) {
+            sections[resultOrSection.index] = {
+                results: [],
+                section: resultOrSection,
+            };
+        } else if (resultOrSection.status === 'FAIL') {
+            const section = sections[resultOrSection.sectionIndex];
+            section.results.push(resultOrSection);
+        }
+    }
+    return Object.values(sections).flatMap(({ results, section }) => (
+        !section
+            ? renderResults(results) // sectionIndex 0, the anonymous section
+            : results.length
+                ? [ '', underline(section.subtitle), '', ...renderResults(results) ]
+                : []
+    )).join('\n');
+};
+
+const underline = text => text + '\n' + '-'.repeat(text.length);
+
+const renderResults = results =>
+    results.map(({ actually, expected, notes }) =>
+        `FAIL: ${notes && notes + '\n    : '}` +
+        `\`actually\` is ${actually.overview}\n` +
+        `    : \`expected\` is ${expected.overview}`
+    );
+
+const getVerboseDetails = (suite, verbosity) => {
+    return 'getVerboseDetails()'
+};
+
+// Implement `Suite#render()`.
+Suite.prototype.render = function render(
+    begin = 'render()',
+    filterSections = '',
+    filterResults = '',
+    /** @type {'ANSI'|'HTML'|'JSON'|'PLAIN'} */ formatting = 'PLAIN',
+    /** @type {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} */ verbosity = 'QUIET',
+) {
+    return suiteRender(
+        begin,
+        filterSections,
+        filterResults,
+        formatting,
+        verbosity,
+    );
+};
 
 /** ### Adds a new section to the test suite.
  * 
@@ -776,7 +851,7 @@ class Suite {
  *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if `subtitle` or the `this` context are invalid.
  */
 function addSection(subtitle) {
@@ -832,7 +907,7 @@ function addSection(subtitle) {
  *    Any number of functions, which will be bound to a shared `Suite` instance.
  * @returns {function[]}
  *    The functions which were passed in, now bound to a shared `Suite` instance.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if any of the arguments are invalid.
  */
 function bindToSuite(titleOrSuite, ...tools) {
@@ -945,7 +1020,7 @@ const determineWhetherAlike = (actually, expected, maxDepth=99) => {
  *    Text to shorten.
  * @param {number} length
  *    The maximum allowed length of the truncated string.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if `text` has no `length` property or `slice()` method.
  *    Also throws an `Error` if `length` is less than 12.
  */
@@ -985,7 +1060,7 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
  *    - The first item (index 0), if present, is used for the overview
  * @returns {string}
  *    Returns an overview of the test result.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if `notes` or the `this` context are invalid.
  *    Also throws an `Error` if the test fails.
  */

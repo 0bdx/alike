@@ -111,7 +111,7 @@ export function getCircularReplacer() {
  *    Text to shorten.
  * @param {number} length
  *    The maximum allowed length of the truncated string.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if `text` has no `length` property or `slice()` method.
  *    Also throws an `Error` if `length` is less than 12.
  */
@@ -131,7 +131,7 @@ export const truncate = (text, length) => {
  * 
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
 export function helpersTest() {

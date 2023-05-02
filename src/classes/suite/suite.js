@@ -3,7 +3,7 @@ import Highlight from '../highlight.js';
 import Renderable from '../renderable/renderable.js';
 import Result from '../result.js';
 import Section from '../section.js';
-import suiteRender from './suite-render.js';
+// import suiteRender from './suite-render.js';
 
 // Define a regular expression for validating `title`.
 const titleRx = /^[ -\[\]-~]*$/;
@@ -53,7 +53,7 @@ export default class Suite {
      *    The test suite's title, usually rendered as a heading above the results.
      *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
      *    - An empty string `""` means that a default should be used
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(title) {
@@ -119,7 +119,7 @@ export default class Suite {
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @returns {void}
      *    Does not return anything.
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     addResult(
@@ -163,7 +163,7 @@ export default class Suite {
      *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
      * @returns {void}
      *    Does not return anything.
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if `subtitle` or the `this` context are invalid.
      */
     addSection(subtitle) {
@@ -181,6 +181,34 @@ export default class Suite {
         this.#resultsAndSections.push(section);
     }
 
+    /** ### Stringifies the test suite with ANSI colours for the terminal.
+     *
+     * @param {string} [filterSections='']
+     *    Optional string, which hides sections whose subtitles do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {string} [filterResults='']
+     *    Optional string, which hides results whose notes do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     *    Optional enum, which controls how detailed the render should be.
+     *    - One of `"QUIET|VERBOSE|VERY|VERYVERY"`
+     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
+     * @returns {string}
+     *    Returns the rendered test suite.
+     * @throws {Error}
+     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     */
+    renderAnsi(filterSections='', filterResults='', verbosity='QUIET') {
+        return this.render(
+            'renderAnsi()',
+            filterSections,
+            filterResults,
+            'ANSI',
+            verbosity,
+        );
+    }
+
+    // Interface for `Suite#render()`
     /** ### Stringifies the test suite.
      *
      * @param {string} [begin='render()']
@@ -195,13 +223,13 @@ export default class Suite {
      *    Optional enum, which controls how the render should be styled.
      *    - One of `"ANSI|HTML|JSON|PLAIN"`
      *    - Defaults to `"PLAIN"`
-     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     * @param {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} [verbosity='QUIET']
      *    Optional enum, which controls how detailed the render should be.
-     *    - One of `"QUIET|VERY|VERYVERY"`
+     *    - One of `"QUIET|VERBOSE|VERY|VERYVERY"`
      *    - Defaults to `"QUIET"`, which just shows a summary of all tests
      * @returns {string}
      *    Returns the rendered test suite.
-     * @throws
+     * @throws {Error}
      *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
      */
     render(
@@ -211,40 +239,7 @@ export default class Suite {
         formatting = 'PLAIN',
         verbosity = 'QUIET',
     ) {
-        return suiteRender(
-            begin,
-            filterSections,
-            filterResults,
-            formatting,
-            verbosity,
-        );
-    }
-
-    /** ### Stringifies the test suite with ANSI colours for the terminal.
-     *
-     * @param {string} [filterSections='']
-     *    Optional string, which hides sections whose subtitles do not match.
-     *    - Defaults to the empty string `""`, which does not filter anything
-     * @param {string} [filterResults='']
-     *    Optional string, which hides results whose notes do not match.
-     *    - Defaults to the empty string `""`, which does not filter anything
-     * @param {'QUIET'|'VERY'|'VERYVERY'} [verbosity='QUIET']
-     *    Optional enum, which controls how detailed the render should be.
-     *    - One of `"QUIET|VERY|VERYVERY"`
-     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
-     * @returns {string}
-     *    Returns the rendered test suite.
-     * @throws
-     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
-     */
-    renderAnsi(filterSections='', filterResults='', verbosity='QUIET') {
-        return this.render(
-            'renderAnsi()',
-            filterSections,
-            filterResults,
-            'ANSI',
-            verbosity,
-        );
+        return 'will be overridden';
     }
 
 }
@@ -256,7 +251,7 @@ export default class Suite {
  * 
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
 export function suiteTest() {

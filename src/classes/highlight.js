@@ -37,7 +37,7 @@ export default class Highlight {
      *    A non-negative integer. The position that highlighting starts.
      * @param {number} stop
      *    A non-zero integer greater than `start`, where highlighting stops.
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(
@@ -78,7 +78,7 @@ export default class Highlight {
  * 
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
 export function highlightTest() {

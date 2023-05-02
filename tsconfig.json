@@ -27,7 +27,7 @@
         "lib": [ "dom", "es2020" ],
 
         // Specify "moduleResolution" to allow Node-style imports from
-        // 'node_modules/'. This is only needed because "target" has been set,
+        // 'node_modules/'. This is only needed because "target" has been set.
         "moduleResolution": "nodenext",
 
         // Allow 'private identifiers'. This should probably be "es2022", but

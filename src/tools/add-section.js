@@ -8,7 +8,7 @@ import { Suite } from "../classes/index.js";
  *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if `subtitle` or the `this` context are invalid.
  */
 export default function addSection(subtitle) {
@@ -35,7 +35,7 @@ export default function addSection(subtitle) {
  *    The `Suite` class, because `Suite` in alike.js !== `Suite` in src/.
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
 export function addSectionTest(f, S) {

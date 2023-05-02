@@ -41,7 +41,7 @@ import { Suite } from "../classes/index.js";
  *    Any number of functions, which will be bound to a shared `Suite` instance.
  * @returns {function[]}
  *    The functions which were passed in, now bound to a shared `Suite` instance.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if any of the arguments are invalid.
  */
 export default function bindToSuite(titleOrSuite, ...tools) {
@@ -75,7 +75,7 @@ export default function bindToSuite(titleOrSuite, ...tools) {
  *    The `bindToSuite()` function to test.
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
 export function bindToSuiteTest(f) {

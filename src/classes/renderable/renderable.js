@@ -26,7 +26,7 @@ export default class Renderable {
      * @param {string} text
      *    A string representation of the value.
      *     - 1 to 65535 unicode characters (about 10,000 lorem ipsum words)
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(
@@ -112,7 +112,7 @@ export default class Renderable {
  * 
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
 export function renderableTest() {

@@ -64,7 +64,7 @@ export default class Result {
      *    - `"PASS"` if the test passed
      *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @throws
+     * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(
@@ -106,7 +106,7 @@ export default class Result {
  * 
  * @returns {void}
  *    Does not return anything.
- * @throws
+ * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
 export function resultTest() {
