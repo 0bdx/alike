@@ -232,7 +232,7 @@ export function addSection(subtitle: string): void;
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
  * // Output a test results summary to the console, as plain text.
- * console.log(suite.renderPlain());
+ * console.log(suite.render());
  *
  * function factorialise(n) {
  *     if (n === 0 || n === 1) return 1;
@@ -244,12 +244,13 @@ export function addSection(subtitle: string): void;
  *    A name for the group of tests, or else a suite from previous tests.
  * @param {...function} tools
  *    Any number of functions, which will be bound to a shared `Suite` instance.
- * @returns {function[]}
- *    The functions which were passed in, now bound to a shared `Suite` instance.
+ * @returns {(Suite|function)[]}
+ *    Returns the shared `Suite` instance, followed by the passed-in functions
+ *    which are now bound to it.
  * @throws {Error}
  *    Throws an `Error` if any of the arguments are invalid.
  */
-export function bindToSuite(titleOrSuite: string | Suite, ...tools: Function[]): Function[];
+export function bindToSuite(titleOrSuite: string | Suite, ...tools: Function[]): (Suite | Function)[];
 /** ### Compares two JavaScript values in a user-friendly way.
  *
  * `alike()` operates in one of two modes:

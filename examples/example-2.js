@@ -14,7 +14,7 @@ like(factorialise(5), 120,
     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
 
 // Output a test results summary to the console, as plain text.
-console.log(suite.renderPlain());
+console.log(suite.render());
 
 function factorialise(n) {
     if (n === 0 || n === 1) return 1;

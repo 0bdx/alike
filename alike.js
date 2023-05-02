@@ -692,6 +692,8 @@ const STYLING_STRINGS = {
 
 /** ### Renders a given test suite.
  *
+ * @param {Suite} suite
+ *    A `Suite` instance.
  * @param {string} begin
  *    Overrides the `begin` string sent to `Ainta` functions.
  * @param {string} filterSections
@@ -709,27 +711,27 @@ const STYLING_STRINGS = {
  * @throws {Error}
  *    Throws an `Error` if either of the arguments are invalid.
  */
-function suiteRender(
+const suiteRender = (
+    suite,
     begin,
     filterSections,
     filterResults,
     formatting,
     verbosity,
-) {
+) => {
     // Validate the `begin` argument.
     const aBegin = aintaString(begin, 'begin', { begin:'suiteRender()' });
     if (aBegin) throw Error(aBegin);
 
     // Validate the other arguments.
-    const [ aResults, aStr ] = narrowAintas({ begin }, aintaString);
+    const [ aResults, aObj, aStr ] = narrowAintas({ begin },
+        aintaObject, aintaString);
+    aObj(suite, 'suite', { is:[Suite], open:true });
     aStr(filterSections, 'filterSections');
     aStr(filterResults, 'filterResults');
     aStr(formatting, 'formatting', { is:['ANSI','HTML','JSON','PLAIN'] });
     aStr(verbosity, 'verbosity', { is:['QUIET','VERBOSE','VERY','VERYVERY'] });
     if (aResults.length) throw Error(aResults.join('\n'));
-
-    /** @type {Suite} */
-    const suite = this;
 
     // Get the number of tests which failed, passed, and have not completed yet.
     const fail = suite.failTally;
@@ -777,18 +779,18 @@ function suiteRender(
     const details = verbosity === 'QUIET'
         ? !fail
             ? ''
-            : '\n\n' + getQuietFailDetails(this)
+            : '\n\n' + getQuietFailDetails(suite)
         : '\n\n' + getVerboseDetails()
     ;
 
     // Return the rendered test suite.
     return `${heading}\n\n${summary}${details}\n`;
-}
+};
 
 /** ### [getQuietFailDetails description]
  *
  * @param {Suite} suite
- *    [suite description]
+ *    A `Suite` instance.
  * @returns {string}
  *    Returns details about a failed test suite.
  */
@@ -836,6 +838,7 @@ Suite.prototype.render = function render(
     /** @type {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} */ verbosity = 'QUIET',
 ) {
     return suiteRender(
+        this,
         begin,
         filterSections,
         filterResults,
@@ -893,7 +896,7 @@ function addSection(subtitle) {
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
  * 
  * // Output a test results summary to the console, as plain text.
- * console.log(suite.renderPlain());
+ * console.log(suite.render());
  * 
  * function factorialise(n) {
  *     if (n === 0 || n === 1) return 1;
@@ -905,8 +908,9 @@ function addSection(subtitle) {
  *    A name for the group of tests, or else a suite from previous tests.
  * @param {...function} tools
  *    Any number of functions, which will be bound to a shared `Suite` instance.
- * @returns {function[]}
- *    The functions which were passed in, now bound to a shared `Suite` instance.
+ * @returns {(Suite|function)[]}
+ *    Returns the shared `Suite` instance, followed by the passed-in functions
+ *    which are now bound to it.
  * @throws {Error}
  *    Throws an `Error` if any of the arguments are invalid.
  */
@@ -929,7 +933,7 @@ function bindToSuite(titleOrSuite, ...tools) {
         : new Suite(titleOrSuite || 'Untitled Test Suite');
 
     // Bind the `Suite` instance to each test tool.
-    return tools.map(tool => tool.bind(suite));
+    return [ suite, ...tools.map(tool => tool.bind(suite)) ];
 }
 
 /** ### Determines whether two arguments are alike.

@@ -27,7 +27,7 @@ import { Suite } from "../classes/index.js";
  *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
  * 
  * // Output a test results summary to the console, as plain text.
- * console.log(suite.renderPlain());
+ * console.log(suite.render());
  * 
  * function factorialise(n) {
  *     if (n === 0 || n === 1) return 1;
@@ -39,8 +39,9 @@ import { Suite } from "../classes/index.js";
  *    A name for the group of tests, or else a suite from previous tests.
  * @param {...function} tools
  *    Any number of functions, which will be bound to a shared `Suite` instance.
- * @returns {function[]}
- *    The functions which were passed in, now bound to a shared `Suite` instance.
+ * @returns {(Suite|function)[]}
+ *    Returns the shared `Suite` instance, followed by the passed-in functions
+ *    which are now bound to it.
  * @throws {Error}
  *    Throws an `Error` if any of the arguments are invalid.
  */
@@ -63,7 +64,7 @@ export default function bindToSuite(titleOrSuite, ...tools) {
         : new Suite(titleOrSuite || 'Untitled Test Suite');
 
     // Bind the `Suite` instance to each test tool.
-    return tools.map(tool => tool.bind(suite));
+    return [ suite, ...tools.map(tool => tool.bind(suite)) ];
 }
 
 
