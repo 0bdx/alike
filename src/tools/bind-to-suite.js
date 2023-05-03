@@ -3,9 +3,9 @@ import { Suite } from "../classes/index.js";
 
 /** ### Binds various test tools to a shared `Suite` instance.
  * 
- * Takes an existing `Suite` or creates a new one, binds any number of functions
- * to it, and returns the suite and those functions in an array. Each function
- * can then access the shared `Suite` instance using the `this` keyword.
+ * Takes an existing `Suite` or creates a new one, and binds any number of
+ * functions to it. Each function can then access the shared `Suite` instance
+ * using the `this` keyword.
  *
  * This pattern of dependency injection allows lots of flexibility, and works
  * well with Rollup's tree shaking.
@@ -15,8 +15,7 @@ import { Suite } from "../classes/index.js";
  * 
  * // Give the test suite a title, and bind two functions to it.
  * // A suite from previous tests can be used instead of a title.
- * const [ suite, section,    like ] = bindToSuite('Mathsy Tests',
- *                addSection, alike);
+ * const suite = bindToSuite('Mathsy Tests', addSection, alike);
  * 
  * // Optionally, begin a new section.
  * section('Check that factorialise() works');
@@ -39,20 +38,19 @@ import { Suite } from "../classes/index.js";
  *    A name for the group of tests, or else a suite from previous tests.
  * @param {...function} tools
  *    Any number of functions, which will be bound to a shared `Suite` instance.
- * @returns {(Suite|function)[]}
- *    Returns the shared `Suite` instance, followed by the passed-in functions
- *    which are now bound to it.
+ * @returns {Suite}
+ *    Returns the shared `Suite` instance.
  * @throws {Error}
  *    Throws an `Error` if any of the arguments are invalid.
  */
 export default function bindToSuite(titleOrSuite, ...tools) {
-    const begin = 'bindToSuite():';
+    const begin = 'bindToSuite()';
 
     // Validate the arguments.
     const [ aResults, aArr, aObj, aStr ] = narrowAintas({ begin },
         aintaArray, aintaObject, aintaString);
     const aTitle = aStr(titleOrSuite, 'titleOrSuite');
-    const aSuite = aObj(titleOrSuite, 'titleOrSuite', { is:[Suite] });
+    const aSuite = aObj(titleOrSuite, 'titleOrSuite', { is:[Suite], open:true });
     const aTools = aArr(tools, 'tools', { types:['function'] });
     if ((aTitle && aSuite) || aTools)
         throw Error(aTitle && aSuite ? aResults.join('\n') : aResults[1]);
@@ -63,8 +61,9 @@ export default function bindToSuite(titleOrSuite, ...tools) {
         ? titleOrSuite
         : new Suite(titleOrSuite || 'Untitled Test Suite');
 
-    // Bind the `Suite` instance to each test tool.
-    return [ suite, ...tools.map(tool => tool.bind(suite)) ];
+    // Bind each test tool to the `Suite` instance, and then return it.
+    tools.map(tool => tool.bind(suite));
+    return suite;
 }
 
 
@@ -93,11 +92,11 @@ export function bindToSuiteTest(f) {
     // The `titleOrSuite` argument should be one of the correct types.
     // @ts-expect-error
     throws(()=>f(),
-        "bindToSuite():: `titleOrSuite` is type 'undefined' not 'string'\n" +
-        "bindToSuite():: `titleOrSuite` is type 'undefined' not 'object'");
+        "bindToSuite(): `titleOrSuite` is type 'undefined' not 'string'\n" +
+        "bindToSuite(): `titleOrSuite` is type 'undefined' not 'object'");
     throws(()=>f(null),
-        "bindToSuite():: `titleOrSuite` is null not type 'string'\n" +
-        "bindToSuite():: `titleOrSuite` is null not a regular object");
+        "bindToSuite(): `titleOrSuite` is null not type 'string'\n" +
+        "bindToSuite(): `titleOrSuite` is null not a regular object");
 
     // If the `titleOrSuite` argument is a string, it should be a valid title.
     throws(()=>f('Café'),
@@ -106,12 +105,12 @@ export function bindToSuiteTest(f) {
     // If the `titleOrSuite` argument is an object, it should be a `Suite` instance.
     // @ts-expect-error
     throws(()=>f({}),
-        "bindToSuite():: `titleOrSuite` is type 'object' not 'string'\n" +
-        "bindToSuite():: `titleOrSuite` is not in `options.is` 'Suite'");
+        "bindToSuite(): `titleOrSuite` is type 'object' not 'string'\n" +
+        "bindToSuite(): `titleOrSuite` is not in `options.is` 'Suite'");
 
     // The `tools` arguments should all be functions.
     // @ts-expect-error
     throws(()=>f('', ()=>{}, 123),
-        "bindToSuite():: `tools[1]` is type 'number', not the `options.types` 'function'");
+        "bindToSuite(): `tools[1]` is type 'number', not the `options.types` 'function'");
 
 }

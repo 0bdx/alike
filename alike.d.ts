@@ -208,9 +208,9 @@ export class Suite {
 export function addSection(subtitle: string): void;
 /** ### Binds various test tools to a shared `Suite` instance.
  *
- * Takes an existing `Suite` or creates a new one, binds any number of functions
- * to it, and returns the suite and those functions in an array. Each function
- * can then access the shared `Suite` instance using the `this` keyword.
+ * Takes an existing `Suite` or creates a new one, and binds any number of
+ * functions to it. Each function can then access the shared `Suite` instance
+ * using the `this` keyword.
  *
  * This pattern of dependency injection allows lots of flexibility, and works
  * well with Rollup's tree shaking.
@@ -220,8 +220,7 @@ export function addSection(subtitle: string): void;
  *
  * // Give the test suite a title, and bind two functions to it.
  * // A suite from previous tests can be used instead of a title.
- * const [ suite, section,    like ] = bindToSuite('Mathsy Tests',
- *                addSection, alike);
+ * const suite = bindToSuite('Mathsy Tests', addSection, alike);
  *
  * // Optionally, begin a new section.
  * section('Check that factorialise() works');
@@ -244,13 +243,12 @@ export function addSection(subtitle: string): void;
  *    A name for the group of tests, or else a suite from previous tests.
  * @param {...function} tools
  *    Any number of functions, which will be bound to a shared `Suite` instance.
- * @returns {(Suite|function)[]}
- *    Returns the shared `Suite` instance, followed by the passed-in functions
- *    which are now bound to it.
+ * @returns {Suite}
+ *    Returns the shared `Suite` instance.
  * @throws {Error}
  *    Throws an `Error` if any of the arguments are invalid.
  */
-export function bindToSuite(titleOrSuite: string | Suite, ...tools: Function[]): (Suite | Function)[];
+export function bindToSuite(titleOrSuite: string | Suite, ...tools: Function[]): Suite;
 /** ### Compares two JavaScript values in a user-friendly way.
  *
  * `alike()` operates in one of two modes:

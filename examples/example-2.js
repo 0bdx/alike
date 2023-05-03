@@ -2,8 +2,7 @@ import alike, { addSection, bindToSuite } from '../alike.js';
 
 // Give the test suite a title, and bind two functions to it.
 // A suite from previous tests can be used instead of a title.
-const [ suite, section,    like ] = bindToSuite('Mathsy Tests',
-               addSection, alike);
+const suite = bindToSuite('Mathsy Tests', addSection, alike);
 
 // Optionally, begin a new section.
 section('Check that factorialise() works');
