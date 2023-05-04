@@ -1,4 +1,9 @@
 import {
+    bind2,
+    bind2Test,
+} from './bind/index.js';
+
+import {
     highlightTest,
     Renderable,
     renderableFromTest,
@@ -14,11 +19,11 @@ import { helpersTest } from './helpers.js';
 
 import alike, {
     addSection,
-    bindToSuite,
 } from './index.js';
 import { alikeTest } from './alike.js';
 import { addSectionTest } from './tools/add-section.js';
-import { bindToSuiteTest } from './tools/bind-to-suite.js';
+
+bind2Test(bind2, Suite);
 
 highlightTest();
 renderableFromTest();
@@ -32,4 +37,3 @@ helpersTest();
 
 alikeTest(alike, Renderable, Suite);
 addSectionTest(addSection, Suite);
-bindToSuiteTest(bindToSuite);

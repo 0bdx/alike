@@ -206,49 +206,54 @@ export class Suite {
  *    Throws an `Error` if `subtitle` or the `this` context are invalid.
  */
 export function addSection(subtitle: string): void;
-/** ### Binds various test tools to a shared `Suite` instance.
+/** ### Binds two functions to a shared `Suite` instance.
  *
- * Takes an existing `Suite` or creates a new one, and binds any number of
- * functions to it. Each function can then access the shared `Suite` instance
- * using the `this` keyword.
+ * Takes an existing `Suite` or creates a new one, and binds two functions
+ * to it. Each function can then access the shared `Suite` instance using
+ * the `this` keyword.
  *
  * This pattern of dependency injection allows lots of flexibility, and works
  * well with Rollup's tree shaking.
  *
  * @example
- * import alike, { addSection, bindToSuite } from '@0bdx/alike';
+ * import alike, { addSection, bind2 } from '@0bdx/alike';
  *
- * // Give the test suite a title, and bind two functions to it.
- * // A suite from previous tests can be used instead of a title.
- * const suite = bindToSuite('Mathsy Tests', addSection, alike);
+ * // Create a test suite with a title, and bind two functions to it.
+ * const [ section, like, suite ] = bind2(addSection, alike, 'fact()');
+ *
+ * // Or a suite from a previous test could be passed in instead.
+ * // const [ section, like ] = bind2(addSection, alike, suite);
  *
  * // Optionally, begin a new section.
  * section('Check that factorialise() works');
  *
  * // Run the tests. The third argument, `notes`, is optional.
- * like(factorialise(0), 1);
- * like(factorialise(5), 120,
- *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
+ * like(fact(0), 1);
+ * like(fact(5), 120,
+ *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
  * // Output a test results summary to the console, as plain text.
  * console.log(suite.render());
  *
- * function factorialise(n) {
+ * // Calculates the factorial of a given integer.
+ * function fact(n) {
  *     if (n === 0 || n === 1) return 1;
  *     for (let i=n-1; i>0; i--) n *= i;
  *     return n;
  * }
  *
- * @param {string|Suite} titleOrSuite
- *    A name for the group of tests, or else a suite from previous tests.
- * @param {...function} tools
- *    Any number of functions, which will be bound to a shared `Suite` instance.
- * @returns {Suite}
- *    Returns the shared `Suite` instance.
- * @throws {Error}
- *    Throws an `Error` if any of the arguments are invalid.
+ * @template {function} A
+ * @template {function} B
+ *
+ * @param {A} functionA
+ *    The first function to bind to the suite.
+ * @param {B} functionB
+ *    The second function to bind to the suite.
+ * @param {Suite|string} suiteOrTitle
+ *    A suite from previous tests, or else a title for a new suite.
+ * @returns {[A,B,Suite]}
  */
-export function bindToSuite(titleOrSuite: string | Suite, ...tools: Function[]): Suite;
+export function bind2<A extends Function, B extends Function>(functionA: A, functionB: B, suiteOrTitle: Suite | string): [A, B, Suite];
 /** ### Compares two JavaScript values in a user-friendly way.
  *
  * `alike()` operates in one of two modes:

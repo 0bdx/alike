@@ -4,7 +4,7 @@
  * @license Copyright (c) 2023 0bdx <0@0bdx.com> (0bdx.com)
  * SPDX-License-Identifier: MIT
  */
-import narrowAintas, { aintaNumber, aintaString, aintaArray, aintaObject } from '@0bdx/ainta';
+import narrowAintas, { aintaNumber, aintaString, aintaArray, aintaObject, aintaFunction } from '@0bdx/ainta';
 
 // Define an enum for validating `kind`.
 const validKind = [ 'ARRAY', 'BOOLNUM', 'DOM', 'ERROR', 'EXCEPTION',
@@ -847,6 +847,79 @@ Suite.prototype.render = function render(
     );
 };
 
+/** ### Binds two functions to a shared `Suite` instance.
+ *
+ * Takes an existing `Suite` or creates a new one, and binds two functions
+ * to it. Each function can then access the shared `Suite` instance using
+ * the `this` keyword.
+ *
+ * This pattern of dependency injection allows lots of flexibility, and works
+ * well with Rollup's tree shaking.
+ *
+ * @example
+ * import alike, { addSection, bind2 } from '@0bdx/alike';
+ * 
+ * // Create a test suite with a title, and bind two functions to it.
+ * const [ section, like, suite ] = bind2(addSection, alike, 'fact()');
+ * 
+ * // Or a suite from a previous test could be passed in instead.
+ * // const [ section, like ] = bind2(addSection, alike, suite);
+ * 
+ * // Optionally, begin a new section.
+ * section('Check that factorialise() works');
+ * 
+ * // Run the tests. The third argument, `notes`, is optional.
+ * like(fact(0), 1);
+ * like(fact(5), 120,
+ *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
+ * 
+ * // Output a test results summary to the console, as plain text.
+ * console.log(suite.render());
+ * 
+ * // Calculates the factorial of a given integer.
+ * function fact(n) {
+ *     if (n === 0 || n === 1) return 1;
+ *     for (let i=n-1; i>0; i--) n *= i;
+ *     return n;
+ * }
+ *
+ * @template {function} A
+ * @template {function} B
+ *
+ * @param {A} functionA
+ *    The first function to bind to the suite.
+ * @param {B} functionB
+ *    The second function to bind to the suite.
+ * @param {Suite|string} suiteOrTitle
+ *    A suite from previous tests, or else a title for a new suite.
+ * @returns {[A,B,Suite]}
+ */
+function bind2(functionA, functionB, suiteOrTitle) {
+    const begin = 'bind2()';
+
+    // Validate the arguments.
+    const [ _, aintaSuite ] = narrowAintas({ is:[Suite], open:true }, aintaObject);
+    const [ aResults, aFn, aSuiteOrString ] = narrowAintas({ begin },
+        aintaFunction, [ aintaSuite, aintaString ]);
+    aFn(functionA, 'functionA');
+    aFn(functionB, 'functionB');
+    aSuiteOrString(suiteOrTitle, 'suiteOrTitle');
+    if (aResults.length) throw Error(aResults.join('\n'));
+
+    // If `suiteOrTitle` is a string, create a new `Suite` instance. Otherwise
+    // it must already be an instance of `Suite`, so just use it as-is.
+    const suite = typeof suiteOrTitle === 'string'
+        ? new Suite(suiteOrTitle || 'Untitled Test Suite')
+        : suiteOrTitle;
+
+    // Bind the functions to the suite, and return them. Also, return the suite.
+    return [
+        functionA.bind(suite),
+        functionB.bind(suite),
+        suite,
+    ];
+}
+
 /** ### Adds a new section to the test suite.
  * 
  * @param {string} subtitle
@@ -868,71 +941,6 @@ function addSection(subtitle) {
     // The brackets around `this` make JSDoc see `(this)` as a `Suite` instance.
     /** @type Suite */
     (this).addSection(subtitle);
-}
-
-/** ### Binds various test tools to a shared `Suite` instance.
- * 
- * Takes an existing `Suite` or creates a new one, and binds any number of
- * functions to it. Each function can then access the shared `Suite` instance
- * using the `this` keyword.
- *
- * This pattern of dependency injection allows lots of flexibility, and works
- * well with Rollup's tree shaking.
- *
- * @example
- * import alike, { addSection, bindToSuite } from '@0bdx/alike';
- * 
- * // Give the test suite a title, and bind two functions to it.
- * // A suite from previous tests can be used instead of a title.
- * const suite = bindToSuite('Mathsy Tests', addSection, alike);
- * 
- * // Optionally, begin a new section.
- * section('Check that factorialise() works');
- * 
- * // Run the tests. The third argument, `notes`, is optional.
- * like(factorialise(0), 1);
- * like(factorialise(5), 120,
- *     'factorialise(5) // 5! = 5 * 4 * 3 * 2 * 1');
- * 
- * // Output a test results summary to the console, as plain text.
- * console.log(suite.render());
- * 
- * function factorialise(n) {
- *     if (n === 0 || n === 1) return 1;
- *     for (let i=n-1; i>0; i--) n *= i;
- *     return n;
- * }
- *
- * @param {string|Suite} titleOrSuite
- *    A name for the group of tests, or else a suite from previous tests.
- * @param {...function} tools
- *    Any number of functions, which will be bound to a shared `Suite` instance.
- * @returns {Suite}
- *    Returns the shared `Suite` instance.
- * @throws {Error}
- *    Throws an `Error` if any of the arguments are invalid.
- */
-function bindToSuite(titleOrSuite, ...tools) {
-    const begin = 'bindToSuite()';
-
-    // Validate the arguments.
-    const [ aResults, aArr, aObj, aStr ] = narrowAintas({ begin },
-        aintaArray, aintaObject, aintaString);
-    const aTitle = aStr(titleOrSuite, 'titleOrSuite');
-    const aSuite = aObj(titleOrSuite, 'titleOrSuite', { is:[Suite], open:true });
-    const aTools = aArr(tools, 'tools', { types:['function'] });
-    if ((aTitle && aSuite) || aTools)
-        throw Error(aTitle && aSuite ? aResults.join('\n') : aResults[1]);
-
-    // If `titleOrSuite` is an object it must already be an instance of `Suite`,
-    // so just use is as-is. Otherwise, create a new `Suite` instance.
-    const suite = typeof titleOrSuite === 'object'
-        ? titleOrSuite
-        : new Suite(titleOrSuite || 'Untitled Test Suite');
-
-    // Bind each test tool to the `Suite` instance, and then return it.
-    tools.map(tool => tool.bind(suite));
-    return suite;
 }
 
 /** ### Determines whether two arguments are alike.
@@ -1131,4 +1139,4 @@ function alike(actually, expected, notes) {
     return overview;
 }
 
-export { Renderable, Suite, addSection, bindToSuite, alike as default };
+export { Renderable, Suite, addSection, bind2, alike as default };
