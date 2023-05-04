@@ -219,13 +219,13 @@ export function addSection(subtitle: string): void;
  * import alike, { addSection, bind2 } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind two functions to it.
- * const [ section, like, suite ] = bind2(addSection, alike, 'fact()');
+ * const [ like, section, suite ] = bind2(alike, addSection, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ section, like ] = bind2(addSection, alike, suite);
+ * // const [ like, section ] = bind2(alike, addSection, suite);
  *
  * // Optionally, begin a new section.
- * section('Check that factorialise() works');
+ * section('Check that fact() works');
  *
  * // Run the tests. The third argument, `notes`, is optional.
  * like(fact(0), 1);
@@ -254,6 +254,59 @@ export function addSection(subtitle: string): void;
  * @returns {[A,B,Suite]}
  */
 export function bind2<A extends Function, B extends Function>(functionA: A, functionB: B, suiteOrTitle: Suite | string): [A, B, Suite];
+/** ### Binds three functions to a shared `Suite` instance.
+ *
+ * Takes an existing `Suite` or creates a new one, and binds three functions
+ * to it. Each function can then access the shared `Suite` instance using
+ * the `this` keyword.
+ *
+ * This pattern of dependency injection allows lots of flexibility, and works
+ * well with Rollup's tree shaking.
+ *
+ * @example
+ * import alike, { addSection, bind3, throws } from '@0bdx/alike';
+ *
+ * // Create a test suite with a title, and bind three functions to it.
+ * const [ section, like, suite ] = bind3(addSection, alike, 'fact()');
+ *
+ * // Or a suite from a previous test could be passed in instead.
+ * // const [ like, section ] = bind3(alike, addSection, suite);
+ *
+ * // Optionally, begin a new section.
+ * section('Check that fact() works');
+ *
+ * // Run the tests. The third argument, `notes`, is optional.
+ * throws(fact(), '`n` is not a number!');
+ * like(fact(0), 1);
+ * like(fact(5), 120,
+ *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
+ *
+ * // Output a test results summary to the console, as plain text.
+ * console.log(suite.render());
+ *
+ * // Calculates the factorial of a given integer.
+ * function fact(n) {
+ *     if (typeof n !== 'number') throw Error('`n` is not a number!');
+ *     if (n === 0 || n === 1) return 1;
+ *     for (let i=n-1; i>0; i--) n *= i;
+ *     return n;
+ * }
+ *
+ * @template {function} A
+ * @template {function} B
+ * @template {function} C
+ *
+ * @param {A} functionA
+ *    The first function to bind to the suite.
+ * @param {B} functionB
+ *    The second function to bind to the suite.
+ * @param {C} functionC
+ *    The second function to bind to the suite.
+ * @param {Suite|string} suiteOrTitle
+ *    A suite from previous tests, or else a title for a new suite.
+ * @returns {[A,B,C,Suite]}
+ */
+export function bind3<A extends Function, B extends Function, C extends Function>(functionA: A, functionB: B, functionC: C, suiteOrTitle: Suite | string): [A, B, C, Suite];
 /** ### Compares two JavaScript values in a user-friendly way.
  *
  * `alike()` operates in one of two modes:

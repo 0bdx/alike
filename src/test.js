@@ -1,6 +1,8 @@
 import {
     bind2,
     bind2Test,
+    bind3,
+    bind3Test,
 } from './bind/index.js';
 
 import {
@@ -24,6 +26,7 @@ import { alikeTest } from './alike.js';
 import { addSectionTest } from './tools/add-section.js';
 
 bind2Test(bind2, Suite);
+bind3Test(bind3, Suite);
 
 highlightTest();
 renderableFromTest();

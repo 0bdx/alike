@@ -2,9 +2,9 @@ import narrowAintas, { aintaFunction, aintaObject, aintaString }
     from '@0bdx/ainta';
 import { Suite } from '../classes/index.js';
 
-/** ### Binds two functions to a shared `Suite` instance.
+/** ### Binds three functions to a shared `Suite` instance.
  *
- * Takes an existing `Suite` or creates a new one, and binds two functions
+ * Takes an existing `Suite` or creates a new one, and binds three functions
  * to it. Each function can then access the shared `Suite` instance using
  * the `this` keyword.
  *
@@ -12,18 +12,19 @@ import { Suite } from '../classes/index.js';
  * well with Rollup's tree shaking.
  *
  * @example
- * import alike, { addSection, bind2 } from '@0bdx/alike';
+ * import alike, { addSection, bind3, throws } from '@0bdx/alike';
  *
- * // Create a test suite with a title, and bind two functions to it.
- * const [ like, section, suite ] = bind2(alike, addSection, 'fact()');
+ * // Create a test suite with a title, and bind three functions to it.
+ * const [ section, like, suite ] = bind3(addSection, alike, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind2(alike, addSection, suite);
+ * // const [ like, section ] = bind3(alike, addSection, suite);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
  *
  * // Run the tests. The third argument, `notes`, is optional.
+ * throws(fact(), '`n` is not a number!');
  * like(fact(0), 1);
  * like(fact(5), 120,
  *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
@@ -33,6 +34,7 @@ import { Suite } from '../classes/index.js';
  *
  * // Calculates the factorial of a given integer.
  * function fact(n) {
+ *     if (typeof n !== 'number') throw Error('`n` is not a number!');
  *     if (n === 0 || n === 1) return 1;
  *     for (let i=n-1; i>0; i--) n *= i;
  *     return n;
@@ -40,17 +42,20 @@ import { Suite } from '../classes/index.js';
  *
  * @template {function} A
  * @template {function} B
+ * @template {function} C
  *
  * @param {A} functionA
  *    The first function to bind to the suite.
  * @param {B} functionB
  *    The second function to bind to the suite.
+ * @param {C} functionC
+ *    The second function to bind to the suite.
  * @param {Suite|string} suiteOrTitle
  *    A suite from previous tests, or else a title for a new suite.
- * @returns {[A,B,Suite]}
+ * @returns {[A,B,C,Suite]}
  */
-export default function bind2(functionA, functionB, suiteOrTitle) {
-    const begin = 'bind2()';
+export default function bind3(functionA, functionB, functionC, suiteOrTitle) {
+    const begin = 'bind3()';
 
     // Validate the arguments.
     const [ _, aintaSuite ] = narrowAintas({ is:[Suite], open:true }, aintaObject);
@@ -58,6 +63,7 @@ export default function bind2(functionA, functionB, suiteOrTitle) {
         aintaFunction, [ aintaSuite, aintaString ]);
     aFn(functionA, 'functionA');
     aFn(functionB, 'functionB');
+    aFn(functionC, 'functionC');
     aSuiteOrString(suiteOrTitle, 'suiteOrTitle');
     if (aResults.length) throw Error(aResults.join('\n'));
 
@@ -71,6 +77,7 @@ export default function bind2(functionA, functionB, suiteOrTitle) {
     return [
         functionA.bind(suite),
         functionB.bind(suite),
+        functionC.bind(suite),
         suite,
     ];
 }
@@ -78,10 +85,10 @@ export default function bind2(functionA, functionB, suiteOrTitle) {
 
 /* ---------------------------------- Test ---------------------------------- */
 
-/** ### `bind2()` unit tests.
+/** ### `bind3()` unit tests.
  *
- * @param {bind2} f
- *    The `bind2()` function to test.
+ * @param {bind3} f
+ *    The `bind3()` function to test.
  * @param {typeof Suite} S
  *    The `Suite` class, because `Suite` in alike.js !== `Suite` in src/.
  * @returns {void}
@@ -89,7 +96,7 @@ export default function bind2(functionA, functionB, suiteOrTitle) {
  * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
-export function bind2Test(f, S) {
+export function bind3Test(f, S) {
     const e2l = e => (e.stack.split('\n')[4].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
@@ -103,42 +110,48 @@ export function bind2Test(f, S) {
     // Three arguments should be passed in.
     // @ts-expect-error
     throws(()=>f(),
-        "bind2(): `functionA` is type 'undefined' not 'function'\n" +
-        "bind2(): `functionB` is type 'undefined' not 'function'\n" +
-        "bind2(): `suiteOrTitle` is type 'undefined' not 'object'; or 'string'");
+        "bind3(): `functionA` is type 'undefined' not 'function'\n" +
+        "bind3(): `functionB` is type 'undefined' not 'function'\n" +
+        "bind3(): `functionC` is type 'undefined' not 'function'\n" +
+        "bind3(): `suiteOrTitle` is type 'undefined' not 'object'; or 'string'");
 
     // The `functionA` and `functionB` arguments should be functions.
-    throws(()=>f(null, void 0, ''),
-        "bind2(): `functionA` is null not type 'function'\n" +
-        "bind2(): `functionB` is type 'undefined' not 'function'");
     // @ts-expect-error
-    throws(()=>f(()=>{}, 123, new S('')),
-        "bind2(): `functionB` is type 'number' not 'function'");
+    throws(()=>f(null, void 0, 123, ''),
+        "bind3(): `functionA` is null not type 'function'\n" +
+        "bind3(): `functionB` is type 'undefined' not 'function'\n" +
+        "bind3(): `functionC` is type 'number' not 'function'");
+    throws(()=>f(()=>{}, ()=>{}, void 0, new S('')),
+        "bind3(): `functionC` is type 'undefined' not 'function'");
 
     // The `suiteOrTitle` argument should be one of the correct types.
-    throws(()=>f(()=>{}, ()=>{}, null),
-        "bind2(): `suiteOrTitle` is null not a regular object; or type 'string'");
     // @ts-expect-error
-    throws(()=>f(()=>{}, ()=>{}, new Date()),
-        "bind2(): `suiteOrTitle` is not in `options.is` 'Suite'; or type 'object' not 'string'");
+    throws(()=>f(()=>{}, ()=>{}, ()=>{}, []),
+        "bind3(): `suiteOrTitle` is an array not a regular object; or type 'string'");
+    // @ts-expect-error
+    throws(()=>f(()=>{}, ()=>{}, ()=>{}, new Promise(()=>{})),
+        "bind3(): `suiteOrTitle` is not in `options.is` 'Suite'; or type 'object' not 'string'");
 
     // If the `suiteOrTitle` argument is a string, it should be a valid title.
-    throws(()=>f(()=>{}, ()=>{}, 'Café'),
+    throws(()=>f(()=>{}, ()=>{}, ()=>{}, 'Café'),
         "new Suite(): `title` 'Caf%C3%A9' fails 'Printable ASCII characters except backslashes'");
 
     // An array of three items should be returned.
     function returnThis1() { return [1,this]; }
     function returnThis2() { return [2,this]; }
+    function returnThis3() { return [3,this]; }
     const blankSuite = new S('');
-    const result = f(returnThis1, returnThis2, blankSuite);
+    const result = f(returnThis1, returnThis2, returnThis3, blankSuite);
     equal(Array.isArray(result), true);
-    equal(result.length, 3);
+    equal(result.length, 4);
 
-    // It should contain the two bound functions, followed by the `Suite` instance.
+    // It should contain the three bound functions, followed by the `Suite` instance.
     equal(result[0]()[0], 1);
     equal(result[0]()[1], blankSuite);
     equal(result[1]()[0], 2);
     equal(result[1]()[1], blankSuite);
-    equal(result[2], blankSuite);
+    equal(result[2]()[0], 3);
+    equal(result[2]()[1], blankSuite);
+    equal(result[3], blankSuite);
 
 }

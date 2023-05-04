@@ -858,24 +858,24 @@ Suite.prototype.render = function render(
  *
  * @example
  * import alike, { addSection, bind2 } from '@0bdx/alike';
- * 
+ *
  * // Create a test suite with a title, and bind two functions to it.
- * const [ section, like, suite ] = bind2(addSection, alike, 'fact()');
- * 
+ * const [ like, section, suite ] = bind2(alike, addSection, 'fact()');
+ *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ section, like ] = bind2(addSection, alike, suite);
- * 
+ * // const [ like, section ] = bind2(alike, addSection, suite);
+ *
  * // Optionally, begin a new section.
- * section('Check that factorialise() works');
- * 
+ * section('Check that fact() works');
+ *
  * // Run the tests. The third argument, `notes`, is optional.
  * like(fact(0), 1);
  * like(fact(5), 120,
  *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
- * 
+ *
  * // Output a test results summary to the console, as plain text.
  * console.log(suite.render());
- * 
+ *
  * // Calculates the factorial of a given integer.
  * function fact(n) {
  *     if (n === 0 || n === 1) return 1;
@@ -916,6 +916,86 @@ function bind2(functionA, functionB, suiteOrTitle) {
     return [
         functionA.bind(suite),
         functionB.bind(suite),
+        suite,
+    ];
+}
+
+/** ### Binds three functions to a shared `Suite` instance.
+ *
+ * Takes an existing `Suite` or creates a new one, and binds three functions
+ * to it. Each function can then access the shared `Suite` instance using
+ * the `this` keyword.
+ *
+ * This pattern of dependency injection allows lots of flexibility, and works
+ * well with Rollup's tree shaking.
+ *
+ * @example
+ * import alike, { addSection, bind3, throws } from '@0bdx/alike';
+ *
+ * // Create a test suite with a title, and bind three functions to it.
+ * const [ section, like, suite ] = bind3(addSection, alike, 'fact()');
+ *
+ * // Or a suite from a previous test could be passed in instead.
+ * // const [ like, section ] = bind3(alike, addSection, suite);
+ *
+ * // Optionally, begin a new section.
+ * section('Check that fact() works');
+ *
+ * // Run the tests. The third argument, `notes`, is optional.
+ * throws(fact(), '`n` is not a number!');
+ * like(fact(0), 1);
+ * like(fact(5), 120,
+ *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
+ *
+ * // Output a test results summary to the console, as plain text.
+ * console.log(suite.render());
+ *
+ * // Calculates the factorial of a given integer.
+ * function fact(n) {
+ *     if (typeof n !== 'number') throw Error('`n` is not a number!');
+ *     if (n === 0 || n === 1) return 1;
+ *     for (let i=n-1; i>0; i--) n *= i;
+ *     return n;
+ * }
+ *
+ * @template {function} A
+ * @template {function} B
+ * @template {function} C
+ *
+ * @param {A} functionA
+ *    The first function to bind to the suite.
+ * @param {B} functionB
+ *    The second function to bind to the suite.
+ * @param {C} functionC
+ *    The second function to bind to the suite.
+ * @param {Suite|string} suiteOrTitle
+ *    A suite from previous tests, or else a title for a new suite.
+ * @returns {[A,B,C,Suite]}
+ */
+function bind3(functionA, functionB, functionC, suiteOrTitle) {
+    const begin = 'bind3()';
+
+    // Validate the arguments.
+    const [ _, aintaSuite ] = narrowAintas({ is:[Suite], open:true }, aintaObject);
+    const [ aResults, aFn, aSuiteOrString ] = narrowAintas({ begin },
+        aintaFunction, [ aintaSuite, aintaString ]);
+    aFn(functionA, 'functionA');
+    aFn(functionB, 'functionB');
+    aFn(functionC, 'functionC');
+    aSuiteOrString(suiteOrTitle, 'suiteOrTitle');
+    if (aResults.length) throw Error(aResults.join('\n'));
+
+    // If `suiteOrTitle` is a string, create a new `Suite` instance. Otherwise
+    // it must already be an instance of `Suite`, so just use it as-is.
+    const suite = typeof suiteOrTitle === 'string'
+        ? new Suite(suiteOrTitle || 'Untitled Test Suite')
+        : suiteOrTitle;
+
+    // Bind the functions to the suite, and return them. Also, return the suite.
+    return [
+        functionA.bind(suite),
+        functionB.bind(suite),
+        functionC.bind(suite),
         suite,
     ];
 }
@@ -1139,4 +1219,4 @@ function alike(actually, expected, notes) {
     return overview;
 }
 
-export { Renderable, Suite, addSection, bind2, alike as default };
+export { Renderable, Suite, addSection, bind2, bind3, alike as default };

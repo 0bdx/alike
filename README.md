@@ -45,13 +45,13 @@ console.log(alike({a:1}, {a:1}, 'Similar objects are alike.'));
 import alike, { addSection, bind2 } from '@0bdx/alike';
 
 // Create a test suite with a title, and bind two functions to it.
-const [ section, like, suite ] = bind2(addSection, alike, 'fact()');
+const [ like, section, suite ] = bind2(alike, addSection, 'fact()');
 
 // Or a suite from a previous test could be passed in instead.
-// const [ section, like ] = bind2(addSection, alike, suite);
+// const [ like, section ] = bind2(alike, addSection, suite);
 
 // Optionally, begin a new section.
-section('Check that factorialise() works');
+section('Check that fact() works');
 
 // Run the tests. The third argument, `notes`, is optional.
 like(fact(0), 1);
