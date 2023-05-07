@@ -21,9 +21,9 @@ import { helpersTest } from './helpers.js';
 
 import Are, {
     addSection,
-    alike,
+    isDeeplyLike,
 } from './index.js';
-import { alikeTest } from './tools/alike.js';
+import { isDeeplyLikeTest } from './tools/is-deeply-like.js';
 import { addSectionTest } from './tools/add-section.js';
 
 bind2Test(Are, bind2);
@@ -39,5 +39,5 @@ sectionTest();
 
 helpersTest();
 
-alikeTest(Are, alike, Renderable);
+isDeeplyLikeTest(Are, isDeeplyLike, Renderable);
 addSectionTest(Are, addSection);

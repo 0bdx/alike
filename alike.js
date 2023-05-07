@@ -864,13 +864,13 @@ Are.prototype.render = function render(
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, alike, bind2 } from '@0bdx/alike';
+ * import { addSection, isDeeplyLike, bind2 } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind two functions to it.
- * const [ like, section, are ] = bind2(alike, addSection, 'fact()');
+ * const [ like, section, are ] = bind2(addSection, isDeeplyLike, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind2(alike, addSection, are);
+ * // const [ like, section ] = bind2(addSection, isDeeplyLike, are);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
@@ -937,13 +937,13 @@ function bind2(functionA, functionB, areOrTitle) {
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, alike, bind3, throws } from '@0bdx/alike';
+ * import { addSection, isDeeplyLike, bind3, throws } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind three functions to it.
- * const [ section, like, are ] = bind3(addSection, alike, 'fact()');
+ * const [ section, like, are ] = bind3(addSection, isDeeplyLike, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind3(alike, addSection, are);
+ * // const [ like, section ] = bind3(addSection, isDeeplyLike, are);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
@@ -1030,7 +1030,7 @@ function addSection(subtitle) {
     (this).addSection(subtitle);
 }
 
-/** ### Determines whether two arguments are alike.
+/** ### Determines whether two arguments are deeply alike.
  *
  * @private
  * @param {any} actually
@@ -1040,9 +1040,9 @@ function addSection(subtitle) {
  * @param {number} [maxDepth=99]
  *    Prevents infinite recursion.
  * @returns {boolean}
- *    Returns `true` if the arguments are alike, and `false` if not.
+ *    Returns `true` if the arguments are deeply alike, and `false` if not.
  */
-const determineWhetherAlike = (actually, expected, maxDepth=99) => {
+const determineWhetherDeeplyAlike = (actually, expected, maxDepth=99) => {
 
     // If either argument is `null`, we can return `true` or `false` early.
     const actuallyIsNull = actually === null;
@@ -1082,7 +1082,7 @@ const determineWhetherAlike = (actually, expected, maxDepth=99) => {
         const len = actually.length;
         if (expected.length !== len) return false;
         for (let i=0; i<len; i++) {
-            if (!determineWhetherAlike(actually[i], expected[i], maxDepth - 1))
+            if (!determineWhetherDeeplyAlike(actually[i], expected[i], maxDepth - 1))
                 return false;
         }
         return true;
@@ -1105,7 +1105,7 @@ const determineWhetherAlike = (actually, expected, maxDepth=99) => {
     // Compare the two objects recursively, ignoring non-enumerable properties.
     // @TODO improve cyclic reference detection, by passing down a `foundObjects` argument
     for (const key of actuallyKeys) {
-        if (!determineWhetherAlike(actually[key], expected[key], maxDepth - 1))
+        if (!determineWhetherDeeplyAlike(actually[key], expected[key], maxDepth - 1))
             return false;
     }
     return true;
@@ -1137,7 +1137,7 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 /** ### Compares two JavaScript values in a user-friendly way.
  * 
- * `alike()` operates in one of two modes:
+ * `isDeeplyLike()` operates in one of two modes:
  * 1. If it has been bound to an object with an `addResult()` method, it sends
  *    that method the full test results, and then returns an overview.
  * 2. Otherwise, it either throws an `Error` if the test fails, or returns
@@ -1163,8 +1163,8 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
  *    Also, unless it's bound to an object with an `addResult()` method, throws
  *    an `Error` if the test fails.
  */
-function alike(actually, expected, notes) {
-    const begin = 'alike()';
+function isDeeplyLike(actually, expected, notes) {
+    const begin = 'isDeeplyLike()';
 
     // Validate the `notes` argument. `this.addResult()`, if it exists, will
     // do some similar validation, but its error message would be confusing.
@@ -1177,10 +1177,10 @@ function alike(actually, expected, notes) {
             : ''; // no `notes` argument was passed in
     if (aNotes) throw Error(aNotes);
 
-    // Determine whether `actually` and `expected` are alike.
-    const didFail = !determineWhetherAlike(actually, expected);
+    // Determine whether `actually` and `expected` are deeply alike.
+    const didFail = !determineWhetherDeeplyAlike(actually, expected);
 
-    // Generate the overview which `alike()` will throw or return.
+    // Generate the overview which `isDeeplyLike()` will throw or return.
     const status = didFail ? 'FAIL' : 'PASS';
     const actuallyRenderable = Renderable.from(actually);
     const expectedRenderable = Renderable.from(expected);
@@ -1227,4 +1227,4 @@ function alike(actually, expected, notes) {
     return overview;
 }
 
-export { Highlight, Renderable, addSection, alike, bind2, bind3, Are as default };
+export { Highlight, Renderable, addSection, bind2, bind3, Are as default, isDeeplyLike };

@@ -1,4 +1,5 @@
 import { aintaString } from '@0bdx/ainta';
+import Highlight from '../highlight.js';
 import Renderable from '../renderable/renderable.js';
 import Result from '../result.js';
 import Section from '../section.js';
@@ -257,13 +258,13 @@ export default class Are {
 /** ### `Are` unit tests.
  *
  * @param {typeof Are} A
- *    The `Are` class, because `Are` in alike.js !== `Are` in src/.
+ *    The `Are` class, because `Are` in are.js !== `Are` in src/.
  * @returns {void}
  *    Does not return anything.
  * @param {typeof Highlight} H
- *    The `Highlight` class, because `Highlight` in alike.js !== in src/.
+ *    The `Highlight` class, because `Highlight` in are.js !== in src/.
  * @param {typeof Renderable} R
- *    The `Renderable` class, because `Renderable` in alike.js !== in src/.
+ *    The `Renderable` class, because `Renderable` in are.js !== in src/.
  * @throws {Error}
  *    Throws an `Error` if a test fails.
  */

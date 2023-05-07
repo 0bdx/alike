@@ -30,7 +30,7 @@ export default function addSection(subtitle) {
 /** ### `addSection()` unit tests.
  * 
  * @param {typeof Are} A
- *    The `Are` class, because `Are` in alike.js !== `Are` in src/.
+ *    The `Are` class, because `Are` in are.js !== `Are` in src/.
  * @param {addSection} f
  *    The `addSection()` function to test.
  * @returns {void}

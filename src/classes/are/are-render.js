@@ -178,7 +178,7 @@ Are.prototype.render = function render(
 /** ### `Are#render()` unit tests.
  *
  * @param {typeof Are} A
- *    The `Are` class, because `Are` in alike.js !== `Are` in src/.
+ *    The `Are` class, because `Are` in are.js !== `Are` in src/.
  * @returns {void}
  *    Does not return anything.
  * @throws {Error}
@@ -316,7 +316,7 @@ export function areRenderTest(A) {
         '    : `actually` is `null`',
         '    : `expected` is `undefined`\n',
     ));
-    pqAreFAIL.addResult(r([]), r([]), ['Empty arrays are alike'], 'PASS');
+    pqAreFAIL.addResult(r([]), r([]), ['Empty arrays are deeply alike'], 'PASS');
     equal(f(...pqFailArgs), toLines(
         `${pqHeaderFAIL}3 of 4 tests failed.\n`,
         'FAIL: 1 is not 2',

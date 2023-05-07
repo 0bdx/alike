@@ -1,4 +1,4 @@
-/** ### Determines whether two arguments are alike.
+/** ### Determines whether two arguments are deeply alike.
  *
  * @private
  * @param {any} actually
@@ -8,9 +8,9 @@
  * @param {number} [maxDepth=99]
  *    Prevents infinite recursion.
  * @returns {boolean}
- *    Returns `true` if the arguments are alike, and `false` if not.
+ *    Returns `true` if the arguments are deeply alike, and `false` if not.
  */
-export const determineWhetherAlike = (actually, expected, maxDepth=99) => {
+export const determineWhetherDeeplyAlike = (actually, expected, maxDepth=99) => {
 
     // If either argument is `null`, we can return `true` or `false` early.
     const actuallyIsNull = actually === null;
@@ -50,7 +50,7 @@ export const determineWhetherAlike = (actually, expected, maxDepth=99) => {
         const len = actually.length;
         if (expected.length !== len) return false;
         for (let i=0; i<len; i++) {
-            if (!determineWhetherAlike(actually[i], expected[i], maxDepth - 1))
+            if (!determineWhetherDeeplyAlike(actually[i], expected[i], maxDepth - 1))
                 return false;
         }
         return true;
@@ -73,7 +73,7 @@ export const determineWhetherAlike = (actually, expected, maxDepth=99) => {
     // Compare the two objects recursively, ignoring non-enumerable properties.
     // @TODO improve cyclic reference detection, by passing down a `foundObjects` argument
     for (const key of actuallyKeys) {
-        if (!determineWhetherAlike(actually[key], expected[key], maxDepth - 1))
+        if (!determineWhetherDeeplyAlike(actually[key], expected[key], maxDepth - 1))
             return false;
     }
     return true;
@@ -146,113 +146,113 @@ export function helpersTest() {
         throw Error(`expected message:\n${exp}\nbut nothing was thrown\n`) };
 
 
-    /* ----------------------- determineWhetherAlike() ---------------------- */
+    /* -------------------- determineWhetherDeeplyAlike() ------------------- */
 
-    const dwa = determineWhetherAlike;
+    const dwda = determineWhetherDeeplyAlike;
 
     // Should return `true` or `false` if `actually` or `expected` is `null`.
-    equal(dwa(null, null), true);
-    equal(dwa(void 0, null), false);
-    equal(dwa(0, null), false);
-    equal(dwa(null, 'null'), false);
+    equal(dwda(null, null), true);
+    equal(dwda(void 0, null), false);
+    equal(dwda(0, null), false);
+    equal(dwda(null, 'null'), false);
 
     // Should return `true` or `false` if `actually` or `expected` is `NaN`.
-    equal(dwa(NaN, NaN), true);
-    equal(dwa(-Infinity, NaN), false);
-    equal(dwa(0, NaN), false);
-    equal(dwa(NaN, 'NaN'), false);
+    equal(dwda(NaN, NaN), true);
+    equal(dwda(-Infinity, NaN), false);
+    equal(dwda(0, NaN), false);
+    equal(dwda(NaN, 'NaN'), false);
 
     // Should return `true` or `false` if `actually` is a bigint.
-    equal(dwa(BigInt(12), BigInt(12)), true);
-    equal(dwa(BigInt(34), BigInt('34')), true);
-    equal(dwa(BigInt(56), BigInt(-56)), false);
-    equal(dwa(BigInt(78), 78), false);
+    equal(dwda(BigInt(12), BigInt(12)), true);
+    equal(dwda(BigInt(34), BigInt('34')), true);
+    equal(dwda(BigInt(56), BigInt(-56)), false);
+    equal(dwda(BigInt(78), 78), false);
 
     // Should return `true` or `false` if `actually` is a boolean.
-    equal(dwa(Boolean('abc'), true), true);
-    equal(dwa(!1, false), true);
-    equal(dwa(true, false), false);
-    equal(dwa(Boolean(true), !1), false);
-    equal(dwa(false, () => false), false);
-    equal(dwa(true, 'true'), false);
+    equal(dwda(Boolean('abc'), true), true);
+    equal(dwda(!1, false), true);
+    equal(dwda(true, false), false);
+    equal(dwda(Boolean(true), !1), false);
+    equal(dwda(false, () => false), false);
+    equal(dwda(true, 'true'), false);
 
     // Should return `true` or `false` if `actually` is a number.
-    equal(dwa(Number(1.2), 1.2), true);
-    equal(dwa(-0.09, -9e-2), true);
-    equal(dwa(Infinity, Infinity), true);
-    equal(dwa(-Infinity, -Infinity), true);
-    equal(dwa(0, -0), true);
-    equal(dwa(0xff, 255), true);
-    equal(dwa(0xff, '255'), false);
+    equal(dwda(Number(1.2), 1.2), true);
+    equal(dwda(-0.09, -9e-2), true);
+    equal(dwda(Infinity, Infinity), true);
+    equal(dwda(-Infinity, -Infinity), true);
+    equal(dwda(0, -0), true);
+    equal(dwda(0xff, 255), true);
+    equal(dwda(0xff, '255'), false);
 
     // Should return `true` or `false` if `actually` is a string.
-    equal(dwa(String(1.2), '1.2'), true);
-    equal(dwa('', ''), true);
-    equal(dwa('A', Symbol('A')), false);
-    equal(dwa('abc', ['a','b','c']), false);
+    equal(dwda(String(1.2), '1.2'), true);
+    equal(dwda('', ''), true);
+    equal(dwda('A', Symbol('A')), false);
+    equal(dwda('abc', ['a','b','c']), false);
 
     // Should return `true` or `false` if `actually` is a symbol.
     const abcSymbol = Symbol('abc');
-    equal(dwa(abcSymbol, abcSymbol), true);
-    equal(dwa(abcSymbol, Symbol('abc')), false);
+    equal(dwda(abcSymbol, abcSymbol), true);
+    equal(dwda(abcSymbol, Symbol('abc')), false);
     const emptySymbol = Symbol('');
-    equal(dwa(emptySymbol, emptySymbol), true);
-    equal(dwa(Symbol(''), Symbol('')), false);
-    equal(dwa(Symbol('abc'), 'abc'), false);
+    equal(dwda(emptySymbol, emptySymbol), true);
+    equal(dwda(Symbol(''), Symbol('')), false);
+    equal(dwda(Symbol('abc'), 'abc'), false);
 
     // Should return `true` or `false` if `actually` is a undefined.
-    equal(dwa(void 0, void 0), true);
-    equal(dwa([][0], {}.nope), true);
-    equal(dwa([][0], {}.constructor), false);
-    equal(dwa([][0], [].length), false);
+    equal(dwda(void 0, void 0), true);
+    equal(dwda([][0], {}.nope), true);
+    equal(dwda([][0], {}.constructor), false);
+    equal(dwda([][0], [].length), false);
 
     // Should return `true` if the arguments reference the same thing.
     // @TODO maybe test functions bound to different things
     const arr = []; class Cls {}; const fn = () => {}; const obj = {};
-    equal(dwa(arr, arr), true);
-    equal(dwa(Cls, Cls), true);
-    equal(dwa(fn, fn), true);
-    equal(dwa(obj, obj), true);
-    equal(dwa(arr, Cls), false);
-    equal(dwa(Cls, fn), false);
-    equal(dwa(fn, obj), false);
-    equal(dwa(obj, arr), false);
+    equal(dwda(arr, arr), true);
+    equal(dwda(Cls, Cls), true);
+    equal(dwda(fn, fn), true);
+    equal(dwda(obj, obj), true);
+    equal(dwda(arr, Cls), false);
+    equal(dwda(Cls, fn), false);
+    equal(dwda(fn, obj), false);
+    equal(dwda(obj, arr), false);
 
     // Should return `true` or `false` if `actually` is an array.
     // @TODO test that infinite recursion is handled ok
-    equal(dwa([], []), true);
-    equal(dwa([], function () { return [] }), false);
-    equal(dwa(Array(10), Array(10)), true);
-    equal(dwa(Array(10), Array(7)), false);
-    equal(dwa([[[[],[]]],[]], [[[[],[]]],[]]), true);
-    equal(dwa([[[[],[]]],[]], [[[[]]],[]]), false);
-    equal(dwa([1,'b',[3]], [1,'b',[3]]), true);
-    equal(dwa([1,'b',[3]], [1,[3],'b']), false);
-    equal(dwa('123'.split(''), ['1','2','3']), true);
-    equal(dwa('123'.split(''), ['1','2',3]), false);
+    equal(dwda([], []), true);
+    equal(dwda([], function () { return [] }), false);
+    equal(dwda(Array(10), Array(10)), true);
+    equal(dwda(Array(10), Array(7)), false);
+    equal(dwda([[[[],[]]],[]], [[[[],[]]],[]]), true);
+    equal(dwda([[[[],[]]],[]], [[[[]]],[]]), false);
+    equal(dwda([1,'b',[3]], [1,'b',[3]]), true);
+    equal(dwda([1,'b',[3]], [1,[3],'b']), false);
+    equal(dwda('123'.split(''), ['1','2','3']), true);
+    equal(dwda('123'.split(''), ['1','2',3]), false);
 
     // Should return `true` or `false` even if an array has are cyclic references.
     const arrA1 = []; const arrB1 = [ arrA1 ]; arrA1[0] = arrB1;
     const arrA2 = []; const arrB2 = [ arrA2 ]; arrA2[0] = arrB2;
-    equal(dwa(arrA1, arrA2), true);
-    equal(dwa(arrA1, [ [ [ [] ] ] ]), false);
-    equal(dwa([ [ [ [] ] ] ], arrA1), false);
+    equal(dwda(arrA1, arrA2), true);
+    equal(dwda(arrA1, [ [ [ [] ] ] ]), false);
+    equal(dwda([ [ [ [] ] ] ], arrA1), false);
 
     // Should return `true` or `false` if `actually` is an object.
-    equal(dwa({}, {}), true);
-    equal(dwa({}, () => ({})), false);
-    equal(dwa({ a:1, b:2, c:3 }, { a:1, b:2, c:3 }), true);
-    equal(dwa({ a:1, b:2, c:3 }, { a:1, b:2, c:3, d:4 }), false); // extra
-    equal(dwa({ a:1, b:2, c:3 }, { a:1, b:2 }), false); // missing
-    equal(dwa({ a:1, b:{ c:3 } }, { a:1, b: { c:3 } }), true);
-    equal(dwa({ a:1, b:{ c:3 } }, { a:1, b: { c:'3' } }), false);
-    equal(dwa({ a:1, b:[2,3] }, { a:1, b:[2,3] }), true);
-    equal(dwa({ a:1, b:[2,3] }, { a:1, b:[2,'3'] }), false);
+    equal(dwda({}, {}), true);
+    equal(dwda({}, () => ({})), false);
+    equal(dwda({ a:1, b:2, c:3 }, { a:1, b:2, c:3 }), true);
+    equal(dwda({ a:1, b:2, c:3 }, { a:1, b:2, c:3, d:4 }), false); // extra
+    equal(dwda({ a:1, b:2, c:3 }, { a:1, b:2 }), false); // missing
+    equal(dwda({ a:1, b:{ c:3 } }, { a:1, b: { c:3 } }), true);
+    equal(dwda({ a:1, b:{ c:3 } }, { a:1, b: { c:'3' } }), false);
+    equal(dwda({ a:1, b:[2,3] }, { a:1, b:[2,3] }), true);
+    equal(dwda({ a:1, b:[2,3] }, { a:1, b:[2,'3'] }), false);
     class Polygon { constructor(sides) { this.sides = sides } }
-    equal(dwa(new Polygon(3), new Polygon(3)), true);
-    equal(dwa(new Polygon(3), new Polygon(4)), false);
+    equal(dwda(new Polygon(3), new Polygon(3)), true);
+    equal(dwda(new Polygon(3), new Polygon(4)), false);
     class Shape { constructor(sides) { this.sides = sides } }
-    equal(dwa(new Polygon(3), new Shape(3)), false); // different constructors
+    equal(dwda(new Polygon(3), new Shape(3)), false); // different constructors
 
     // Should ignore non-enumerable properties.
     // non-enumerable property
@@ -263,15 +263,15 @@ export function helpersTest() {
         },
     });
     hasNonEnumerable.nonEnumerable = 1;
-    equal(dwa(hasNonEnumerable, { getNonEnumerable:() => 1, nonEnumerable:1 }), false);
-    equal(dwa(hasNonEnumerable, { nonEnumerable:1 }), true);
+    equal(dwda(hasNonEnumerable, { getNonEnumerable:() => 1, nonEnumerable:1 }), false);
+    equal(dwda(hasNonEnumerable, { nonEnumerable:1 }), true);
 
     // Should return `true` or `false` even if an object has are cyclic references.
     const objA1 = {}; const objB1 = { a:objA1 }; objA1.b = objB1;
     const objA2 = {}; const objB2 = { a:objA2 }; objA2.b = objB2;
-    equal(dwa(objA1, objA2), true);
-    equal(dwa(objA1, { b:{ a:{ b:{} } } }), false);
-    equal(dwa({ b:{ a:{ b:{} } } }, objA1), false);
+    equal(dwda(objA1, objA2), true);
+    equal(dwda(objA1, { b:{ a:{ b:{} } } }), false);
+    equal(dwda({ b:{ a:{ b:{} } } }, objA1), false);
 
 
     /* ------------------------ getCircularReplacer() ----------------------- */

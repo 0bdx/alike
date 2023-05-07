@@ -12,13 +12,13 @@ import { Are } from '../classes/index.js';
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, alike, bind3, throws } from '@0bdx/alike';
+ * import { addSection, isDeeplyLike, bind3, throws } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind three functions to it.
- * const [ section, like, are ] = bind3(addSection, alike, 'fact()');
+ * const [ section, like, are ] = bind3(addSection, isDeeplyLike, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind3(alike, addSection, are);
+ * // const [ like, section ] = bind3(addSection, isDeeplyLike, are);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
@@ -88,7 +88,7 @@ export default function bind3(functionA, functionB, functionC, areOrTitle) {
 /** ### `bind3()` unit tests.
  *
  * @param {typeof Are} A
- *    The `Are` class, because `Are` in alike.js !== `Are` in src/.
+ *    The `Are` class, because `Are` in are.js !== `Are` in src/.
  * @param {bind3} f
  *    The `bind3()` function to test.
  * @returns {void}

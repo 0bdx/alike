@@ -106,35 +106,6 @@ export class Renderable {
  *    Throws an `Error` if `subtitle` or the `this` context are invalid.
  */
 export function addSection(subtitle: string): void;
-/** ### Compares two JavaScript values in a user-friendly way.
- *
- * `alike()` operates in one of two modes:
- * 1. If it has been bound to an object with an `addResult()` method, it sends
- *    that method the full test results, and then returns an overview.
- * 2. Otherwise, it either throws an `Error` if the test fails, or returns
- *    an overview if the test passes.
- *
- * @TODO finish the description, with examples
- *
- * @param {any} actually
- *    The value that the test actually got.
- * @param {any} expected
- *    The value that the test expected.
- * @param {string|string[]} [notes]
- *    An optional description of the test, as a string or array of strings.
- *    - A string is treated identically to an array containing just that string
- *    - 0 to 100 items, where each item is a line
- *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
- *    - An empty array `[]` means that no notes have been supplied
- *    - The first item (index 0), if present, is used for the overview
- * @returns {string}
- *    Returns an overview of the test result.
- * @throws {Error}
- *    Throws an `Error` if `notes` or the `this` context are invalid.
- *    Also, unless it's bound to an object with an `addResult()` method, throws
- *    an `Error` if the test fails.
- */
-export function alike(actually: any, expected: any, notes?: string | string[]): string;
 /** ### Binds two functions to a shared `Are` instance.
  *
  * Takes an existing `Are` or creates a new one, and binds two functions
@@ -145,13 +116,13 @@ export function alike(actually: any, expected: any, notes?: string | string[]): 
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, alike, bind2 } from '@0bdx/alike';
+ * import { addSection, isDeeplyLike, bind2 } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind two functions to it.
- * const [ like, section, are ] = bind2(alike, addSection, 'fact()');
+ * const [ like, section, are ] = bind2(addSection, isDeeplyLike, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind2(alike, addSection, are);
+ * // const [ like, section ] = bind2(addSection, isDeeplyLike, are);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
@@ -193,13 +164,13 @@ export function bind2<A extends Function, B extends Function>(functionA: A, func
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, alike, bind3, throws } from '@0bdx/alike';
+ * import { addSection, isDeeplyLike, bind3, throws } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind three functions to it.
- * const [ section, like, are ] = bind3(addSection, alike, 'fact()');
+ * const [ section, like, are ] = bind3(addSection, isDeeplyLike, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind3(alike, addSection, are);
+ * // const [ like, section ] = bind3(addSection, isDeeplyLike, are);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
@@ -372,6 +343,35 @@ declare class Are {
     render(begin?: string, filterSections?: string, filterResults?: string, formatting?: 'ANSI' | 'HTML' | 'JSON' | 'PLAIN', verbosity?: 'QUIET' | 'VERBOSE' | 'VERY' | 'VERYVERY'): string;
     #private;
 }
+/** ### Compares two JavaScript values in a user-friendly way.
+ *
+ * `isDeeplyLike()` operates in one of two modes:
+ * 1. If it has been bound to an object with an `addResult()` method, it sends
+ *    that method the full test results, and then returns an overview.
+ * 2. Otherwise, it either throws an `Error` if the test fails, or returns
+ *    an overview if the test passes.
+ *
+ * @TODO finish the description, with examples
+ *
+ * @param {any} actually
+ *    The value that the test actually got.
+ * @param {any} expected
+ *    The value that the test expected.
+ * @param {string|string[]} [notes]
+ *    An optional description of the test, as a string or array of strings.
+ *    - A string is treated identically to an array containing just that string
+ *    - 0 to 100 items, where each item is a line
+ *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+ *    - An empty array `[]` means that no notes have been supplied
+ *    - The first item (index 0), if present, is used for the overview
+ * @returns {string}
+ *    Returns an overview of the test result.
+ * @throws {Error}
+ *    Throws an `Error` if `notes` or the `this` context are invalid.
+ *    Also, unless it's bound to an object with an `addResult()` method, throws
+ *    an `Error` if the test fails.
+ */
+export function isDeeplyLike(actually: any, expected: any, notes?: string | string[]): string;
 /** ### Records the outcome of one test.
  *
  * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs

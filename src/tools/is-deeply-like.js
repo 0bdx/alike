@@ -1,6 +1,6 @@
 import { aintaArray, aintaString } from '@0bdx/ainta';
 import { Are, Renderable } from "../classes/index.js";
-import { determineWhetherAlike, truncate } from '../helpers.js';
+import { determineWhetherDeeplyAlike, truncate } from '../helpers.js';
 
 // Define a regular expression for validating each item in `notes`.
 const noteRx = /^[ -\[\]-~]*$/;
@@ -8,7 +8,7 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 /** ### Compares two JavaScript values in a user-friendly way.
  * 
- * `alike()` operates in one of two modes:
+ * `isDeeplyLike()` operates in one of two modes:
  * 1. If it has been bound to an object with an `addResult()` method, it sends
  *    that method the full test results, and then returns an overview.
  * 2. Otherwise, it either throws an `Error` if the test fails, or returns
@@ -34,8 +34,8 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
  *    Also, unless it's bound to an object with an `addResult()` method, throws
  *    an `Error` if the test fails.
  */
-export default function alike(actually, expected, notes) {
-    const begin = 'alike()';
+export default function isDeeplyLike(actually, expected, notes) {
+    const begin = 'isDeeplyLike()';
 
     // Validate the `notes` argument. `this.addResult()`, if it exists, will
     // do some similar validation, but its error message would be confusing.
@@ -48,10 +48,10 @@ export default function alike(actually, expected, notes) {
             : '' // no `notes` argument was passed in
     if (aNotes) throw Error(aNotes);
 
-    // Determine whether `actually` and `expected` are alike.
-    const didFail = !determineWhetherAlike(actually, expected);
+    // Determine whether `actually` and `expected` are deeply alike.
+    const didFail = !determineWhetherDeeplyAlike(actually, expected);
 
-    // Generate the overview which `alike()` will throw or return.
+    // Generate the overview which `isDeeplyLike()` will throw or return.
     const status = didFail ? 'FAIL' : 'PASS';
     const actuallyRenderable = Renderable.from(actually);
     const expectedRenderable = Renderable.from(expected);
@@ -101,20 +101,20 @@ export default function alike(actually, expected, notes) {
 
 /* ---------------------------------- Test ---------------------------------- */
 
-/** ### `alike()` unit tests.
+/** ### `isDeeplyLike()` unit tests.
  * 
  * @param {typeof Are} A
- *    The `Are` class, because `Are` in alike.js !== `Are` in src/.
- * @param {alike} f
- *    The `alike()` function to test.
+ *    The `Are` class, because `Are` in are.js !== `Are` in src/.
+ * @param {isDeeplyLike} f
+ *    The `isDeeplyLike()` function to test.
  * @param {typeof Renderable} R
- *    The `Renderable` class, because `Renderable` in alike.js !== in src/.
+ *    The `Renderable` class, because `Renderable` in are.js !== in src/.
  * @returns {void}
  *    Does not return anything.
  * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
-export function alikeTest(A, f, R) {
+export function isDeeplyLikeTest(A, f, R) {
     const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
@@ -139,38 +139,38 @@ export function alikeTest(A, f, R) {
         `  },`,
     );
 
-    // Create a version of `alike()` which is bound to an `Are` instance.
+    // Create a version of `isDeeplyLike()` which is bound to an `Are` instance.
     const are = new A('Test Suite');
     /** @type f */
     const bound = f.bind(are);
 
-    // Whether `alike()` is bound or not, `notes` should be a valid string, or array of strings.
+    // Whether `isDeeplyLike()` is bound or not, `notes` should be a valid string, or array of strings.
     // @ts-expect-error
     throws(()=>f(1,2,3),
-        "alike(): `notes` is type 'number' not 'string'");
+        "isDeeplyLike(): `notes` is type 'number' not 'string'");
     throws(()=>bound(1,2,null),
-        "alike(): `notes` is null not type 'string'");
+        "isDeeplyLike(): `notes` is null not type 'string'");
     throws(()=>f(1,2,['ok','ok',void 0,'ok']),
-        "alike(): `notes[2]` is type 'undefined', not the `options.types` 'string'");
+        "isDeeplyLike(): `notes[2]` is type 'undefined', not the `options.types` 'string'");
     // @ts-expect-error
     throws(()=>bound(1,2,['ok','ok',['nope!'],'ok']),
-        "alike(): `notes[2]` is an array, not the `options.types` 'string'");
+        "isDeeplyLike(): `notes[2]` is an array, not the `options.types` 'string'");
     throws(()=>f(1,2,'1234567890'.repeat(12) + '1'),
-        "alike(): `notes` '123456789012345678901...45678901' is not max 120");
+        "isDeeplyLike(): `notes` '123456789012345678901...45678901' is not max 120");
     throws(()=>bound(1,2,['1234567890'.repeat(12),'','1234567890'.repeat(12) + '1']),
-        "alike(): `notes[2]` '123456789012345678901...45678901' is not max 120");
+        "isDeeplyLike(): `notes[2]` '123456789012345678901...45678901' is not max 120");
     throws(()=>f(1,2,['\n']),
-        "alike(): `notes[0]` '%0A' fails 'Printable ASCII characters except backslashes'");
+        "isDeeplyLike(): `notes[0]` '%0A' fails 'Printable ASCII characters except backslashes'");
     throws(()=>bound(1,2,'\\'),
-        "alike(): `notes` '%5C' fails 'Printable ASCII characters except backslashes'");
+        "isDeeplyLike(): `notes` '%5C' fails 'Printable ASCII characters except backslashes'");
     throws(()=>f(1,2,['Ok','Café']),
-        "alike(): `notes[1]` 'Caf%C3%A9' fails 'Printable ASCII characters except backslashes'");
+        "isDeeplyLike(): `notes[1]` 'Caf%C3%A9' fails 'Printable ASCII characters except backslashes'");
 
-    // With no arguments supplied, `alike()` should compare the two `undefined`
+    // With no arguments supplied, `isDeeplyLike()` should compare the two `undefined`
     // `actually` and `expected` arguments, and return a one-line overview.
     equal(f(), 'PASS: `actually` is `undefined` as expected');
 
-    // With no arguments supplied and when bound to an `Are` instance, `alike()`
+    // With no arguments supplied and when bound to an `Are` instance, `isDeeplyLike()`
     // should add a full result, in addition to returning a one-line overview.
     const resultUndefinedActually = bound();
     const resultUndefinedExpectedStr = toLines(
@@ -194,7 +194,7 @@ export function alikeTest(A, f, R) {
         ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[' +
         'ABCDEFGHIJKLMNOPQRSTUVWXYZ]^_`abcdefghijklmnopqrstuvwxyz{|}~'
 
-    // `alike()` should throw an `Error` where the message is a three-line overview,
+    // `isDeeplyLike()` should throw an `Error` where the message is a three-line overview,
     // if `actually` is a number, `expected` is a string, and `notes` contains several lines.
     throws(()=>f(1234567890, '1234567890', [longestValidLine, 'Scalar values fail strict-equal']),
         toLines(

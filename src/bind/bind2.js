@@ -12,13 +12,13 @@ import { Are } from '../classes/index.js';
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, alike, bind2 } from '@0bdx/alike';
+ * import { addSection, isDeeplyLike, bind2 } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind two functions to it.
- * const [ like, section, are ] = bind2(alike, addSection, 'fact()');
+ * const [ like, section, are ] = bind2(addSection, isDeeplyLike, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind2(alike, addSection, are);
+ * // const [ like, section ] = bind2(addSection, isDeeplyLike, are);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
@@ -81,7 +81,7 @@ export default function bind2(functionA, functionB, areOrTitle) {
 /** ### `bind2()` unit tests.
  *
  * @param {typeof Are} A
- *    The `Are` class, because `Are` in alike.js !== `Are` in src/.
+ *    The `Are` class, because `Are` in are.js !== `Are` in src/.
  * @param {bind2} f
  *    The `bind2()` function to test.
  * @returns {void}
