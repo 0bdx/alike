@@ -45,10 +45,10 @@ console.log(alike({a:1}, {a:1}, 'Similar objects are alike.'));
 import alike, { addSection, bind2 } from '@0bdx/alike';
 
 // Create a test suite with a title, and bind two functions to it.
-const [ like, section, suite ] = bind2(alike, addSection, 'fact()');
+const [ like, section, are ] = bind2(alike, addSection, 'fact()');
 
 // Or a suite from a previous test could be passed in instead.
-// const [ like, section ] = bind2(alike, addSection, suite);
+// const [ like, section ] = bind2(alike, addSection, are);
 
 // Optionally, begin a new section.
 section('Check that fact() works');
@@ -59,7 +59,7 @@ like(fact(5), 120,
     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
 
 // Output a test results summary to the console, as plain text.
-console.log(suite.render());
+console.log(are.render());
 
 // Calculates the factorial of a given integer.
 function fact(n) {

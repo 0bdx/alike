@@ -1,11 +1,11 @@
 import narrowAintas, { aintaFunction, aintaObject, aintaString }
     from '@0bdx/ainta';
-import { Suite } from '../classes/index.js';
+import { Are } from '../classes/index.js';
 
-/** ### Binds three functions to a shared `Suite` instance.
+/** ### Binds three functions to a shared `Are` instance.
  *
- * Takes an existing `Suite` or creates a new one, and binds three functions
- * to it. Each function can then access the shared `Suite` instance using
+ * Takes an existing `Are` or creates a new one, and binds three functions
+ * to it. Each function can then access the shared `Are` instance using
  * the `this` keyword.
  *
  * This pattern of dependency injection allows lots of flexibility, and works
@@ -15,10 +15,10 @@ import { Suite } from '../classes/index.js';
  * import alike, { addSection, bind3, throws } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind three functions to it.
- * const [ section, like, suite ] = bind3(addSection, alike, 'fact()');
+ * const [ section, like, are ] = bind3(addSection, alike, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind3(alike, addSection, suite);
+ * // const [ like, section ] = bind3(alike, addSection, are);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
@@ -30,7 +30,7 @@ import { Suite } from '../classes/index.js';
  *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
  * // Output a test results summary to the console, as plain text.
- * console.log(suite.render());
+ * console.log(are.render());
  *
  * // Calculates the factorial of a given integer.
  * function fact(n) {
@@ -45,40 +45,40 @@ import { Suite } from '../classes/index.js';
  * @template {function} C
  *
  * @param {A} functionA
- *    The first function to bind to the suite.
+ *    The first function to bind to the test suite.
  * @param {B} functionB
- *    The second function to bind to the suite.
+ *    The second function to bind to the test suite.
  * @param {C} functionC
- *    The second function to bind to the suite.
- * @param {Suite|string} suiteOrTitle
- *    A suite from previous tests, or else a title for a new suite.
- * @returns {[A,B,C,Suite]}
+ *    The second function to bind to the test suite.
+ * @param {Are|string} areOrTitle
+ *    A test suite from previous tests, or else a title for a new test suite.
+ * @returns {[A,B,C,Are]}
  */
-export default function bind3(functionA, functionB, functionC, suiteOrTitle) {
+export default function bind3(functionA, functionB, functionC, areOrTitle) {
     const begin = 'bind3()';
 
     // Validate the arguments.
-    const [ _, aintaSuite ] = narrowAintas({ is:[Suite], open:true }, aintaObject);
-    const [ aResults, aFn, aSuiteOrString ] = narrowAintas({ begin },
-        aintaFunction, [ aintaSuite, aintaString ]);
+    const [ _, aintaAre ] = narrowAintas({ is:[Are], open:true }, aintaObject);
+    const [ aResults, aFn, aAreOrString ] = narrowAintas({ begin },
+        aintaFunction, [ aintaAre, aintaString ]);
     aFn(functionA, 'functionA');
     aFn(functionB, 'functionB');
     aFn(functionC, 'functionC');
-    aSuiteOrString(suiteOrTitle, 'suiteOrTitle');
+    aAreOrString(areOrTitle, 'areOrTitle');
     if (aResults.length) throw Error(aResults.join('\n'));
 
-    // If `suiteOrTitle` is a string, create a new `Suite` instance. Otherwise
-    // it must already be an instance of `Suite`, so just use it as-is.
-    const suite = typeof suiteOrTitle === 'string'
-        ? new Suite(suiteOrTitle || 'Untitled Test Suite')
-        : suiteOrTitle;
+    // If `areOrTitle` is a string, create a new `Are` instance. Otherwise
+    // it must already be an instance of `Are`, so just use it as-is.
+    const are = typeof areOrTitle === 'string'
+        ? new Are(areOrTitle || 'Untitled Test Suite')
+        : areOrTitle;
 
-    // Bind the functions to the suite, and return them. Also, return the suite.
+    // Return the functions bound to the test suite. Also return the test suite.
     return [
-        functionA.bind(suite),
-        functionB.bind(suite),
-        functionC.bind(suite),
-        suite,
+        functionA.bind(are),
+        functionB.bind(are),
+        functionC.bind(are),
+        are,
     ];
 }
 
@@ -87,16 +87,16 @@ export default function bind3(functionA, functionB, functionC, suiteOrTitle) {
 
 /** ### `bind3()` unit tests.
  *
+ * @param {typeof Are} A
+ *    The `Are` class, because `Are` in alike.js !== `Are` in src/.
  * @param {bind3} f
  *    The `bind3()` function to test.
- * @param {typeof Suite} S
- *    The `Suite` class, because `Suite` in alike.js !== `Suite` in src/.
  * @returns {void}
  *    Does not return anything.
  * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
-export function bind3Test(f, S) {
+export function bind3Test(A, f) {
     const e2l = e => (e.stack.split('\n')[4].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
@@ -113,7 +113,7 @@ export function bind3Test(f, S) {
         "bind3(): `functionA` is type 'undefined' not 'function'\n" +
         "bind3(): `functionB` is type 'undefined' not 'function'\n" +
         "bind3(): `functionC` is type 'undefined' not 'function'\n" +
-        "bind3(): `suiteOrTitle` is type 'undefined' not 'object'; or 'string'");
+        "bind3(): `areOrTitle` is type 'undefined' not 'object'; or 'string'");
 
     // The `functionA` and `functionB` arguments should be functions.
     // @ts-expect-error
@@ -121,37 +121,37 @@ export function bind3Test(f, S) {
         "bind3(): `functionA` is null not type 'function'\n" +
         "bind3(): `functionB` is type 'undefined' not 'function'\n" +
         "bind3(): `functionC` is type 'number' not 'function'");
-    throws(()=>f(()=>{}, ()=>{}, void 0, new S('')),
+    throws(()=>f(()=>{}, ()=>{}, void 0, new A('')),
         "bind3(): `functionC` is type 'undefined' not 'function'");
 
-    // The `suiteOrTitle` argument should be one of the correct types.
+    // The `areOrTitle` argument should be one of the correct types.
     // @ts-expect-error
     throws(()=>f(()=>{}, ()=>{}, ()=>{}, []),
-        "bind3(): `suiteOrTitle` is an array not a regular object; or type 'string'");
+        "bind3(): `areOrTitle` is an array not a regular object; or type 'string'");
     // @ts-expect-error
     throws(()=>f(()=>{}, ()=>{}, ()=>{}, new Promise(()=>{})),
-        "bind3(): `suiteOrTitle` is not in `options.is` 'Suite'; or type 'object' not 'string'");
+        "bind3(): `areOrTitle` is not in `options.is` 'Are'; or type 'object' not 'string'");
 
-    // If the `suiteOrTitle` argument is a string, it should be a valid title.
+    // If the `areOrTitle` argument is a string, it should be a valid title.
     throws(()=>f(()=>{}, ()=>{}, ()=>{}, 'Café'),
-        "new Suite(): `title` 'Caf%C3%A9' fails 'Printable ASCII characters except backslashes'");
+        "new Are(): `title` 'Caf%C3%A9' fails 'Printable ASCII characters except backslashes'");
 
     // An array of three items should be returned.
     function returnThis1() { return [1,this]; }
     function returnThis2() { return [2,this]; }
     function returnThis3() { return [3,this]; }
-    const blankSuite = new S('');
-    const result = f(returnThis1, returnThis2, returnThis3, blankSuite);
+    const blankAre = new A('');
+    const result = f(returnThis1, returnThis2, returnThis3, blankAre);
     equal(Array.isArray(result), true);
     equal(result.length, 4);
 
-    // It should contain the three bound functions, followed by the `Suite` instance.
+    // It should contain the three bound functions, followed by the `Are` instance.
     equal(result[0]()[0], 1);
-    equal(result[0]()[1], blankSuite);
+    equal(result[0]()[1], blankAre);
     equal(result[1]()[0], 2);
-    equal(result[1]()[1], blankSuite);
+    equal(result[1]()[1], blankAre);
     equal(result[2]()[0], 3);
-    equal(result[2]()[1], blankSuite);
-    equal(result[3], blankSuite);
+    equal(result[2]()[1], blankAre);
+    equal(result[3], blankAre);
 
 }

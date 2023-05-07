@@ -1,9 +1,10 @@
 import alike, {
+    addSection,
+    Are,
     bind2,
     bind3,
-    addSection,
+    Highlight,
     Renderable,
-    Suite,
 } from './alike.js';
 import { alikeTest } from './src/alike.js';
 import {
@@ -11,8 +12,10 @@ import {
     bind3Test,
 } from './src/bind/index.js';
 import { addSectionTest } from './src/tools/add-section.js';
+import { areTest } from './src/classes/are/are.js';
 
-alikeTest(alike, Renderable, Suite);
-bind2Test(bind2, Suite);
-bind3Test(bind3, Suite);
-addSectionTest(addSection, Suite);
+alikeTest(Are, alike, Renderable);
+addSectionTest(Are, addSection);
+areTest(Are, Highlight, Renderable);
+bind2Test(Are, bind2);
+bind3Test(Are, bind3);

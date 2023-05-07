@@ -437,13 +437,13 @@ class Section {
 
 }
 
-// import suiteRender from './suite-render.js';
-
 // Define a regular expression for validating `title`.
 const titleRx = /^[ -\[\]-~]*$/;
 titleRx.toString = () => "'Printable ASCII characters except backslashes'";
 
-/** ### A container for test results.
+/** ### A test suite, which contains test results, sections, etc.
+ *
+ * "Are" could stand for "All Results Etc", or it could be the plural of "is".
  *
  * - __Consistent:__ related data in different properties always agrees
  * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
@@ -451,7 +451,7 @@ titleRx.toString = () => "'Printable ASCII characters except backslashes'";
  * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
  * - __Valid:__ all properties are validated by instantiation and method calls
  */
-class Suite {
+class Are {
 
     /** The test suite's title, usually rendered as a heading above the results.
      * - 0 to 64 printable ASCII characters, except the backslash `"\"`
@@ -481,7 +481,7 @@ class Suite {
     /** The current highest section index. Incremented by `addSection()`. */
     #currentSectionIndex;
 
-    /** ### Creates an empty `Suite` instance with the supplied title.
+    /** ### Creates an empty `Are` instance with the supplied title.
      *
      * @param {string} title
      *    The test suite's title, usually rendered as a heading above the results.
@@ -491,7 +491,7 @@ class Suite {
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(title) {
-        const begin = 'new Suite()';
+        const begin = 'new Are()';
 
         // Validate the `title` argument, and then store it as a property.
         const aTitle = aintaString(title, 'title',
@@ -510,7 +510,7 @@ class Suite {
         Object.freeze(this);
     }
 
-    /** ### Returns the suite's public properties as an object.
+    /** ### Returns the test suite's public properties as an object.
      *
      * JavaScript's `JSON.stringify()` looks for a function named `toJSON()` in
      * any object being serialized. If it exists, it serializes the return value
@@ -518,7 +518,7 @@ class Suite {
      * 
      * @returns {{failTally:number, passTally:number, pendingTally:number,
      *           resultsAndSections:(Result|Section)[], title:string}}
-     *    The public properties of `Suite`.
+     *    The public properties of `Are`.
      */
     toJSON() {
         return ({
@@ -533,7 +533,7 @@ class Suite {
     /** ### Adds a new result to the test suite.
      * 
      * Note that the result will be automatically be assigned a section index,
-     * based on the suite's current highest section index.
+     * based on the test suite's current highest section index.
      * 
      * @param {Renderable} actually
      *    A representation of the value that the test actually got, ready to
@@ -630,7 +630,7 @@ class Suite {
      * @returns {string}
      *    Returns the rendered test suite.
      * @throws {Error}
-     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     *    Does not catch the `Error`, if underlying `areRender()` throws one.
      */
     renderAnsi(filterSections='', filterResults='', verbosity='QUIET') {
         return this.render(
@@ -642,7 +642,7 @@ class Suite {
         );
     }
 
-    // Interface for `Suite#render()`
+    // Interface for `Are#render()`
     /** ### Stringifies the test suite.
      *
      * @param {string} [begin='render()']
@@ -664,7 +664,7 @@ class Suite {
      * @returns {string}
      *    Returns the rendered test suite.
      * @throws {Error}
-     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     *    Does not catch the `Error`, if underlying `areRender()` throws one.
      */
     render(
         begin = 'render()',
@@ -673,7 +673,14 @@ class Suite {
         formatting = 'PLAIN',
         verbosity = 'QUIET',
     ) {
-        return 'will be overridden';
+        const message = "Are#render() should be overridden by 'are-render.js'.\n" +
+            `    begin: ${begin}\n` +
+            `    filterSections: ${filterSections}\n` +
+            `    filterResults: ${filterResults}\n` +
+            `    formatting: ${formatting}\n` +
+            `    verbosity: ${verbosity}\n`;
+        console.error(message);
+        return message;
     }
 
 }
@@ -692,8 +699,8 @@ const STYLING_STRINGS = {
 
 /** ### Renders a given test suite.
  *
- * @param {Suite} suite
- *    A `Suite` instance.
+ * @param {Are} are
+ *    An `Are` instance.
  * @param {string} begin
  *    Overrides the `begin` string sent to `Ainta` functions.
  * @param {string} filterSections
@@ -711,8 +718,8 @@ const STYLING_STRINGS = {
  * @throws {Error}
  *    Throws an `Error` if either of the arguments are invalid.
  */
-const suiteRender = (
-    suite,
+const areRender = (
+    are,
     begin,
     filterSections,
     filterResults,
@@ -720,13 +727,13 @@ const suiteRender = (
     verbosity,
 ) => {
     // Validate the `begin` argument.
-    const aBegin = aintaString(begin, 'begin', { begin:'suiteRender()' });
+    const aBegin = aintaString(begin, 'begin', { begin:'areRender()' });
     if (aBegin) throw Error(aBegin);
 
     // Validate the other arguments.
     const [ aResults, aObj, aStr ] = narrowAintas({ begin },
         aintaObject, aintaString);
-    aObj(suite, 'suite', { is:[Suite], open:true });
+    aObj(are, 'are', { is:[Are], open:true });
     aStr(filterSections, 'filterSections');
     aStr(filterResults, 'filterResults');
     aStr(formatting, 'formatting', { is:['ANSI','HTML','JSON','PLAIN'] });
@@ -734,9 +741,9 @@ const suiteRender = (
     if (aResults.length) throw Error(aResults.join('\n'));
 
     // Get the number of tests which failed, passed, and have not completed yet.
-    const fail = suite.failTally;
-    const pass = suite.passTally;
-    const pending = suite.pendingTally;
+    const fail = are.failTally;
+    const pass = are.passTally;
+    const pending = are.pendingTally;
     const numTests = fail + pass + pending;
 
     // Set up the appropriate styling-strings for the current `formatting`.
@@ -744,9 +751,9 @@ const suiteRender = (
 
     // Create the test suite's heading.
     const heading = [
-        '-'.repeat(suite.title.length),
-        suite.title,
-        '='.repeat(suite.title.length),
+        '-'.repeat(are.title.length),
+        are.title,
+        '='.repeat(are.title.length),
     ].join('\n');
 
     // Create a summary of the test results.
@@ -779,7 +786,7 @@ const suiteRender = (
     const details = verbosity === 'QUIET'
         ? !fail
             ? ''
-            : '\n\n' + getQuietFailDetails(suite)
+            : '\n\n' + getQuietFailDetails(are)
         : '\n\n' + getVerboseDetails()
     ;
 
@@ -787,16 +794,16 @@ const suiteRender = (
     return `${heading}\n\n${summary}${details}\n`;
 };
 
-/** ### [getQuietFailDetails description]
+/** ### Returns details about a failed test suite.
  *
- * @param {Suite} suite
- *    A `Suite` instance.
+ * @param {Are} are
+ *    An `Are` instance.
  * @returns {string}
  *    Returns details about a failed test suite.
  */
-const getQuietFailDetails = (suite) => {
+const getQuietFailDetails = (are) => {
     const sections = { 0:{ results:[] } };
-    for (const resultOrSection of suite.resultsAndSections) {
+    for (const resultOrSection of are.resultsAndSections) {
         if (resultOrSection instanceof Section) {
             sections[resultOrSection.index] = {
                 results: [],
@@ -825,19 +832,19 @@ const renderResults = results =>
         `    : \`expected\` is ${expected.overview}`
     );
 
-const getVerboseDetails = (suite, verbosity) => {
+const getVerboseDetails = (are, verbosity) => {
     return 'getVerboseDetails()'
 };
 
-// Implement `Suite#render()`.
-Suite.prototype.render = function render(
+// Implement `Are#render()`.
+Are.prototype.render = function render(
     begin = 'render()',
     filterSections = '',
     filterResults = '',
     /** @type {'ANSI'|'HTML'|'JSON'|'PLAIN'} */ formatting = 'PLAIN',
     /** @type {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} */ verbosity = 'QUIET',
 ) {
-    return suiteRender(
+    return areRender(
         this,
         begin,
         filterSections,
@@ -847,10 +854,10 @@ Suite.prototype.render = function render(
     );
 };
 
-/** ### Binds two functions to a shared `Suite` instance.
+/** ### Binds two functions to a shared `Are` instance.
  *
- * Takes an existing `Suite` or creates a new one, and binds two functions
- * to it. Each function can then access the shared `Suite` instance using
+ * Takes an existing `Are` or creates a new one, and binds two functions
+ * to it. Each function can then access the shared `Are` instance using
  * the `this` keyword.
  *
  * This pattern of dependency injection allows lots of flexibility, and works
@@ -860,10 +867,10 @@ Suite.prototype.render = function render(
  * import alike, { addSection, bind2 } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind two functions to it.
- * const [ like, section, suite ] = bind2(alike, addSection, 'fact()');
+ * const [ like, section, are ] = bind2(alike, addSection, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind2(alike, addSection, suite);
+ * // const [ like, section ] = bind2(alike, addSection, are);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
@@ -874,7 +881,7 @@ Suite.prototype.render = function render(
  *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
  * // Output a test results summary to the console, as plain text.
- * console.log(suite.render());
+ * console.log(are.render());
  *
  * // Calculates the factorial of a given integer.
  * function fact(n) {
@@ -887,43 +894,43 @@ Suite.prototype.render = function render(
  * @template {function} B
  *
  * @param {A} functionA
- *    The first function to bind to the suite.
+ *    The first function to bind to the test suite.
  * @param {B} functionB
- *    The second function to bind to the suite.
- * @param {Suite|string} suiteOrTitle
- *    A suite from previous tests, or else a title for a new suite.
- * @returns {[A,B,Suite]}
+ *    The second function to bind to the test suite.
+ * @param {Are|string} areOrTitle
+ *    A test suite from previous tests, or else a title for a new test suite.
+ * @returns {[A,B,Are]}
  */
-function bind2(functionA, functionB, suiteOrTitle) {
+function bind2(functionA, functionB, areOrTitle) {
     const begin = 'bind2()';
 
     // Validate the arguments.
-    const [ _, aintaSuite ] = narrowAintas({ is:[Suite], open:true }, aintaObject);
-    const [ aResults, aFn, aSuiteOrString ] = narrowAintas({ begin },
-        aintaFunction, [ aintaSuite, aintaString ]);
+    const [ _, aintaAre ] = narrowAintas({ is:[Are], open:true }, aintaObject);
+    const [ aResults, aFn, aAreOrString ] = narrowAintas({ begin },
+        aintaFunction, [ aintaAre, aintaString ]);
     aFn(functionA, 'functionA');
     aFn(functionB, 'functionB');
-    aSuiteOrString(suiteOrTitle, 'suiteOrTitle');
+    aAreOrString(areOrTitle, 'areOrTitle');
     if (aResults.length) throw Error(aResults.join('\n'));
 
-    // If `suiteOrTitle` is a string, create a new `Suite` instance. Otherwise
-    // it must already be an instance of `Suite`, so just use it as-is.
-    const suite = typeof suiteOrTitle === 'string'
-        ? new Suite(suiteOrTitle || 'Untitled Test Suite')
-        : suiteOrTitle;
+    // If `areOrTitle` is a string, create a new `Are` instance. Otherwise
+    // it must already be an instance of `Are`, so just use it as-is.
+    const are = typeof areOrTitle === 'string'
+        ? new Are(areOrTitle || 'Untitled Test Suite')
+        : areOrTitle;
 
-    // Bind the functions to the suite, and return them. Also, return the suite.
+    // Return the functions bound to the test suite. Also return the test suite.
     return [
-        functionA.bind(suite),
-        functionB.bind(suite),
-        suite,
+        functionA.bind(are),
+        functionB.bind(are),
+        are,
     ];
 }
 
-/** ### Binds three functions to a shared `Suite` instance.
+/** ### Binds three functions to a shared `Are` instance.
  *
- * Takes an existing `Suite` or creates a new one, and binds three functions
- * to it. Each function can then access the shared `Suite` instance using
+ * Takes an existing `Are` or creates a new one, and binds three functions
+ * to it. Each function can then access the shared `Are` instance using
  * the `this` keyword.
  *
  * This pattern of dependency injection allows lots of flexibility, and works
@@ -933,10 +940,10 @@ function bind2(functionA, functionB, suiteOrTitle) {
  * import alike, { addSection, bind3, throws } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind three functions to it.
- * const [ section, like, suite ] = bind3(addSection, alike, 'fact()');
+ * const [ section, like, are ] = bind3(addSection, alike, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind3(alike, addSection, suite);
+ * // const [ like, section ] = bind3(alike, addSection, are);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
@@ -948,7 +955,7 @@ function bind2(functionA, functionB, suiteOrTitle) {
  *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
  * // Output a test results summary to the console, as plain text.
- * console.log(suite.render());
+ * console.log(are.render());
  *
  * // Calculates the factorial of a given integer.
  * function fact(n) {
@@ -963,45 +970,45 @@ function bind2(functionA, functionB, suiteOrTitle) {
  * @template {function} C
  *
  * @param {A} functionA
- *    The first function to bind to the suite.
+ *    The first function to bind to the test suite.
  * @param {B} functionB
- *    The second function to bind to the suite.
+ *    The second function to bind to the test suite.
  * @param {C} functionC
- *    The second function to bind to the suite.
- * @param {Suite|string} suiteOrTitle
- *    A suite from previous tests, or else a title for a new suite.
- * @returns {[A,B,C,Suite]}
+ *    The second function to bind to the test suite.
+ * @param {Are|string} areOrTitle
+ *    A test suite from previous tests, or else a title for a new test suite.
+ * @returns {[A,B,C,Are]}
  */
-function bind3(functionA, functionB, functionC, suiteOrTitle) {
+function bind3(functionA, functionB, functionC, areOrTitle) {
     const begin = 'bind3()';
 
     // Validate the arguments.
-    const [ _, aintaSuite ] = narrowAintas({ is:[Suite], open:true }, aintaObject);
-    const [ aResults, aFn, aSuiteOrString ] = narrowAintas({ begin },
-        aintaFunction, [ aintaSuite, aintaString ]);
+    const [ _, aintaAre ] = narrowAintas({ is:[Are], open:true }, aintaObject);
+    const [ aResults, aFn, aAreOrString ] = narrowAintas({ begin },
+        aintaFunction, [ aintaAre, aintaString ]);
     aFn(functionA, 'functionA');
     aFn(functionB, 'functionB');
     aFn(functionC, 'functionC');
-    aSuiteOrString(suiteOrTitle, 'suiteOrTitle');
+    aAreOrString(areOrTitle, 'areOrTitle');
     if (aResults.length) throw Error(aResults.join('\n'));
 
-    // If `suiteOrTitle` is a string, create a new `Suite` instance. Otherwise
-    // it must already be an instance of `Suite`, so just use it as-is.
-    const suite = typeof suiteOrTitle === 'string'
-        ? new Suite(suiteOrTitle || 'Untitled Test Suite')
-        : suiteOrTitle;
+    // If `areOrTitle` is a string, create a new `Are` instance. Otherwise
+    // it must already be an instance of `Are`, so just use it as-is.
+    const are = typeof areOrTitle === 'string'
+        ? new Are(areOrTitle || 'Untitled Test Suite')
+        : areOrTitle;
 
-    // Bind the functions to the suite, and return them. Also, return the suite.
+    // Return the functions bound to the test suite. Also return the test suite.
     return [
-        functionA.bind(suite),
-        functionB.bind(suite),
-        functionC.bind(suite),
-        suite,
+        functionA.bind(are),
+        functionB.bind(are),
+        functionC.bind(are),
+        are,
     ];
 }
 
 /** ### Adds a new section to the test suite.
- * 
+ *
  * @param {string} subtitle
  *    The section title, usually rendered as a sub-heading in the results.
  *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
@@ -1013,13 +1020,13 @@ function bind3(functionA, functionB, functionC, suiteOrTitle) {
 function addSection(subtitle) {
     const begin = 'addSection()';
 
-    // Check that this function has been bound to a `Suite` instance.
+    // Check that this function has been bound to an `Are` instance.
     // @TODO cache this result for performance
-    const aSuite = aintaObject(this, 'suite', { begin, is:[Suite], open:true });
-    if (aSuite) throw Error(aSuite);
+    const aAre = aintaObject(this, 'are', { begin, is:[Are], open:true });
+    if (aAre) throw Error(aAre);
 
-    // The brackets around `this` make JSDoc see `(this)` as a `Suite` instance.
-    /** @type Suite */
+    // The brackets around `this` make JSDoc see `(this)` as an `Are` instance.
+    /** @type Are */
     (this).addSection(subtitle);
 }
 
@@ -1153,7 +1160,8 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
  *    Returns an overview of the test result.
  * @throws {Error}
  *    Throws an `Error` if `notes` or the `this` context are invalid.
- *    Also throws an `Error` if the test fails.
+ *    Also, unless it's bound to an object with an `addResult()` method, throws
+ *    an `Error` if the test fails.
  */
 function alike(actually, expected, notes) {
     const begin = 'alike()';
@@ -1219,4 +1227,4 @@ function alike(actually, expected, notes) {
     return overview;
 }
 
-export { Renderable, Suite, addSection, bind2, bind3, alike as default };
+export { Are, Highlight, Renderable, addSection, bind2, bind3, alike as default };

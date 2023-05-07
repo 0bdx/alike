@@ -1,7 +1,7 @@
 import narrowAintas, { aintaObject, aintaString } from '@0bdx/ainta';
-import Renderable from "../../classes/renderable/renderable.js";
+import Renderable from "../renderable/renderable.js";
 import Section from '../section.js';
-import Suite from './suite.js';
+import Are from './are.js';
 
 // Define styling-strings for all possible `formatting`.
 const STYLING_STRINGS = {
@@ -17,8 +17,8 @@ const STYLING_STRINGS = {
 
 /** ### Renders a given test suite.
  *
- * @param {Suite} suite
- *    A `Suite` instance.
+ * @param {Are} are
+ *    An `Are` instance.
  * @param {string} begin
  *    Overrides the `begin` string sent to `Ainta` functions.
  * @param {string} filterSections
@@ -36,8 +36,8 @@ const STYLING_STRINGS = {
  * @throws {Error}
  *    Throws an `Error` if either of the arguments are invalid.
  */
-const suiteRender = (
-    suite,
+const areRender = (
+    are,
     begin,
     filterSections,
     filterResults,
@@ -45,13 +45,13 @@ const suiteRender = (
     verbosity,
 ) => {
     // Validate the `begin` argument.
-    const aBegin = aintaString(begin, 'begin', { begin:'suiteRender()' });
+    const aBegin = aintaString(begin, 'begin', { begin:'areRender()' });
     if (aBegin) throw Error(aBegin);
 
     // Validate the other arguments.
     const [ aResults, aObj, aStr ] = narrowAintas({ begin },
         aintaObject, aintaString);
-    aObj(suite, 'suite', { is:[Suite], open:true });
+    aObj(are, 'are', { is:[Are], open:true });
     aStr(filterSections, 'filterSections');
     aStr(filterResults, 'filterResults');
     aStr(formatting, 'formatting', { is:['ANSI','HTML','JSON','PLAIN'] });
@@ -59,9 +59,9 @@ const suiteRender = (
     if (aResults.length) throw Error(aResults.join('\n'));
 
     // Get the number of tests which failed, passed, and have not completed yet.
-    const fail = suite.failTally;
-    const pass = suite.passTally;
-    const pending = suite.pendingTally;
+    const fail = are.failTally;
+    const pass = are.passTally;
+    const pending = are.pendingTally;
     const numTests = fail + pass + pending;
 
     // Set up the appropriate styling-strings for the current `formatting`.
@@ -69,9 +69,9 @@ const suiteRender = (
 
     // Create the test suite's heading.
     const heading = [
-        '-'.repeat(suite.title.length),
-        suite.title,
-        '='.repeat(suite.title.length),
+        '-'.repeat(are.title.length),
+        are.title,
+        '='.repeat(are.title.length),
     ].join('\n');
 
     // Create a summary of the test results.
@@ -104,24 +104,24 @@ const suiteRender = (
     const details = verbosity === 'QUIET'
         ? !fail
             ? ''
-            : '\n\n' + getQuietFailDetails(suite)
-        : '\n\n' + getVerboseDetails(suite, verbosity)
+            : '\n\n' + getQuietFailDetails(are)
+        : '\n\n' + getVerboseDetails(are, verbosity)
     ;
 
     // Return the rendered test suite.
     return `${heading}\n\n${summary}${details}\n`;
 }
 
-/** ### [getQuietFailDetails description]
+/** ### Returns details about a failed test suite.
  *
- * @param {Suite} suite
- *    A `Suite` instance.
+ * @param {Are} are
+ *    An `Are` instance.
  * @returns {string}
  *    Returns details about a failed test suite.
  */
-const getQuietFailDetails = (suite) => {
+const getQuietFailDetails = (are) => {
     const sections = { 0:{ results:[] } };
-    for (const resultOrSection of suite.resultsAndSections) {
+    for (const resultOrSection of are.resultsAndSections) {
         if (resultOrSection instanceof Section) {
             sections[resultOrSection.index] = {
                 results: [],
@@ -150,19 +150,19 @@ const renderResults = results =>
         `    : \`expected\` is ${expected.overview}`
     );
 
-const getVerboseDetails = (suite, verbosity) => {
+const getVerboseDetails = (are, verbosity) => {
     return 'getVerboseDetails()'
 };
 
-// Implement `Suite#render()`.
-Suite.prototype.render = function render(
+// Implement `Are#render()`.
+Are.prototype.render = function render(
     begin = 'render()',
     filterSections = '',
     filterResults = '',
     /** @type {'ANSI'|'HTML'|'JSON'|'PLAIN'} */ formatting = 'PLAIN',
     /** @type {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} */ verbosity = 'QUIET',
 ) {
-    return suiteRender(
+    return areRender(
         this,
         begin,
         filterSections,
@@ -175,16 +175,16 @@ Suite.prototype.render = function render(
 
 /* ---------------------------------- Test ---------------------------------- */
 
-/** ### `suiteRender()` unit tests.
- * 
- * @param {typeof Suite} S
- *    The `Suite` class, because `Suite` in alike.js !== `Suite` in src/.
+/** ### `Are#render()` unit tests.
+ *
+ * @param {typeof Are} A
+ *    The `Are` class, because `Are` in alike.js !== `Are` in src/.
  * @returns {void}
  *    Does not return anything.
  * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
-export function suiteRenderTest(S) {
+export function areRenderTest(A) {
     const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
@@ -198,35 +198,35 @@ export function suiteRenderTest(S) {
 
     /** @typedef {'ANSI'|'HTML'|'JSON'|'PLAIN'} Formatting */
     /** @typedef {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} Verbosity */
-    /** @typedef {[Suite,string,string,string,Formatting,Verbosity]} Args */
+    /** @typedef {[Are,string,string,string,Formatting,Verbosity]} Args */
 
-    // Create a short alias for `suiteRender()` and `Renderable.from()`.
-    const f = suiteRender;
+    // Create a short alias for `areRender()` and `Renderable.from()`.
+    const f = areRender;
     const r = Renderable.from;
 
-    // Calling `suiteRender()` with an invalid `begin` argument should fail.
+    // Calling `areRender()` with an invalid `begin` argument should fail.
     // @ts-expect-error
     throws(()=>f(),
-        "suiteRender(): `begin` is type 'undefined' not 'string'")
-    throws(()=>f(new S(''), null, '', '', 'ANSI', 'VERYVERY'),
-        "suiteRender(): `begin` is null not type 'string'")
+        "areRender(): `begin` is type 'undefined' not 'string'")
+    throws(()=>f(new A(''), null, '', '', 'ANSI', 'VERYVERY'),
+        "areRender(): `begin` is null not type 'string'")
 
-    // Calling `suiteRender()` with the other arguments invalid should fail.
+    // Calling `areRender()` with the other arguments invalid should fail.
     // @TODO more tests
     // @ts-expect-error
-    throws(()=>f(new S(''), 'test()'),
+    throws(()=>f(new A(''), 'test()'),
         "test(): `filterSections` is type 'undefined' not 'string'\n" +
         "test(): `filterResults` is type 'undefined' not 'string'\n" +
         "test(): `formatting` is type 'undefined' not 'string'\n" +
         "test(): `verbosity` is type 'undefined' not 'string'");
     // @ts-expect-error
-    throws(()=>f(new S(''), 'test()', 1, true, null, []),
+    throws(()=>f(new A(''), 'test()', 1, true, null, []),
         "test(): `filterSections` is type 'number' not 'string'\n" +
         "test(): `filterResults` is type 'boolean' not 'string'\n" +
         "test(): `formatting` is null not type 'string'\n" +
         "test(): `verbosity` is an array not type 'string'");
     // @ts-expect-error
-    throws(()=>f(new S(''), 'test()', Symbol('nope'), 'This is ok!', 'json', ''),
+    throws(()=>f(new A(''), 'test()', Symbol('nope'), 'This is ok!', 'json', ''),
         "test(): `filterSections` is type 'symbol' not 'string'\n" +
         "test(): `formatting` 'json' is not in `options.is` 'ANSI:HTML:JSON:PLAIN'\n" +
         "test(): `verbosity` '' is not in `options.is` 'QUIET:VERBOSE:VERY:VERYVERY'");
@@ -234,10 +234,10 @@ export function suiteRenderTest(S) {
 
     /* ----------------------------- PLAIN QUIET ---------------------------- */
 
-    // Create some `Suite` instances to use in unit tests, bind them to copies
-    // of `suiteRender()`, and create the expected headers.
-    const pqSuitePASS = new S('PLAIN QUIET mostly passes');
-    const pqSuiteFAIL = new S('PLAIN QUIET mostly fails');
+    // Create some `Are` instances to use in unit tests, bind them to copies
+    // of `areRender()`, and create the expected headers.
+    const pqArePASS = new A('PLAIN QUIET mostly passes');
+    const pqAreFAIL = new A('PLAIN QUIET mostly fails');
     const pqHeaderPASS = toLines(
         `-------------------------`,
         `PLAIN QUIET mostly passes`,
@@ -248,39 +248,39 @@ export function suiteRenderTest(S) {
         `========================\n\n`);
 
     /** @type {Args} */
-    const pqPassArgs = [ pqSuitePASS, '', '', '', 'PLAIN', 'QUIET' ];
+    const pqPassArgs = [ pqArePASS, '', '', '', 'PLAIN', 'QUIET' ];
     /** @type {Args} */
-    const pqFailArgs = [ pqSuiteFAIL, '', '', '', 'PLAIN', 'QUIET' ];
+    const pqFailArgs = [ pqAreFAIL, '', '', '', 'PLAIN', 'QUIET' ];
 
-    // When called with valid arguments, and an empty test suite, `suiteRender()`
+    // When called with valid arguments, and an empty test suite, `areRender()`
     // should return a string.
     equal(f(...pqPassArgs),
         `${pqHeaderPASS}No tests were run.\n`);
 
     // With one, two or three 'PASS' results, the summary wording should just
     // refer to the successful tests.
-    pqSuitePASS.addResult(r(1), r(1), ['1 is 1'], 'PASS');
+    pqArePASS.addResult(r(1), r(1), ['1 is 1'], 'PASS');
     equal(f(...pqPassArgs),
         `${pqHeaderPASS}The test passed.\n`);
-    pqSuitePASS.addResult(r('A'), r('A'), ['"A" is "A"'], 'PASS');
+    pqArePASS.addResult(r('A'), r('A'), ['"A" is "A"'], 'PASS');
     equal(f(...pqPassArgs),
         `${pqHeaderPASS}Both tests passed.\n`);
-    pqSuitePASS.addResult(r(true), r(true), ['true is true'], 'PASS');
+    pqArePASS.addResult(r(true), r(true), ['true is true'], 'PASS');
     equal(f(...pqPassArgs),
         `${pqHeaderPASS}All 3 tests passed.\n`);
 
-    // When a suite just contains one, two or three 'FAIL' results, the summary
-    // wording should just refer to the failed tests.
-    pqSuiteFAIL.addResult(r(1), r(2), ['1 is not 2'], 'FAIL');
+    // When a test suite just contains one, two or three 'FAIL' results, the
+    // summary wording should just refer to the failed tests.
+    pqAreFAIL.addResult(r(1), r(2), ['1 is not 2'], 'FAIL');
     equal(f(...pqFailArgs), toLines(
         `${pqHeaderFAIL}The test failed.\n`,
         'FAIL: 1 is not 2',
         '    : `actually` is `1`',
         '    : `expected` is `2`\n',
     ));
-    pqSuiteFAIL.addSection('The first section has no tests');
-    pqSuiteFAIL.addSection('The second section');
-    pqSuiteFAIL.addResult(r('A'), r('B'), ['"A" is not "B"'], 'FAIL');
+    pqAreFAIL.addSection('The first section has no tests');
+    pqAreFAIL.addSection('The second section');
+    pqAreFAIL.addResult(r('A'), r('B'), ['"A" is not "B"'], 'FAIL');
     equal(f(...pqFailArgs), toLines(
         `${pqHeaderFAIL}Both tests failed.\n`,
         'FAIL: 1 is not 2',
@@ -292,7 +292,7 @@ export function suiteRenderTest(S) {
         '    : `actually` is "A"',
         '    : `expected` is "B"\n',
     ));
-    pqSuiteFAIL.addResult(r(true), r(false), [''], 'FAIL');
+    pqAreFAIL.addResult(r(true), r(false), [''], 'FAIL');
     equal(f(...pqFailArgs), toLines(
         `${pqHeaderFAIL}All 3 tests failed.\n`,
         'FAIL: 1 is not 2',
@@ -307,16 +307,16 @@ export function suiteRenderTest(S) {
         '    : `expected` is `false`\n',
     ));
 
-    // When a suite contains a mix of 'PASS' and 'FAIL' results, the summary
-    // wording should reflect that.
-    pqSuitePASS.addResult(r(null), r(), ['`null` is not `undefined`'], 'FAIL');
+    // When a test suite contains a mix of 'PASS' and 'FAIL' results, the
+    // summary wording should reflect that.
+    pqArePASS.addResult(r(null), r(), ['`null` is not `undefined`'], 'FAIL');
     equal(f(...pqPassArgs), toLines(
         `${pqHeaderPASS}1 of 4 tests failed.\n`,
         'FAIL: `null` is not `undefined`',
         '    : `actually` is `null`',
         '    : `expected` is `undefined`\n',
     ));
-    pqSuiteFAIL.addResult(r([]), r([]), ['Empty arrays are alike'], 'PASS');
+    pqAreFAIL.addResult(r([]), r([]), ['Empty arrays are alike'], 'PASS');
     equal(f(...pqFailArgs), toLines(
         `${pqHeaderFAIL}3 of 4 tests failed.\n`,
         'FAIL: 1 is not 2',
@@ -333,14 +333,14 @@ export function suiteRenderTest(S) {
 
     // With one or two 'PENDING' results, the summary wording should refer to
     // the pending tests, but also list any failed tests.
-    pqSuitePASS.addResult(r(new Promise(()=>{})), r(2), ['will be 2?'], 'PENDING');
+    pqArePASS.addResult(r(new Promise(()=>{})), r(2), ['will be 2?'], 'PENDING');
     equal(f(...pqPassArgs), toLines(
         `${pqHeaderPASS}1 test still pending.\n`,
         'FAIL: `null` is not `undefined`',
         '    : `actually` is `null`',
         '    : `expected` is `undefined`\n',
     ));
-    pqSuitePASS.addResult(r(new Promise(()=>{})), r('B'), ['will be "B"?'], 'PENDING');
+    pqArePASS.addResult(r(new Promise(()=>{})), r('B'), ['will be "B"?'], 'PENDING');
     equal(f(...pqPassArgs), toLines(
         `${pqHeaderPASS}2 tests still pending.\n`,
         'FAIL: `null` is not `undefined`',

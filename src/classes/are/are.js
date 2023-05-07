@@ -1,15 +1,15 @@
 import { aintaString } from '@0bdx/ainta';
-import Highlight from '../highlight.js';
 import Renderable from '../renderable/renderable.js';
 import Result from '../result.js';
 import Section from '../section.js';
-// import suiteRender from './suite-render.js';
 
 // Define a regular expression for validating `title`.
 const titleRx = /^[ -\[\]-~]*$/;
 titleRx.toString = () => "'Printable ASCII characters except backslashes'";
 
-/** ### A container for test results.
+/** ### A test suite, which contains test results, sections, etc.
+ *
+ * "Are" could stand for "All Results Etc", or it could be the plural of "is".
  *
  * - __Consistent:__ related data in different properties always agrees
  * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
@@ -17,7 +17,7 @@ titleRx.toString = () => "'Printable ASCII characters except backslashes'";
  * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
  * - __Valid:__ all properties are validated by instantiation and method calls
  */
-export default class Suite {
+export default class Are {
 
     /** The test suite's title, usually rendered as a heading above the results.
      * - 0 to 64 printable ASCII characters, except the backslash `"\"`
@@ -47,7 +47,7 @@ export default class Suite {
     /** The current highest section index. Incremented by `addSection()`. */
     #currentSectionIndex;
 
-    /** ### Creates an empty `Suite` instance with the supplied title.
+    /** ### Creates an empty `Are` instance with the supplied title.
      *
      * @param {string} title
      *    The test suite's title, usually rendered as a heading above the results.
@@ -57,7 +57,7 @@ export default class Suite {
      *    Throws an `Error` if any of the arguments are invalid.
      */
     constructor(title) {
-        const begin = 'new Suite()';
+        const begin = 'new Are()';
 
         // Validate the `title` argument, and then store it as a property.
         const aTitle = aintaString(title, 'title',
@@ -76,7 +76,7 @@ export default class Suite {
         Object.freeze(this);
     }
 
-    /** ### Returns the suite's public properties as an object.
+    /** ### Returns the test suite's public properties as an object.
      *
      * JavaScript's `JSON.stringify()` looks for a function named `toJSON()` in
      * any object being serialized. If it exists, it serializes the return value
@@ -84,7 +84,7 @@ export default class Suite {
      * 
      * @returns {{failTally:number, passTally:number, pendingTally:number,
      *           resultsAndSections:(Result|Section)[], title:string}}
-     *    The public properties of `Suite`.
+     *    The public properties of `Are`.
      */
     toJSON() {
         return ({
@@ -99,7 +99,7 @@ export default class Suite {
     /** ### Adds a new result to the test suite.
      * 
      * Note that the result will be automatically be assigned a section index,
-     * based on the suite's current highest section index.
+     * based on the test suite's current highest section index.
      * 
      * @param {Renderable} actually
      *    A representation of the value that the test actually got, ready to
@@ -196,7 +196,7 @@ export default class Suite {
      * @returns {string}
      *    Returns the rendered test suite.
      * @throws {Error}
-     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     *    Does not catch the `Error`, if underlying `areRender()` throws one.
      */
     renderAnsi(filterSections='', filterResults='', verbosity='QUIET') {
         return this.render(
@@ -208,7 +208,7 @@ export default class Suite {
         );
     }
 
-    // Interface for `Suite#render()`
+    // Interface for `Are#render()`
     /** ### Stringifies the test suite.
      *
      * @param {string} [begin='render()']
@@ -230,7 +230,7 @@ export default class Suite {
      * @returns {string}
      *    Returns the rendered test suite.
      * @throws {Error}
-     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
+     *    Does not catch the `Error`, if underlying `areRender()` throws one.
      */
     render(
         begin = 'render()',
@@ -239,7 +239,14 @@ export default class Suite {
         formatting = 'PLAIN',
         verbosity = 'QUIET',
     ) {
-        return 'will be overridden';
+        const message = "Are#render() should be overridden by 'are-render.js'.\n" +
+            `    begin: ${begin}\n` +
+            `    filterSections: ${filterSections}\n` +
+            `    filterResults: ${filterResults}\n` +
+            `    formatting: ${formatting}\n` +
+            `    verbosity: ${verbosity}\n`;
+        console.error(message);
+        return message;
     }
 
 }
@@ -247,14 +254,20 @@ export default class Suite {
 
 /* ---------------------------------- Tests --------------------------------- */
 
-/** ### `Suite` unit tests.
- * 
+/** ### `Are` unit tests.
+ *
+ * @param {typeof Are} A
+ *    The `Are` class, because `Are` in alike.js !== `Are` in src/.
  * @returns {void}
  *    Does not return anything.
+ * @param {typeof Highlight} H
+ *    The `Highlight` class, because `Highlight` in alike.js !== in src/.
+ * @param {typeof Renderable} R
+ *    The `Renderable` class, because `Renderable` in alike.js !== in src/.
  * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
-export function suiteTest() {
+export function areTest(A, H, R) {
     const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
@@ -267,10 +280,8 @@ export function suiteTest() {
     const toLines = (...lines) => lines.join('\n');
     const toStr = value => JSON.stringify(value, null, '  ');
 
-    // Define a short alias to the class being tested.
     // Define the string that all `new Result(...)` error messages begin with.
-    const C = Suite;
-    const begin = `new ${C.name}()`; // "new Result()"
+    const begin = `new ${A.name}()`; // "new Result()"
 
     // Define some typical, minimal and maximal valid values.
     const tUsual = 'The Cafe is ok.';
@@ -279,23 +290,23 @@ export function suiteTest() {
 
     // `title` should be a valid string, up to 64 characters long.
     // @ts-expect-error
-    throws(()=>new C(),
+    throws(()=>new A(),
         begin + ": `title` is type 'undefined' not 'string'");
     // @ts-expect-error
-    throws(()=>new C(Symbol('nope')),
+    throws(()=>new A(Symbol('nope')),
         begin + ": `title` is type 'symbol' not 'string'");
-    throws(()=>new C('12345678'.repeat(8) + '9'),
+    throws(()=>new A('12345678'.repeat(8) + '9'),
         begin + ": `title` '123456781234567812345...23456789' is not max 64");
-    throws(()=>new C(tUsual + '\\'),
+    throws(()=>new A(tUsual + '\\'),
         begin + ": `title` 'The Cafe is ok.%5C' fails " +
         "'Printable ASCII characters except backslashes'");
-    throws(()=>new C(tUsual + '\n'),
+    throws(()=>new A(tUsual + '\n'),
         begin + ": `title` 'The Cafe is ok.%0A' fails " +
         "'Printable ASCII characters except backslashes'");
 
-    // Instantiate a typical `Suite`, and create its JSON representation.
+    // Instantiate a typical `Are` instance, and create its JSON representation.
     // The instance should `JSON.stringify()` as expected.
-    const usual = new Suite(tUsual);
+    const usual = new A(tUsual);
     const expectedStringifiedUsual = toLines(
         `{`,
         `  "failTally": 0,`,
@@ -333,7 +344,7 @@ export function suiteTest() {
     // @TODO accept browser equivalents of this error message
     // @ts-expect-error
     throws(()=>{usual.resultsAndSections = []},
-        'Cannot set property resultsAndSections of #<Suite> which has only a getter');
+        'Cannot set property resultsAndSections of #<Are> which has only a getter');
 
     // It should not be possible to modify object getter properties.
     // @TODO check that browsers don't throw an error, either
@@ -384,7 +395,7 @@ export function suiteTest() {
     // the correct tally.
     equal(usual.resultsAndSections.length, 0);
     equal(usual.passTally, 0);
-    const renUsual = new Renderable([ new Highlight('BOOLNUM', 6, 11) ], '{ ok:"Café" }');
+    const renUsual = new R([ new H('BOOLNUM', 6, 11) ], '{ ok:"Café" }');
     const resUsualActually = usual.addResult(renUsual, renUsual, ['First line.','Second line.'], 'PASS');
     const resUsualExpectedStr = toLines(
         `{`,
@@ -458,7 +469,7 @@ export function suiteTest() {
     // to the most recent section, and increment the correct tally.
     equal(usual.resultsAndSections.length, 3);
     equal(usual.failTally, 0);
-    const renMin = new Renderable([], "''");
+    const renMin = new R([], "''");
     const resMinActually = usual.addResult(renMin, renMin, [], 'UNEXPECTED_EXCEPTION');
     const resMinStr = toLines(
         `{`,

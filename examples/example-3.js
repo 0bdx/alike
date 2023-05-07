@@ -1,10 +1,10 @@
 import alike, { addSection, bind3, throws } from '../alike.js';
 
 // Create a test suite with a title, and bind three functions to it.
-const [ like, section, thro, suite ] = bind3(alike, addSection, throws, 'fact()');
+const [ like, section, thro, are ] = bind3(alike, addSection, throws, 'fact()');
 
 // Or a suite from a previous test could be passed in instead.
-// const [ like, section, thro ] = bind3(alike, addSection, throws, suite);
+// const [ like, section, thro ] = bind3(alike, addSection, throws, are);
 
 // Optionally, begin a new section.
 section('Check that fact() works');
@@ -18,7 +18,7 @@ like(fact(5), 120,
     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
 
 // Output a test results summary to the console, as plain text.
-console.log(suite.render());
+console.log(are.render());
 
 // Calculates the factorial of a given integer.
 function fact(n) {

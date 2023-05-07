@@ -1,3 +1,173 @@
+/** ### A test suite, which contains test results, sections, etc.
+ *
+ * "Are" could stand for "All Results Etc", or it could be the plural of "is".
+ *
+ * - __Consistent:__ related data in different properties always agrees
+ * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
+ * - __Frozen:__ all properties are read-only, and only change via method calls
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ all properties are validated by instantiation and method calls
+ */
+export class Are {
+    /** ### Creates an empty `Are` instance with the supplied title.
+     *
+     * @param {string} title
+     *    The test suite's title, usually rendered as a heading above the results.
+     *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
+     *    - An empty string `""` means that a default should be used
+     * @throws {Error}
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(title: string);
+    /** The test suite's title, usually rendered as a heading above the results.
+     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
+     * - An empty string `""` means that a default should be used */
+    title: string;
+    /** ### A non-negative integer. The total number of failed tests.
+     * @property {number} failTally */
+    get failTally(): number;
+    /** ### A non-negative integer. The total number of passed tests.
+     * @property {number} passTally */
+    get passTally(): number;
+    /** ### A non-negative integer. The total number of tests not completed yet.
+     * @property {number} pendingTally */
+    get pendingTally(): number;
+    /** ### An array containing zero or more test results and sections.
+     * @property {(Result|Section)[]} resultsAndSections */
+    get resultsAndSections(): any[];
+    /** ### Returns the test suite's public properties as an object.
+     *
+     * JavaScript's `JSON.stringify()` looks for a function named `toJSON()` in
+     * any object being serialized. If it exists, it serializes the return value
+     * of `toJSON()`, instead of just writing "[object Object]".
+     *
+     * @returns {{failTally:number, passTally:number, pendingTally:number,
+     *           resultsAndSections:(Result|Section)[], title:string}}
+     *    The public properties of `Are`.
+     */
+    toJSON(): {
+        failTally: number;
+        passTally: number;
+        pendingTally: number;
+        resultsAndSections: (Result | Section)[];
+        title: string;
+    };
+    /** ### Adds a new result to the test suite.
+     *
+     * Note that the result will be automatically be assigned a section index,
+     * based on the test suite's current highest section index.
+     *
+     * @param {Renderable} actually
+     *    A representation of the value that the test actually got, ready to
+     *    render. This could be the representation of an unexpected exception.
+     * @param {Renderable} expected
+     *    A representation of the value that the test expected, ready to render.
+     * @param {string[]} notes
+     *    A description of the test, as an array of strings.
+     *    - 0 to 100 items, where each item is a line
+     *    - 0 to 120 printable ASCII characters (except `"\"`) per line
+     *    - An empty array `[]` means that no notes have been supplied
+     * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
+     *    A string (effectively an enum) which can be one of four values:
+     *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
+     *    - `"PASS"` if the test passed
+     *    - `"PENDING"` if the test has not completed yet
+     *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
+     * @returns {void}
+     *    Does not return anything.
+     * @throws {Error}
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    addResult(actually: Renderable, expected: Renderable, notes: string[], status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION'): void;
+    /** ### Adds a new section to the test suite.
+     *
+     * @param {string} subtitle
+     *    The section title, usually rendered as a sub-heading in the results.
+     *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
+     * @returns {void}
+     *    Does not return anything.
+     * @throws {Error}
+     *    Throws an `Error` if `subtitle` or the `this` context are invalid.
+     */
+    addSection(subtitle: string): void;
+    /** ### Stringifies the test suite with ANSI colours for the terminal.
+     *
+     * @param {string} [filterSections='']
+     *    Optional string, which hides sections whose subtitles do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {string} [filterResults='']
+     *    Optional string, which hides results whose notes do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     *    Optional enum, which controls how detailed the render should be.
+     *    - One of `"QUIET|VERBOSE|VERY|VERYVERY"`
+     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
+     * @returns {string}
+     *    Returns the rendered test suite.
+     * @throws {Error}
+     *    Does not catch the `Error`, if underlying `areRender()` throws one.
+     */
+    renderAnsi(filterSections?: string, filterResults?: string, verbosity?: 'QUIET' | 'VERBOSE' | 'VERY' | 'VERYVERY'): string;
+    /** ### Stringifies the test suite.
+     *
+     * @param {string} [begin='render()']
+     *    An optional way to override the `begin` string sent to `Ainta` functions.
+     * @param {string} [filterSections='']
+     *    Optional string, which hides sections whose subtitles do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {string} [filterResults='']
+     *    Optional string, which hides results whose notes do not match.
+     *    - Defaults to the empty string `""`, which does not filter anything
+     * @param {'ANSI'|'HTML'|'JSON'|'PLAIN'} [formatting='PLAIN']
+     *    Optional enum, which controls how the render should be styled.
+     *    - One of `"ANSI|HTML|JSON|PLAIN"`
+     *    - Defaults to `"PLAIN"`
+     * @param {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} [verbosity='QUIET']
+     *    Optional enum, which controls how detailed the render should be.
+     *    - One of `"QUIET|VERBOSE|VERY|VERYVERY"`
+     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
+     * @returns {string}
+     *    Returns the rendered test suite.
+     * @throws {Error}
+     *    Does not catch the `Error`, if underlying `areRender()` throws one.
+     */
+    render(begin?: string, filterSections?: string, filterResults?: string, formatting?: 'ANSI' | 'HTML' | 'JSON' | 'PLAIN', verbosity?: 'QUIET' | 'VERBOSE' | 'VERY' | 'VERYVERY'): string;
+    #private;
+}
+/** ### A single 'stroke of the highlighter pen' when rendering JS values.
+ *
+ * - __Consistent:__ related data in different properties always agrees
+ * - __Frozen:__ all properties are read-only, and no methods ever change them
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ all properties are validated during instantiation
+ */
+export class Highlight {
+    /** ### Creates a `Highlight` instance from the supplied arguments.
+     *
+     * @param {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|
+     *         'FUNCTION'|'NULLISH'|'OBJECT'|'REGEXP'|'STRING'|'SYMBOL'} kind
+     *    How the value should be rendered.
+     *    - Booleans and numbers highlight the same way
+     *    - A `BigInt` is a number rendered with the `"n"` suffix
+     *    - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}`
+     * @param {number} start
+     *    A non-negative integer. The position that highlighting starts.
+     * @param {number} stop
+     *    A non-zero integer greater than `start`, where highlighting stops.
+     * @throws {Error}
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'REGEXP' | 'STRING' | 'SYMBOL', start: number, stop: number);
+    /** How the value should be rendered.
+     * - Booleans and numbers highlight the same way
+     * - A `BigInt` is a number rendered with the `"n"` suffix
+     * - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}` */
+    kind: "ARRAY" | "BOOLNUM" | "DOM" | "ERROR" | "EXCEPTION" | "FUNCTION" | "NULLISH" | "OBJECT" | "REGEXP" | "STRING" | "SYMBOL";
+    /** A non-negative integer. The position that highlighting starts. */
+    start: number;
+    /** A non-zero integer greater than `start`, where highlighting stops. */
+    stop: number;
+}
 /** ### A representation of a JavaScript value, ready to render.
  *
  * - __Consistent:__ related data in different properties always agrees
@@ -61,140 +231,6 @@ export class Renderable {
      */
     get overview(): string;
 }
-/** ### A container for test results.
- *
- * - __Consistent:__ related data in different properties always agrees
- * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
- * - __Frozen:__ all properties are read-only, and only change via method calls
- * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
- * - __Valid:__ all properties are validated by instantiation and method calls
- */
-export class Suite {
-    /** ### Creates an empty `Suite` instance with the supplied title.
-     *
-     * @param {string} title
-     *    The test suite's title, usually rendered as a heading above the results.
-     *    - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     *    - An empty string `""` means that a default should be used
-     * @throws {Error}
-     *    Throws an `Error` if any of the arguments are invalid.
-     */
-    constructor(title: string);
-    /** The test suite's title, usually rendered as a heading above the results.
-     * - 0 to 64 printable ASCII characters, except the backslash `"\"`
-     * - An empty string `""` means that a default should be used */
-    title: string;
-    /** ### A non-negative integer. The total number of failed tests.
-     * @property {number} failTally */
-    get failTally(): number;
-    /** ### A non-negative integer. The total number of passed tests.
-     * @property {number} passTally */
-    get passTally(): number;
-    /** ### A non-negative integer. The total number of tests not completed yet.
-     * @property {number} pendingTally */
-    get pendingTally(): number;
-    /** ### An array containing zero or more test results and sections.
-     * @property {(Result|Section)[]} resultsAndSections */
-    get resultsAndSections(): any[];
-    /** ### Returns the suite's public properties as an object.
-     *
-     * JavaScript's `JSON.stringify()` looks for a function named `toJSON()` in
-     * any object being serialized. If it exists, it serializes the return value
-     * of `toJSON()`, instead of just writing "[object Object]".
-     *
-     * @returns {{failTally:number, passTally:number, pendingTally:number,
-     *           resultsAndSections:(Result|Section)[], title:string}}
-     *    The public properties of `Suite`.
-     */
-    toJSON(): {
-        failTally: number;
-        passTally: number;
-        pendingTally: number;
-        resultsAndSections: (Result | Section)[];
-        title: string;
-    };
-    /** ### Adds a new result to the test suite.
-     *
-     * Note that the result will be automatically be assigned a section index,
-     * based on the suite's current highest section index.
-     *
-     * @param {Renderable} actually
-     *    A representation of the value that the test actually got, ready to
-     *    render. This could be the representation of an unexpected exception.
-     * @param {Renderable} expected
-     *    A representation of the value that the test expected, ready to render.
-     * @param {string[]} notes
-     *    A description of the test, as an array of strings.
-     *    - 0 to 100 items, where each item is a line
-     *    - 0 to 120 printable ASCII characters (except `"\"`) per line
-     *    - An empty array `[]` means that no notes have been supplied
-     * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
-     *    A string (effectively an enum) which can be one of four values:
-     *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
-     *    - `"PASS"` if the test passed
-     *    - `"PENDING"` if the test has not completed yet
-     *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
-     * @returns {void}
-     *    Does not return anything.
-     * @throws {Error}
-     *    Throws an `Error` if any of the arguments are invalid.
-     */
-    addResult(actually: Renderable, expected: Renderable, notes: string[], status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION'): void;
-    /** ### Adds a new section to the test suite.
-     *
-     * @param {string} subtitle
-     *    The section title, usually rendered as a sub-heading in the results.
-     *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
-     * @returns {void}
-     *    Does not return anything.
-     * @throws {Error}
-     *    Throws an `Error` if `subtitle` or the `this` context are invalid.
-     */
-    addSection(subtitle: string): void;
-    /** ### Stringifies the test suite with ANSI colours for the terminal.
-     *
-     * @param {string} [filterSections='']
-     *    Optional string, which hides sections whose subtitles do not match.
-     *    - Defaults to the empty string `""`, which does not filter anything
-     * @param {string} [filterResults='']
-     *    Optional string, which hides results whose notes do not match.
-     *    - Defaults to the empty string `""`, which does not filter anything
-     * @param {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} [verbosity='QUIET']
-     *    Optional enum, which controls how detailed the render should be.
-     *    - One of `"QUIET|VERBOSE|VERY|VERYVERY"`
-     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
-     * @returns {string}
-     *    Returns the rendered test suite.
-     * @throws {Error}
-     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
-     */
-    renderAnsi(filterSections?: string, filterResults?: string, verbosity?: 'QUIET' | 'VERBOSE' | 'VERY' | 'VERYVERY'): string;
-    /** ### Stringifies the test suite.
-     *
-     * @param {string} [begin='render()']
-     *    An optional way to override the `begin` string sent to `Ainta` functions.
-     * @param {string} [filterSections='']
-     *    Optional string, which hides sections whose subtitles do not match.
-     *    - Defaults to the empty string `""`, which does not filter anything
-     * @param {string} [filterResults='']
-     *    Optional string, which hides results whose notes do not match.
-     *    - Defaults to the empty string `""`, which does not filter anything
-     * @param {'ANSI'|'HTML'|'JSON'|'PLAIN'} [formatting='PLAIN']
-     *    Optional enum, which controls how the render should be styled.
-     *    - One of `"ANSI|HTML|JSON|PLAIN"`
-     *    - Defaults to `"PLAIN"`
-     * @param {'QUIET'|'VERBOSE'|'VERY'|'VERYVERY'} [verbosity='QUIET']
-     *    Optional enum, which controls how detailed the render should be.
-     *    - One of `"QUIET|VERBOSE|VERY|VERYVERY"`
-     *    - Defaults to `"QUIET"`, which just shows a summary of all tests
-     * @returns {string}
-     *    Returns the rendered test suite.
-     * @throws {Error}
-     *    Does not catch the `Error`, if underlying `suiteRender()` throws one.
-     */
-    render(begin?: string, filterSections?: string, filterResults?: string, formatting?: 'ANSI' | 'HTML' | 'JSON' | 'PLAIN', verbosity?: 'QUIET' | 'VERBOSE' | 'VERY' | 'VERYVERY'): string;
-    #private;
-}
 /** ### Adds a new section to the test suite.
  *
  * @param {string} subtitle
@@ -206,10 +242,10 @@ export class Suite {
  *    Throws an `Error` if `subtitle` or the `this` context are invalid.
  */
 export function addSection(subtitle: string): void;
-/** ### Binds two functions to a shared `Suite` instance.
+/** ### Binds two functions to a shared `Are` instance.
  *
- * Takes an existing `Suite` or creates a new one, and binds two functions
- * to it. Each function can then access the shared `Suite` instance using
+ * Takes an existing `Are` or creates a new one, and binds two functions
+ * to it. Each function can then access the shared `Are` instance using
  * the `this` keyword.
  *
  * This pattern of dependency injection allows lots of flexibility, and works
@@ -219,10 +255,10 @@ export function addSection(subtitle: string): void;
  * import alike, { addSection, bind2 } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind two functions to it.
- * const [ like, section, suite ] = bind2(alike, addSection, 'fact()');
+ * const [ like, section, are ] = bind2(alike, addSection, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind2(alike, addSection, suite);
+ * // const [ like, section ] = bind2(alike, addSection, are);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
@@ -233,7 +269,7 @@ export function addSection(subtitle: string): void;
  *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
  * // Output a test results summary to the console, as plain text.
- * console.log(suite.render());
+ * console.log(are.render());
  *
  * // Calculates the factorial of a given integer.
  * function fact(n) {
@@ -246,18 +282,18 @@ export function addSection(subtitle: string): void;
  * @template {function} B
  *
  * @param {A} functionA
- *    The first function to bind to the suite.
+ *    The first function to bind to the test suite.
  * @param {B} functionB
- *    The second function to bind to the suite.
- * @param {Suite|string} suiteOrTitle
- *    A suite from previous tests, or else a title for a new suite.
- * @returns {[A,B,Suite]}
+ *    The second function to bind to the test suite.
+ * @param {Are|string} areOrTitle
+ *    A test suite from previous tests, or else a title for a new test suite.
+ * @returns {[A,B,Are]}
  */
-export function bind2<A extends Function, B extends Function>(functionA: A, functionB: B, suiteOrTitle: Suite | string): [A, B, Suite];
-/** ### Binds three functions to a shared `Suite` instance.
+export function bind2<A extends Function, B extends Function>(functionA: A, functionB: B, areOrTitle: Are | string): [A, B, Are];
+/** ### Binds three functions to a shared `Are` instance.
  *
- * Takes an existing `Suite` or creates a new one, and binds three functions
- * to it. Each function can then access the shared `Suite` instance using
+ * Takes an existing `Are` or creates a new one, and binds three functions
+ * to it. Each function can then access the shared `Are` instance using
  * the `this` keyword.
  *
  * This pattern of dependency injection allows lots of flexibility, and works
@@ -267,10 +303,10 @@ export function bind2<A extends Function, B extends Function>(functionA: A, func
  * import alike, { addSection, bind3, throws } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind three functions to it.
- * const [ section, like, suite ] = bind3(addSection, alike, 'fact()');
+ * const [ section, like, are ] = bind3(addSection, alike, 'fact()');
  *
  * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind3(alike, addSection, suite);
+ * // const [ like, section ] = bind3(alike, addSection, are);
  *
  * // Optionally, begin a new section.
  * section('Check that fact() works');
@@ -282,7 +318,7 @@ export function bind2<A extends Function, B extends Function>(functionA: A, func
  *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
  *
  * // Output a test results summary to the console, as plain text.
- * console.log(suite.render());
+ * console.log(are.render());
  *
  * // Calculates the factorial of a given integer.
  * function fact(n) {
@@ -297,16 +333,16 @@ export function bind2<A extends Function, B extends Function>(functionA: A, func
  * @template {function} C
  *
  * @param {A} functionA
- *    The first function to bind to the suite.
+ *    The first function to bind to the test suite.
  * @param {B} functionB
- *    The second function to bind to the suite.
+ *    The second function to bind to the test suite.
  * @param {C} functionC
- *    The second function to bind to the suite.
- * @param {Suite|string} suiteOrTitle
- *    A suite from previous tests, or else a title for a new suite.
- * @returns {[A,B,C,Suite]}
+ *    The second function to bind to the test suite.
+ * @param {Are|string} areOrTitle
+ *    A test suite from previous tests, or else a title for a new test suite.
+ * @returns {[A,B,C,Are]}
  */
-export function bind3<A extends Function, B extends Function, C extends Function>(functionA: A, functionB: B, functionC: C, suiteOrTitle: Suite | string): [A, B, C, Suite];
+export function bind3<A extends Function, B extends Function, C extends Function>(functionA: A, functionB: B, functionC: C, areOrTitle: Are | string): [A, B, C, Are];
 /** ### Compares two JavaScript values in a user-friendly way.
  *
  * `alike()` operates in one of two modes:
@@ -332,43 +368,10 @@ export function bind3<A extends Function, B extends Function, C extends Function
  *    Returns an overview of the test result.
  * @throws {Error}
  *    Throws an `Error` if `notes` or the `this` context are invalid.
- *    Also throws an `Error` if the test fails.
+ *    Also, unless it's bound to an object with an `addResult()` method, throws
+ *    an `Error` if the test fails.
  */
 declare function alike(actually: any, expected: any, notes?: string | string[]): string;
-/** ### A single 'stroke of the highlighter pen' when rendering JS values.
- *
- * - __Consistent:__ related data in different properties always agrees
- * - __Frozen:__ all properties are read-only, and no methods ever change them
- * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
- * - __Valid:__ all properties are validated during instantiation
- */
-declare class Highlight {
-    /** ### Creates a `Highlight` instance from the supplied arguments.
-     *
-     * @param {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|
-     *         'FUNCTION'|'NULLISH'|'OBJECT'|'REGEXP'|'STRING'|'SYMBOL'} kind
-     *    How the value should be rendered.
-     *    - Booleans and numbers highlight the same way
-     *    - A `BigInt` is a number rendered with the `"n"` suffix
-     *    - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}`
-     * @param {number} start
-     *    A non-negative integer. The position that highlighting starts.
-     * @param {number} stop
-     *    A non-zero integer greater than `start`, where highlighting stops.
-     * @throws {Error}
-     *    Throws an `Error` if any of the arguments are invalid.
-     */
-    constructor(kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'REGEXP' | 'STRING' | 'SYMBOL', start: number, stop: number);
-    /** How the value should be rendered.
-     * - Booleans and numbers highlight the same way
-     * - A `BigInt` is a number rendered with the `"n"` suffix
-     * - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}` */
-    kind: "ARRAY" | "BOOLNUM" | "DOM" | "ERROR" | "EXCEPTION" | "FUNCTION" | "NULLISH" | "OBJECT" | "REGEXP" | "STRING" | "SYMBOL";
-    /** A non-negative integer. The position that highlighting starts. */
-    start: number;
-    /** A non-zero integer greater than `start`, where highlighting stops. */
-    stop: number;
-}
 /** ### Records the outcome of one test.
  *
  * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs

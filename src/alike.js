@@ -1,5 +1,5 @@
 import { aintaArray, aintaString } from '@0bdx/ainta';
-import { Renderable, Suite } from "./classes/index.js";
+import { Are, Renderable } from "./classes/index.js";
 import { determineWhetherAlike, truncate } from './helpers.js';
 
 // Define a regular expression for validating each item in `notes`.
@@ -31,7 +31,8 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
  *    Returns an overview of the test result.
  * @throws {Error}
  *    Throws an `Error` if `notes` or the `this` context are invalid.
- *    Also throws an `Error` if the test fails.
+ *    Also, unless it's bound to an object with an `addResult()` method, throws
+ *    an `Error` if the test fails.
  */
 export default function alike(actually, expected, notes) {
     const begin = 'alike()';
@@ -102,18 +103,18 @@ export default function alike(actually, expected, notes) {
 
 /** ### `alike()` unit tests.
  * 
+ * @param {typeof Are} A
+ *    The `Are` class, because `Are` in alike.js !== `Are` in src/.
  * @param {alike} f
  *    The `alike()` function to test.
  * @param {typeof Renderable} R
  *    The `Renderable` class, because `Renderable` in alike.js !== in src/.
- * @param {typeof Suite} S
- *    The `Suite` class, because `Suite` in alike.js !== `Suite` in src/.
  * @returns {void}
  *    Does not return anything.
  * @throws {Error}
  *    Throws an `Error` if a test fails.
  */
-export function alikeTest(f, R, S) {
+export function alikeTest(A, f, R) {
     const e2l = e => (e.stack.split('\n')[2].match(/([^\/]+\.js:\d+):\d+\)?$/)||[])[1];
     const equal = (actual, expected) => { if (actual === expected) return;
         try { throw Error() } catch(err) { throw Error(`actual:\n${actual}\n` +
@@ -138,10 +139,10 @@ export function alikeTest(f, R, S) {
         `  },`,
     );
 
-    // Create a version of `alike()` which is bound to a `Suite` instance.
-    const suite = new S('Test Suite');
+    // Create a version of `alike()` which is bound to an `Are` instance.
+    const are = new A('Test Suite');
     /** @type f */
-    const bound = f.bind(suite);
+    const bound = f.bind(are);
 
     // Whether `alike()` is bound or not, `notes` should be a valid string, or array of strings.
     // @ts-expect-error
@@ -169,7 +170,7 @@ export function alikeTest(f, R, S) {
     // `actually` and `expected` arguments, and return a one-line overview.
     equal(f(), 'PASS: `actually` is `undefined` as expected');
 
-    // With no arguments supplied and when bound to a `Suite` instance, `alike()`
+    // With no arguments supplied and when bound to an `Are` instance, `alike()`
     // should add a full result, in addition to returning a one-line overview.
     const resultUndefinedActually = bound();
     const resultUndefinedExpectedStr = toLines(
@@ -184,9 +185,9 @@ export function alikeTest(f, R, S) {
         `}`
     );
     equal(resultUndefinedActually, 'PASS: `actually` is `undefined` as expected');
-    equal(suite.resultsAndSections.length, 1);
-    equal(toStr(suite.resultsAndSections[0]), resultUndefinedExpectedStr);
-    equal(suite.resultsAndSections[0] === resultUndefinedActually, false); // not the same object
+    equal(are.resultsAndSections.length, 1);
+    equal(toStr(are.resultsAndSections[0]), resultUndefinedExpectedStr);
+    equal(are.resultsAndSections[0] === resultUndefinedActually, false); // not the same object
 
     // Define a string to check that a 120-character line is accepted.
     const longestValidLine =
@@ -205,7 +206,7 @@ export function alikeTest(f, R, S) {
     // An array containing an empty string is a valid `notes` line.
     equal(bound(null, void 0, ['']),
         'FAIL: `actually` is `null`\n    : `expected` is `undefined`');
-    equal(toStr(suite.resultsAndSections[1]), toLines(
+    equal(toStr(are.resultsAndSections[1]), toLines(
         `{`,
         `  "actually": {`,
         simpleResultMocker('NULLISH', 4, 'null'),
@@ -221,7 +222,7 @@ export function alikeTest(f, R, S) {
     equal(bound(3, Number(3), longestValidLine),
         'PASS:  !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[ABCDEFGHIJKLMNOP...Z' +
             ']^_`abcdefghijklmnopqrstuvwxyz{|}~\n    : `actually` is `3` as expected');
-    equal(toStr(suite.resultsAndSections[2]), toLines(
+    equal(toStr(are.resultsAndSections[2]), toLines(
         `{`,
         `  "actually": {`,
         simpleResultMocker('BOOLNUM', 1, '3'),
@@ -237,8 +238,8 @@ export function alikeTest(f, R, S) {
     // `notes` can be undefined.
     equal(bound('true', true),
         'FAIL: `actually` is "true"\n    : `expected` is `true`');
-    equal(suite.resultsAndSections.length, 4);
-    equal(toStr(suite.resultsAndSections[3]), toLines(
+    equal(are.resultsAndSections.length, 4);
+    equal(toStr(are.resultsAndSections[3]), toLines(
         `{`,
         `  "actually": {`,
         simpleResultMocker('STRING', 6, '\\"true\\"'),
