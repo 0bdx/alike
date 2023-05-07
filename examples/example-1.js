@@ -1,4 +1,4 @@
-import alike from '../alike.js';
+import { alike } from '../alike.js';
 
 // Compare two numbers.
 console.log(alike(0, -0, 'Zero and minus-zero are alike'));

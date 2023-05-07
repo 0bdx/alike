@@ -6,7 +6,6 @@ import {
 } from './bind/index.js';
 
 import {
-    Are,
     areRenderTest,
     areTest,
     Highlight,
@@ -20,10 +19,11 @@ import {
 
 import { helpersTest } from './helpers.js';
 
-import alike, {
+import Are, {
     addSection,
+    alike,
 } from './index.js';
-import { alikeTest } from './alike.js';
+import { alikeTest } from './tools/alike.js';
 import { addSectionTest } from './tools/add-section.js';
 
 bind2Test(Are, bind2);

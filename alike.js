@@ -864,7 +864,7 @@ Are.prototype.render = function render(
  * well with Rollup's tree shaking.
  *
  * @example
- * import alike, { addSection, bind2 } from '@0bdx/alike';
+ * import { addSection, alike, bind2 } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind two functions to it.
  * const [ like, section, are ] = bind2(alike, addSection, 'fact()');
@@ -937,7 +937,7 @@ function bind2(functionA, functionB, areOrTitle) {
  * well with Rollup's tree shaking.
  *
  * @example
- * import alike, { addSection, bind3, throws } from '@0bdx/alike';
+ * import { addSection, alike, bind3, throws } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind three functions to it.
  * const [ section, like, are ] = bind3(addSection, alike, 'fact()');
@@ -1227,4 +1227,4 @@ function alike(actually, expected, notes) {
     return overview;
 }
 
-export { Are, Highlight, Renderable, addSection, bind2, bind3, alike as default };
+export { Highlight, Renderable, addSection, alike, bind2, bind3, Are as default };

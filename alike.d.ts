@@ -1,3 +1,241 @@
+/** ### A single 'stroke of the highlighter pen' when rendering JS values.
+ *
+ * - __Consistent:__ related data in different properties always agrees
+ * - __Frozen:__ all properties are read-only, and no methods ever change them
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ all properties are validated during instantiation
+ */
+export class Highlight {
+    /** ### Creates a `Highlight` instance from the supplied arguments.
+     *
+     * @param {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|
+     *         'FUNCTION'|'NULLISH'|'OBJECT'|'REGEXP'|'STRING'|'SYMBOL'} kind
+     *    How the value should be rendered.
+     *    - Booleans and numbers highlight the same way
+     *    - A `BigInt` is a number rendered with the `"n"` suffix
+     *    - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}`
+     * @param {number} start
+     *    A non-negative integer. The position that highlighting starts.
+     * @param {number} stop
+     *    A non-zero integer greater than `start`, where highlighting stops.
+     * @throws {Error}
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'REGEXP' | 'STRING' | 'SYMBOL', start: number, stop: number);
+    /** How the value should be rendered.
+     * - Booleans and numbers highlight the same way
+     * - A `BigInt` is a number rendered with the `"n"` suffix
+     * - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}` */
+    kind: "ARRAY" | "BOOLNUM" | "DOM" | "ERROR" | "EXCEPTION" | "FUNCTION" | "NULLISH" | "OBJECT" | "REGEXP" | "STRING" | "SYMBOL";
+    /** A non-negative integer. The position that highlighting starts. */
+    start: number;
+    /** A non-zero integer greater than `start`, where highlighting stops. */
+    stop: number;
+}
+/** ### A representation of a JavaScript value, ready to render.
+ *
+ * - __Consistent:__ related data in different properties always agrees
+ * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
+ * - __Frozen:__ both properties are read-only, and no methods ever change them
+ * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
+ * - __Valid:__ both properties are validated during instantiation
+ */
+export class Renderable {
+    /** ### Creates a new `Renderable` instance from any JavaScript value.
+     *
+     * @param {any} value
+     *    The JavaScript value which needs rendering.
+     * @returns {Renderable}
+     *    A `Renderable` instance, ready for rendering.
+     */
+    static from(value: any): Renderable;
+    /** ### Creates a `Renderable` instance from the supplied arguments.
+     *
+     * @param {Highlight[]} highlights
+     *    Zero or more 'strokes of the highlighter pen' on `text`.
+     * @param {string} text
+     *    A string representation of the value.
+     *     - 1 to 65535 unicode characters (about 10,000 lorem ipsum words)
+     * @throws {Error}
+     *    Throws an `Error` if any of the arguments are invalid.
+     */
+    constructor(highlights: Highlight[], text: string);
+    /** Zero or more 'strokes of the highlighter pen' on `text`. */
+    highlights: Highlight[];
+    /** A string representation of the value.
+     * - 1 to 65535 unicode characters (about 10,000 lorem ipsum words) */
+    text: string;
+    /** ### Determines whether the full value could be rendered on one line.
+     *
+     * The maximum line length is 120 characters, which may begin "actually: "
+     * or "expected: ", leaving 110 characters for the value.
+     *
+     * @returns {boolean}
+     *    Returns `true` if this instance is short enough to render on one line.
+     */
+    isShort(): boolean;
+    /** ### The value as a plain string, for a test-result overview.
+     *
+     * An overview which passes will be one line:
+     * ```
+     * PASS: actually: 123
+     * ```
+     *
+     * An overview which fails will be two lines:
+     * ```
+     * FAIL: actually: 123
+     *       expected: 546
+     * ```
+     *
+     * The maximum line length is 120 characters, so `this.text` may need to be
+     * truncated to 104 characters. @TODO truncate
+     *
+     * @returns {string}
+     *    Xx.
+     */
+    get overview(): string;
+}
+/** ### Adds a new section to the test suite.
+ *
+ * @param {string} subtitle
+ *    The section title, usually rendered as a sub-heading in the results.
+ *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
+ * @returns {void}
+ *    Does not return anything.
+ * @throws {Error}
+ *    Throws an `Error` if `subtitle` or the `this` context are invalid.
+ */
+export function addSection(subtitle: string): void;
+/** ### Compares two JavaScript values in a user-friendly way.
+ *
+ * `alike()` operates in one of two modes:
+ * 1. If it has been bound to an object with an `addResult()` method, it sends
+ *    that method the full test results, and then returns an overview.
+ * 2. Otherwise, it either throws an `Error` if the test fails, or returns
+ *    an overview if the test passes.
+ *
+ * @TODO finish the description, with examples
+ *
+ * @param {any} actually
+ *    The value that the test actually got.
+ * @param {any} expected
+ *    The value that the test expected.
+ * @param {string|string[]} [notes]
+ *    An optional description of the test, as a string or array of strings.
+ *    - A string is treated identically to an array containing just that string
+ *    - 0 to 100 items, where each item is a line
+ *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+ *    - An empty array `[]` means that no notes have been supplied
+ *    - The first item (index 0), if present, is used for the overview
+ * @returns {string}
+ *    Returns an overview of the test result.
+ * @throws {Error}
+ *    Throws an `Error` if `notes` or the `this` context are invalid.
+ *    Also, unless it's bound to an object with an `addResult()` method, throws
+ *    an `Error` if the test fails.
+ */
+export function alike(actually: any, expected: any, notes?: string | string[]): string;
+/** ### Binds two functions to a shared `Are` instance.
+ *
+ * Takes an existing `Are` or creates a new one, and binds two functions
+ * to it. Each function can then access the shared `Are` instance using
+ * the `this` keyword.
+ *
+ * This pattern of dependency injection allows lots of flexibility, and works
+ * well with Rollup's tree shaking.
+ *
+ * @example
+ * import { addSection, alike, bind2 } from '@0bdx/alike';
+ *
+ * // Create a test suite with a title, and bind two functions to it.
+ * const [ like, section, are ] = bind2(alike, addSection, 'fact()');
+ *
+ * // Or a suite from a previous test could be passed in instead.
+ * // const [ like, section ] = bind2(alike, addSection, are);
+ *
+ * // Optionally, begin a new section.
+ * section('Check that fact() works');
+ *
+ * // Run the tests. The third argument, `notes`, is optional.
+ * like(fact(0), 1);
+ * like(fact(5), 120,
+ *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
+ *
+ * // Output a test results summary to the console, as plain text.
+ * console.log(are.render());
+ *
+ * // Calculates the factorial of a given integer.
+ * function fact(n) {
+ *     if (n === 0 || n === 1) return 1;
+ *     for (let i=n-1; i>0; i--) n *= i;
+ *     return n;
+ * }
+ *
+ * @template {function} A
+ * @template {function} B
+ *
+ * @param {A} functionA
+ *    The first function to bind to the test suite.
+ * @param {B} functionB
+ *    The second function to bind to the test suite.
+ * @param {Are|string} areOrTitle
+ *    A test suite from previous tests, or else a title for a new test suite.
+ * @returns {[A,B,Are]}
+ */
+export function bind2<A extends Function, B extends Function>(functionA: A, functionB: B, areOrTitle: Are | string): [A, B, Are];
+/** ### Binds three functions to a shared `Are` instance.
+ *
+ * Takes an existing `Are` or creates a new one, and binds three functions
+ * to it. Each function can then access the shared `Are` instance using
+ * the `this` keyword.
+ *
+ * This pattern of dependency injection allows lots of flexibility, and works
+ * well with Rollup's tree shaking.
+ *
+ * @example
+ * import { addSection, alike, bind3, throws } from '@0bdx/alike';
+ *
+ * // Create a test suite with a title, and bind three functions to it.
+ * const [ section, like, are ] = bind3(addSection, alike, 'fact()');
+ *
+ * // Or a suite from a previous test could be passed in instead.
+ * // const [ like, section ] = bind3(alike, addSection, are);
+ *
+ * // Optionally, begin a new section.
+ * section('Check that fact() works');
+ *
+ * // Run the tests. The third argument, `notes`, is optional.
+ * throws(fact(), '`n` is not a number!');
+ * like(fact(0), 1);
+ * like(fact(5), 120,
+ *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
+ *
+ * // Output a test results summary to the console, as plain text.
+ * console.log(are.render());
+ *
+ * // Calculates the factorial of a given integer.
+ * function fact(n) {
+ *     if (typeof n !== 'number') throw Error('`n` is not a number!');
+ *     if (n === 0 || n === 1) return 1;
+ *     for (let i=n-1; i>0; i--) n *= i;
+ *     return n;
+ * }
+ *
+ * @template {function} A
+ * @template {function} B
+ * @template {function} C
+ *
+ * @param {A} functionA
+ *    The first function to bind to the test suite.
+ * @param {B} functionB
+ *    The second function to bind to the test suite.
+ * @param {C} functionC
+ *    The second function to bind to the test suite.
+ * @param {Are|string} areOrTitle
+ *    A test suite from previous tests, or else a title for a new test suite.
+ * @returns {[A,B,C,Are]}
+ */
+export function bind3<A extends Function, B extends Function, C extends Function>(functionA: A, functionB: B, functionC: C, areOrTitle: Are | string): [A, B, C, Are];
 /** ### A test suite, which contains test results, sections, etc.
  *
  * "Are" could stand for "All Results Etc", or it could be the plural of "is".
@@ -8,7 +246,7 @@
  * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
  * - __Valid:__ all properties are validated by instantiation and method calls
  */
-export class Are {
+declare class Are {
     /** ### Creates an empty `Are` instance with the supplied title.
      *
      * @param {string} title
@@ -134,244 +372,6 @@ export class Are {
     render(begin?: string, filterSections?: string, filterResults?: string, formatting?: 'ANSI' | 'HTML' | 'JSON' | 'PLAIN', verbosity?: 'QUIET' | 'VERBOSE' | 'VERY' | 'VERYVERY'): string;
     #private;
 }
-/** ### A single 'stroke of the highlighter pen' when rendering JS values.
- *
- * - __Consistent:__ related data in different properties always agrees
- * - __Frozen:__ all properties are read-only, and no methods ever change them
- * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
- * - __Valid:__ all properties are validated during instantiation
- */
-export class Highlight {
-    /** ### Creates a `Highlight` instance from the supplied arguments.
-     *
-     * @param {'ARRAY'|'BOOLNUM'|'DOM'|'ERROR'|'EXCEPTION'|
-     *         'FUNCTION'|'NULLISH'|'OBJECT'|'REGEXP'|'STRING'|'SYMBOL'} kind
-     *    How the value should be rendered.
-     *    - Booleans and numbers highlight the same way
-     *    - A `BigInt` is a number rendered with the `"n"` suffix
-     *    - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}`
-     * @param {number} start
-     *    A non-negative integer. The position that highlighting starts.
-     * @param {number} stop
-     *    A non-zero integer greater than `start`, where highlighting stops.
-     * @throws {Error}
-     *    Throws an `Error` if any of the arguments are invalid.
-     */
-    constructor(kind: 'ARRAY' | 'BOOLNUM' | 'DOM' | 'ERROR' | 'EXCEPTION' | 'FUNCTION' | 'NULLISH' | 'OBJECT' | 'REGEXP' | 'STRING' | 'SYMBOL', start: number, stop: number);
-    /** How the value should be rendered.
-     * - Booleans and numbers highlight the same way
-     * - A `BigInt` is a number rendered with the `"n"` suffix
-     * - A `RegExp` highlights like an `Object` but looks like `/a/` not `{}` */
-    kind: "ARRAY" | "BOOLNUM" | "DOM" | "ERROR" | "EXCEPTION" | "FUNCTION" | "NULLISH" | "OBJECT" | "REGEXP" | "STRING" | "SYMBOL";
-    /** A non-negative integer. The position that highlighting starts. */
-    start: number;
-    /** A non-zero integer greater than `start`, where highlighting stops. */
-    stop: number;
-}
-/** ### A representation of a JavaScript value, ready to render.
- *
- * - __Consistent:__ related data in different properties always agrees
- * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
- * - __Frozen:__ both properties are read-only, and no methods ever change them
- * - __Sealed:__ properties aren't reconfigurable, new properties can't be added
- * - __Valid:__ both properties are validated during instantiation
- */
-export class Renderable {
-    /** ### Creates a new `Renderable` instance from any JavaScript value.
-     *
-     * @param {any} value
-     *    The JavaScript value which needs rendering.
-     * @returns {Renderable}
-     *    A `Renderable` instance, ready for rendering.
-     */
-    static from(value: any): Renderable;
-    /** ### Creates a `Renderable` instance from the supplied arguments.
-     *
-     * @param {Highlight[]} highlights
-     *    Zero or more 'strokes of the highlighter pen' on `text`.
-     * @param {string} text
-     *    A string representation of the value.
-     *     - 1 to 65535 unicode characters (about 10,000 lorem ipsum words)
-     * @throws {Error}
-     *    Throws an `Error` if any of the arguments are invalid.
-     */
-    constructor(highlights: Highlight[], text: string);
-    /** Zero or more 'strokes of the highlighter pen' on `text`. */
-    highlights: Highlight[];
-    /** A string representation of the value.
-     * - 1 to 65535 unicode characters (about 10,000 lorem ipsum words) */
-    text: string;
-    /** ### Determines whether the full value could be rendered on one line.
-     *
-     * The maximum line length is 120 characters, which may begin "actually: "
-     * or "expected: ", leaving 110 characters for the value.
-     *
-     * @returns {boolean}
-     *    Returns `true` if this instance is short enough to render on one line.
-     */
-    isShort(): boolean;
-    /** ### The value as a plain string, for a test-result overview.
-     *
-     * An overview which passes will be one line:
-     * ```
-     * PASS: actually: 123
-     * ```
-     *
-     * An overview which fails will be two lines:
-     * ```
-     * FAIL: actually: 123
-     *       expected: 546
-     * ```
-     *
-     * The maximum line length is 120 characters, so `this.text` may need to be
-     * truncated to 104 characters. @TODO truncate
-     *
-     * @returns {string}
-     *    Xx.
-     */
-    get overview(): string;
-}
-/** ### Adds a new section to the test suite.
- *
- * @param {string} subtitle
- *    The section title, usually rendered as a sub-heading in the results.
- *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
- * @returns {void}
- *    Does not return anything.
- * @throws {Error}
- *    Throws an `Error` if `subtitle` or the `this` context are invalid.
- */
-export function addSection(subtitle: string): void;
-/** ### Binds two functions to a shared `Are` instance.
- *
- * Takes an existing `Are` or creates a new one, and binds two functions
- * to it. Each function can then access the shared `Are` instance using
- * the `this` keyword.
- *
- * This pattern of dependency injection allows lots of flexibility, and works
- * well with Rollup's tree shaking.
- *
- * @example
- * import alike, { addSection, bind2 } from '@0bdx/alike';
- *
- * // Create a test suite with a title, and bind two functions to it.
- * const [ like, section, are ] = bind2(alike, addSection, 'fact()');
- *
- * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind2(alike, addSection, are);
- *
- * // Optionally, begin a new section.
- * section('Check that fact() works');
- *
- * // Run the tests. The third argument, `notes`, is optional.
- * like(fact(0), 1);
- * like(fact(5), 120,
- *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
- *
- * // Output a test results summary to the console, as plain text.
- * console.log(are.render());
- *
- * // Calculates the factorial of a given integer.
- * function fact(n) {
- *     if (n === 0 || n === 1) return 1;
- *     for (let i=n-1; i>0; i--) n *= i;
- *     return n;
- * }
- *
- * @template {function} A
- * @template {function} B
- *
- * @param {A} functionA
- *    The first function to bind to the test suite.
- * @param {B} functionB
- *    The second function to bind to the test suite.
- * @param {Are|string} areOrTitle
- *    A test suite from previous tests, or else a title for a new test suite.
- * @returns {[A,B,Are]}
- */
-export function bind2<A extends Function, B extends Function>(functionA: A, functionB: B, areOrTitle: Are | string): [A, B, Are];
-/** ### Binds three functions to a shared `Are` instance.
- *
- * Takes an existing `Are` or creates a new one, and binds three functions
- * to it. Each function can then access the shared `Are` instance using
- * the `this` keyword.
- *
- * This pattern of dependency injection allows lots of flexibility, and works
- * well with Rollup's tree shaking.
- *
- * @example
- * import alike, { addSection, bind3, throws } from '@0bdx/alike';
- *
- * // Create a test suite with a title, and bind three functions to it.
- * const [ section, like, are ] = bind3(addSection, alike, 'fact()');
- *
- * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind3(alike, addSection, are);
- *
- * // Optionally, begin a new section.
- * section('Check that fact() works');
- *
- * // Run the tests. The third argument, `notes`, is optional.
- * throws(fact(), '`n` is not a number!');
- * like(fact(0), 1);
- * like(fact(5), 120,
- *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
- *
- * // Output a test results summary to the console, as plain text.
- * console.log(are.render());
- *
- * // Calculates the factorial of a given integer.
- * function fact(n) {
- *     if (typeof n !== 'number') throw Error('`n` is not a number!');
- *     if (n === 0 || n === 1) return 1;
- *     for (let i=n-1; i>0; i--) n *= i;
- *     return n;
- * }
- *
- * @template {function} A
- * @template {function} B
- * @template {function} C
- *
- * @param {A} functionA
- *    The first function to bind to the test suite.
- * @param {B} functionB
- *    The second function to bind to the test suite.
- * @param {C} functionC
- *    The second function to bind to the test suite.
- * @param {Are|string} areOrTitle
- *    A test suite from previous tests, or else a title for a new test suite.
- * @returns {[A,B,C,Are]}
- */
-export function bind3<A extends Function, B extends Function, C extends Function>(functionA: A, functionB: B, functionC: C, areOrTitle: Are | string): [A, B, C, Are];
-/** ### Compares two JavaScript values in a user-friendly way.
- *
- * `alike()` operates in one of two modes:
- * 1. If it has been bound to an object with an `addResult()` method, it sends
- *    that method the full test results, and then returns an overview.
- * 2. Otherwise, it either throws an `Error` if the test fails, or returns
- *    an overview if the test passes.
- *
- * @TODO finish the description, with examples
- *
- * @param {any} actually
- *    The value that the test actually got.
- * @param {any} expected
- *    The value that the test expected.
- * @param {string|string[]} [notes]
- *    An optional description of the test, as a string or array of strings.
- *    - A string is treated identically to an array containing just that string
- *    - 0 to 100 items, where each item is a line
- *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
- *    - An empty array `[]` means that no notes have been supplied
- *    - The first item (index 0), if present, is used for the overview
- * @returns {string}
- *    Returns an overview of the test result.
- * @throws {Error}
- *    Throws an `Error` if `notes` or the `this` context are invalid.
- *    Also, unless it's bound to an object with an `addResult()` method, throws
- *    an `Error` if the test fails.
- */
-declare function alike(actually: any, expected: any, notes?: string | string[]): string;
 /** ### Records the outcome of one test.
  *
  * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs
@@ -450,4 +450,4 @@ declare class Section {
      * - An empty string `""` means that a default should be used */
     subtitle: string;
 }
-export { alike as default };
+export { Are as default };

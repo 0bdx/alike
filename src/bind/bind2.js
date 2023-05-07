@@ -12,7 +12,7 @@ import { Are } from '../classes/index.js';
  * well with Rollup's tree shaking.
  *
  * @example
- * import alike, { addSection, bind2 } from '@0bdx/alike';
+ * import { addSection, alike, bind2 } from '@0bdx/alike';
  *
  * // Create a test suite with a title, and bind two functions to it.
  * const [ like, section, are ] = bind2(alike, addSection, 'fact()');

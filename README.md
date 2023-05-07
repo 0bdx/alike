@@ -19,7 +19,7 @@ You can run __Example 1,__ for example, using:
 ### Example 1
 
 ```js
-import alike from '@0bdx/alike';
+import { alike } from '@0bdx/alike';
 
 // Compare two numbers.
 console.log(alike(0, -0, 'Zero and minus-zero are alike'));
@@ -42,7 +42,7 @@ console.log(alike({a:1}, {a:1}, 'Similar objects are alike.'));
 ### Example 2
 
 ```js
-import alike, { addSection, bind2 } from '@0bdx/alike';
+import { addSection, alike, bind2 } from '@0bdx/alike';
 
 // Create a test suite with a title, and bind two functions to it.
 const [ like, section, are ] = bind2(alike, addSection, 'fact()');

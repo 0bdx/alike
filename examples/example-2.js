@@ -1,4 +1,4 @@
-import alike, { addSection, bind2 } from '../alike.js';
+import { addSection, alike, bind2 } from '../alike.js';
 
 // Create a test suite with a title, and bind two functions to it.
 const [ like, section, are ] = bind2(alike, addSection, 'fact()');
