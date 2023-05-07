@@ -42,24 +42,24 @@ console.log(isDeeplyLike({a:1}, {a:1}, 'Similar objects are alike.'));
 ### Example 2
 
 ```js
-import { addSection, alike, bind2 } from '@0bdx/are';
+import { bind1, isDeeplyLike } from '@0bdx/are';
 
-// Create a test suite with a title, and bind two functions to it.
-const [ like, section, are ] = bind2(alike, addSection, 'fact()');
+// Create a test suite with a title, and bind one function to it.
+const [ isLike, testSuite ] = bind1(isDeeplyLike, 'fact()');
 
-// Or a suite from a previous test could be passed in instead.
-// const [ like, section ] = bind2(alike, addSection, are);
+// Or a test suite from a previous test could be passed in instead.
+// const [ isLike ] = bind1(isDeeplyLike, testSuite);
 
 // Optionally, begin a new section.
-section('Check that fact() works');
+testSuite.addSection('Check that fact() works');
 
 // Run the tests. The third argument, `notes`, is optional.
-like(fact(0), 1);
-like(fact(5), 120,
-    'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
+isLike(fact(0), 1);
+isLike(fact(5), 120,
+    ['`fact(5)` 5! = 5 * 4 * 3 * 2 * 1']);
 
 // Output a test results summary to the console, as plain text.
-console.log(are.render());
+console.log(testSuite.render());
 
 // Calculates the factorial of a given integer.
 function fact(n) {

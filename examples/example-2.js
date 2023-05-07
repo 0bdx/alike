@@ -1,13 +1,13 @@
-import { addSection, bind2, isDeeplyLike } from '../are.js';
+import { bind1, isDeeplyLike } from '../are.js';
 
-// Create a test suite with a title, and bind two functions to it.
-const [ section, isLike, suite ] = bind2(addSection, isDeeplyLike, 'fact()');
+// Create a test suite with a title, and bind one function to it.
+const [ isLike, testSuite ] = bind1(isDeeplyLike, 'fact()');
 
-// Or a suite from a previous test could be passed in instead.
-// const [ section, isLike ] = bind2(addSection, isDeeplyLike, suite);
+// Or a test suite from a previous test could be passed in instead.
+// const [ isLike ] = bind1(isDeeplyLike, testSuite);
 
 // Optionally, begin a new section.
-section('Check that fact() works');
+testSuite.addSection('Check that fact() works');
 
 // Run the tests. The third argument, `notes`, is optional.
 isLike(fact(0), 1);
@@ -15,7 +15,7 @@ isLike(fact(5), 120,
     ['`fact(5)` 5! = 5 * 4 * 3 * 2 * 1']);
 
 // Output a test results summary to the console, as plain text.
-console.log(suite.render());
+console.log(testSuite.render());
 
 // Calculates the factorial of a given integer.
 function fact(n) {

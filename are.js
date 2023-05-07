@@ -854,6 +854,73 @@ Are.prototype.render = function render(
     );
 };
 
+/** ### Binds one function to a shared `Are` instance.
+ *
+ * Takes an existing `Are` or creates a new one, and binds one function to it.
+ * That function can then access the `Are` instance using the `this` keyword.
+ *
+ * This pattern of dependency injection allows lots of flexibility, and works
+ * well with Rollup's tree shaking.
+ *
+ * @example
+ * import { bind1, isDeeplyLike } from '../are.js';
+ * 
+ * // Create a test suite with a title, and bind one function to it.
+ * const [ isLike, testSuite ] = bind1(isDeeplyLike, 'fact()');
+ * 
+ * // Or a test suite from a previous test could be passed in instead.
+ * // const [ isLike ] = bind1(isDeeplyLike, testSuite);
+ * 
+ * // Optionally, begin a new section.
+ * testSuite.addSection('Check that fact() works');
+ * 
+ * // Run the tests. The third argument, `notes`, is optional.
+ * isLike(fact(0), 1);
+ * isLike(fact(5), 120,
+ *     ['`fact(5)` 5! = 5 * 4 * 3 * 2 * 1']);
+ * 
+ * // Output a test results summary to the console, as plain text.
+ * console.log(testSuite.render());
+ * 
+ * // Calculates the factorial of a given integer.
+ * function fact(n) {
+ *     if (n === 0 || n === 1) return 1;
+ *     for (let i=n-1; i>0; i--) n *= i;
+ *     return n;
+ * }
+ *
+ * @template {function} A
+ *
+ * @param {A} functionA
+ *    The function to bind to the test suite.
+ * @param {Are|string} areOrTitle
+ *    A test suite from previous tests, or else a title for a new test suite.
+ * @returns {[A,Are]}
+ */
+function bind1(functionA, areOrTitle) {
+    const begin = 'bind1()';
+
+    // Validate the arguments.
+    const [ _, aintaAre ] = narrowAintas({ is:[Are], open:true }, aintaObject);
+    const [ aResults, aFn, aAreOrString ] = narrowAintas({ begin },
+        aintaFunction, [ aintaAre, aintaString ]);
+    aFn(functionA, 'functionA');
+    aAreOrString(areOrTitle, 'areOrTitle');
+    if (aResults.length) throw Error(aResults.join('\n'));
+
+    // If `areOrTitle` is a string, create a new `Are` instance. Otherwise
+    // it must already be an instance of `Are`, so just use it as-is.
+    const are = typeof areOrTitle === 'string'
+        ? new Are(areOrTitle || 'Untitled Test Suite')
+        : areOrTitle;
+
+    // Return the function bound to the test suite. Also return the test suite.
+    return [
+        functionA.bind(are),
+        are,
+    ];
+}
+
 /** ### Binds two functions to a shared `Are` instance.
  *
  * Takes an existing `Are` or creates a new one, and binds two functions
@@ -1005,29 +1072,6 @@ function bind3(functionA, functionB, functionC, areOrTitle) {
         functionC.bind(are),
         are,
     ];
-}
-
-/** ### Adds a new section to the test suite.
- *
- * @param {string} subtitle
- *    The section title, usually rendered as a sub-heading in the results.
- *    - 1 to 64 printable ASCII characters, except the backslash `"\"`
- * @returns {void}
- *    Does not return anything.
- * @throws {Error}
- *    Throws an `Error` if `subtitle` or the `this` context are invalid.
- */
-function addSection(subtitle) {
-    const begin = 'addSection()';
-
-    // Check that this function has been bound to an `Are` instance.
-    // @TODO cache this result for performance
-    const aAre = aintaObject(this, 'are', { begin, is:[Are], open:true });
-    if (aAre) throw Error(aAre);
-
-    // The brackets around `this` make JSDoc see `(this)` as an `Are` instance.
-    /** @type Are */
-    (this).addSection(subtitle);
 }
 
 /** ### Determines whether two arguments are deeply alike.
@@ -1227,4 +1271,4 @@ function isDeeplyLike(actually, expected, notes) {
     return overview;
 }
 
-export { Highlight, Renderable, addSection, bind2, bind3, Are as default, isDeeplyLike };
+export { Highlight, Renderable, bind1, bind2, bind3, Are as default, isDeeplyLike };

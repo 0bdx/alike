@@ -1,4 +1,6 @@
 import {
+    bind1,
+    bind1Test,
     bind2,
     bind2Test,
     bind3,
@@ -20,12 +22,11 @@ import {
 import { helpersTest } from './helpers.js';
 
 import Are, {
-    addSection,
     isDeeplyLike,
 } from './index.js';
 import { isDeeplyLikeTest } from './tools/is-deeply-like.js';
-import { addSectionTest } from './tools/add-section.js';
 
+bind1Test(Are, bind1);
 bind2Test(Are, bind2);
 bind3Test(Are, bind3);
 
@@ -40,4 +41,3 @@ sectionTest();
 helpersTest();
 
 isDeeplyLikeTest(Are, isDeeplyLike, Renderable);
-addSectionTest(Are, addSection);
