@@ -5,7 +5,7 @@ import Are, {
     Highlight,
     isDeeplyLike,
     Renderable,
-} from './alike.js';
+} from './are.js';
 import {
     bind2Test,
     bind3Test,

@@ -1,5 +1,5 @@
 /**
- * https://www.npmjs.com/package/@0bdx/alike
+ * https://www.npmjs.com/package/@0bdx/are
  * @version 0.0.2
  * @license Copyright (c) 2023 0bdx <0@0bdx.com> (0bdx.com)
  * SPDX-License-Identifier: MIT
@@ -864,7 +864,7 @@ Are.prototype.render = function render(
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, isDeeplyLike, bind2 } from '@0bdx/alike';
+ * import { addSection, isDeeplyLike, bind2 } from '@0bdx/are';
  *
  * // Create a test suite with a title, and bind two functions to it.
  * const [ like, section, are ] = bind2(addSection, isDeeplyLike, 'fact()');
@@ -937,7 +937,7 @@ function bind2(functionA, functionB, areOrTitle) {
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, isDeeplyLike, bind3, throws } from '@0bdx/alike';
+ * import { addSection, isDeeplyLike, bind3, throws } from '@0bdx/are';
  *
  * // Create a test suite with a title, and bind three functions to it.
  * const [ section, like, are ] = bind3(addSection, isDeeplyLike, 'fact()');

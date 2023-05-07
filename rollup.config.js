@@ -4,7 +4,7 @@ import * as bh from '@0bdx/build-helpers';
 
 export default {
     ...bh.rollupConfigBasicLib(
-        'alike.js',
+        'are.js',
         bh.generateBanner(
             new Date(),
             readFileSync('./package.json', 'utf-8'),

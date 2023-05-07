@@ -1,11 +1,11 @@
-# @0bdx/alike
+# @0bdx/are
 
 __Utilities for unit testing 0bdx apps, libraries and websites.__
 
 ⨂ __Version:__ 0.0.2  
-⨂ __NPM:__ <https://www.npmjs.com/package/@0bdx/alike>  
-⨂ __Repo:__ <https://github.com/0bdx/alike>  
-⨂ __Homepage:__ <https://0bdx.com/alike>
+⨂ __NPM:__ <https://www.npmjs.com/package/@0bdx/are>  
+⨂ __Repo:__ <https://github.com/0bdx/are>  
+⨂ __Homepage:__ <https://0bdx.com/are>
 
 @TODO add an overview
 
@@ -19,7 +19,7 @@ You can run __Example 1,__ for example, using:
 ### Example 1
 
 ```js
-import { isDeeplyLike } from '@0bdx/alike';
+import { isDeeplyLike } from '@0bdx/are';
 
 // Compare two numbers.
 console.log(isDeeplyLike(0, -0, 'Zero and minus-zero are alike'));
@@ -42,7 +42,7 @@ console.log(isDeeplyLike({a:1}, {a:1}, 'Similar objects are alike.'));
 ### Example 2
 
 ```js
-import { addSection, alike, bind2 } from '@0bdx/alike';
+import { addSection, alike, bind2 } from '@0bdx/are';
 
 // Create a test suite with a title, and bind two functions to it.
 const [ like, section, are ] = bind2(alike, addSection, 'fact()');

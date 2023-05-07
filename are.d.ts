@@ -116,7 +116,7 @@ export function addSection(subtitle: string): void;
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, isDeeplyLike, bind2 } from '@0bdx/alike';
+ * import { addSection, isDeeplyLike, bind2 } from '@0bdx/are';
  *
  * // Create a test suite with a title, and bind two functions to it.
  * const [ like, section, are ] = bind2(addSection, isDeeplyLike, 'fact()');
@@ -164,7 +164,7 @@ export function bind2<A extends Function, B extends Function>(functionA: A, func
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, isDeeplyLike, bind3, throws } from '@0bdx/alike';
+ * import { addSection, isDeeplyLike, bind3, throws } from '@0bdx/are';
  *
  * // Create a test suite with a title, and bind three functions to it.
  * const [ section, like, are ] = bind3(addSection, isDeeplyLike, 'fact()');

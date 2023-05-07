@@ -1,4 +1,4 @@
-import { isDeeplyLike } from '../alike.js';
+import { isDeeplyLike } from '../are.js';
 
 // Compare two numbers.
 console.log(isDeeplyLike(0, -0, 'Zero and minus-zero are alike'));
