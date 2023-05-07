@@ -405,6 +405,35 @@ declare class Are {
  *    an `Error` if the test fails.
  */
 export function isDeeplyLike(actually: any, expected: any, notes?: string | string[]): string;
+/** ### Determines whether a function throws the expected error.
+ *
+ * `throwsError()` operates in one of two modes:
+ * 1. If it has been bound to an object with an `addResult()` method, it sends
+ *    that method the full test results, and then returns an overview.
+ * 2. Otherwise, it either throws an `Error` if the test fails, or returns
+ *    an overview if the test passes.
+ *
+ * @TODO finish the description, with examples
+ *
+ * @param {function} actually
+ *    A function which is expected to throw an `Error` exception when called.
+ * @param {string} expected
+ *    The `Error` object's expected message.
+ * @param {string|string[]} [notes]
+ *    An optional description of the test, as a string or array of strings.
+ *    - A string is treated identically to an array containing just that string
+ *    - 0 to 100 items, where each item is a line
+ *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+ *    - An empty array `[]` means that no notes have been supplied
+ *    - The first item (index 0), if present, is used for the overview
+ * @returns {string}
+ *    Returns an overview of the test result.
+ * @throws {Error}
+ *    Throws an `Error` if the arguments or the `this` context are invalid.
+ *    Also, unless it's bound to an object with an `addResult()` method, throws
+ *    an `Error` if the test fails.
+ */
+export function throwsError(actually: Function, expected: string, notes?: string | string[]): string;
 /** ### Records the outcome of one test.
  *
  * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs

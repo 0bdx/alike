@@ -289,8 +289,8 @@ class Renderable {
 }
 
 // Define a regular expression for validating each item in `notes`.
-const noteRx$1 = /^[ -\[\]-~]*$/;
-noteRx$1.toString = () => "'Printable ASCII characters except backslashes'";
+const noteRx$2 = /^[ -\[\]-~]*$/;
+noteRx$2.toString = () => "'Printable ASCII characters except backslashes'";
 
 // Define an enum for validating `status`.
 const validStatus = [ 'FAIL', 'PASS', 'PENDING', 'UNEXPECTED_EXCEPTION' ];
@@ -366,7 +366,7 @@ class Result {
             aintaArray, aintaObject, aintaNumber, aintaString);
         aObj(actually, 'actually', { is:[Renderable], open:true });
         aObj(expected, 'expected', { is:[Renderable], open:true });
-        aArr(notes, 'notes', { most:100, max:120, pass:true, rx:noteRx$1, types:['string'] });
+        aArr(notes, 'notes', { most:100, max:120, pass:true, rx:noteRx$2, types:['string'] });
         aNum(sectionIndex, 'sectionIndex', {
             gte:0, lte:Number.MAX_SAFE_INTEGER, mod:1 });
         aStr(status, 'status', { is:validStatus });
@@ -1176,8 +1176,8 @@ const truncate = (text, length) => {
 };
 
 // Define a regular expression for validating each item in `notes`.
-const noteRx = /^[ -\[\]-~]*$/;
-noteRx.toString = () => "'Printable ASCII characters except backslashes'";
+const noteRx$1 = /^[ -\[\]-~]*$/;
+noteRx$1.toString = () => "'Printable ASCII characters except backslashes'";
 
 /** ### Compares two JavaScript values in a user-friendly way.
  * 
@@ -1213,7 +1213,7 @@ function isDeeplyLike(actually, expected, notes) {
     // Validate the `notes` argument. `this.addResult()`, if it exists, will
     // do some similar validation, but its error message would be confusing.
     const notesIsArray = Array.isArray(notes); // used again, further below
-    const options = { begin, max:120, most:100, pass:true, rx:noteRx };
+    const options = { begin, max:120, most:100, pass:true, rx:noteRx$1 };
     const aNotes = notesIsArray // @TODO make ainta able to handle 'or' types
         ? aintaArray(notes, 'notes', { ...options, types:['string'] })
         : typeof notes !== 'undefined'
@@ -1271,4 +1271,99 @@ function isDeeplyLike(actually, expected, notes) {
     return overview;
 }
 
-export { Highlight, Renderable, bind1, bind2, bind3, Are as default, isDeeplyLike };
+// Define a regular expression for validating each item in `notes`.
+const noteRx = /^[ -\[\]-~]*$/;
+noteRx.toString = () => "'Printable ASCII characters except backslashes'";
+
+/** ### Determines whether a function throws the expected error.
+ * 
+ * `throwsError()` operates in one of two modes:
+ * 1. If it has been bound to an object with an `addResult()` method, it sends
+ *    that method the full test results, and then returns an overview.
+ * 2. Otherwise, it either throws an `Error` if the test fails, or returns
+ *    an overview if the test passes.
+ * 
+ * @TODO finish the description, with examples
+ *
+ * @param {function} actually
+ *    A function which is expected to throw an `Error` exception when called.
+ * @param {string} expected
+ *    The `Error` object's expected message.
+ * @param {string|string[]} [notes]
+ *    An optional description of the test, as a string or array of strings.
+ *    - A string is treated identically to an array containing just that string
+ *    - 0 to 100 items, where each item is a line
+ *    - 0 to 120 printable ASCII characters (except the backslash `"\"`) per line
+ *    - An empty array `[]` means that no notes have been supplied
+ *    - The first item (index 0), if present, is used for the overview
+ * @returns {string}
+ *    Returns an overview of the test result.
+ * @throws {Error}
+ *    Throws an `Error` if the arguments or the `this` context are invalid.
+ *    Also, unless it's bound to an object with an `addResult()` method, throws
+ *    an `Error` if the test fails.
+ */
+function throwsError(actually, expected, notes) {
+    const begin = 'throwsError()';
+
+    // Validate the `notes` argument. `this.addResult()`, if it exists, will
+    // do some similar validation, but its error message would be confusing.
+    const notesIsArray = Array.isArray(notes); // used again, further below
+    const options = { begin, max:120, most:100, pass:true, rx:noteRx };
+    const aNotes = notesIsArray // @TODO make ainta able to handle 'or' types
+        ? aintaArray(notes, 'notes', { ...options, types:['string'] })
+        : typeof notes !== 'undefined'
+            ? aintaString(notes, 'notes', options)
+            : ''; // no `notes` argument was passed in
+    if (aNotes) throw Error(aNotes);
+/*
+    // Generate the overview which `throwsError()` will throw or return.
+    const status = didFail ? 'FAIL' : 'PASS';
+    const actuallyRenderable = Renderable.from(actually);
+    const expectedRenderable = Renderable.from(expected);
+    const firstNotesLine = notesIsArray
+        ? (notes[0] || '') // `notes` is an array
+        : (notes || ''); // `notes` should be undefined or a string
+    const overview = status +
+        `: ${firstNotesLine && truncate(firstNotesLine,114) + '\n    : '}` +
+        `\`actually\` is ${actuallyRenderable.overview}${didFail
+            ? `\n    : \`expected\` is ${expectedRenderable.overview}`
+            : ' as expected'}`;
+
+    // If there's no `this.addResult()`, throw or return the overview.
+    if (typeof this?.addResult !== 'function') {
+        if (didFail) throw Error(overview);
+        return overview;
+    }
+
+    // Normalise the `notes` argument into an array.
+    const notesArr = Array.isArray(notes)
+        ? notes // was already an array
+        : typeof notes === 'undefined'
+            ? [] // no `notes` argument was passed in
+            : [ notes ] // hopefully a string, but that will be validated below
+
+    // Prepare an array of strings to pass to the `addResult()` `notes` argument.
+    // This array will end with some auto-generated notes about the test.
+    const auto = !didFail
+        ? [ '{{actually}} as expected' ]
+        : actuallyRenderable.isShort() && expectedRenderable.isShort()
+            ? [ 'actually: {{actually}}', 'expected: {{expected}}' ]
+            : [ 'actually:', '{{actually}}', 'expected:', '{{expected}}' ];
+    const notesPlusAuto = [ ...notesArr, ...auto ];
+
+    // Add the test result to the object that this function has been bound to.
+    this.addResult(
+        actuallyRenderable,
+        expectedRenderable,
+        notesPlusAuto,
+        status,
+    );
+
+    // Return an overview of the test result.
+    return overview;
+*/
+    return '@TODO';
+}
+
+export { Highlight, Renderable, bind1, bind2, bind3, Are as default, isDeeplyLike, throwsError };

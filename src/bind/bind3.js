@@ -11,34 +11,7 @@ import { Are } from '../classes/index.js';
  * This pattern of dependency injection allows lots of flexibility, and works
  * well with Rollup's tree shaking.
  *
- * @example
- * import { addSection, isDeeplyLike, bind3, throws } from '@0bdx/are';
- *
- * // Create a test suite with a title, and bind three functions to it.
- * const [ section, like, are ] = bind3(addSection, isDeeplyLike, 'fact()');
- *
- * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind3(addSection, isDeeplyLike, are);
- *
- * // Optionally, begin a new section.
- * section('Check that fact() works');
- *
- * // Run the tests. The third argument, `notes`, is optional.
- * throws(fact(), '`n` is not a number!');
- * like(fact(0), 1);
- * like(fact(5), 120,
- *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
- *
- * // Output a test results summary to the console, as plain text.
- * console.log(are.render());
- *
- * // Calculates the factorial of a given integer.
- * function fact(n) {
- *     if (typeof n !== 'number') throw Error('`n` is not a number!');
- *     if (n === 0 || n === 1) return 1;
- *     for (let i=n-1; i>0; i--) n *= i;
- *     return n;
- * }
+ * @TODO example
  *
  * @template {function} A
  * @template {function} B

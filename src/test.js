@@ -23,8 +23,10 @@ import { helpersTest } from './helpers.js';
 
 import Are, {
     isDeeplyLike,
+    throwsError,
 } from './index.js';
 import { isDeeplyLikeTest } from './tools/is-deeply-like.js';
+import { throwsErrorTest } from './tools/throws-error.js';
 
 bind1Test(Are, bind1);
 bind2Test(Are, bind2);
@@ -41,3 +43,4 @@ sectionTest();
 helpersTest();
 
 isDeeplyLikeTest(Are, isDeeplyLike, Renderable);
+throwsErrorTest(Are, throwsError, Renderable);

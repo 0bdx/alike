@@ -1,24 +1,24 @@
-import { addSection, alike, bind3, throws } from '../are.js';
+import { bind2, isDeeplyLike, throwsError } from '../are.js';
 
-// Create a test suite with a title, and bind three functions to it.
-const [ like, section, thro, are ] = bind3(alike, addSection, throws, 'fact()');
+// Create a test suite with a title, and bind one function to it.
+const [ isLike, throws, testSuite ] = bind2(isDeeplyLike, throwsError, 'fact()');
 
-// Or a suite from a previous test could be passed in instead.
-// const [ like, section, thro ] = bind3(alike, addSection, throws, are);
+// Or a test suite from a previous test could be passed in instead.
+// const [ isLike, throws ] = bind2(isDeeplyLike, throwsError, testSuite);
 
 // Optionally, begin a new section.
-section('Check that fact() works');
+testSuite.addSection('Check that fact() works');
 
 // Run the tests. The third argument, `notes`, is optional.
-thro(fact(), "`n` is not type 'number'");
-thro(fact(NaN), '`n` is NaN!',
-    'fact(NaN) // cannot factorialise the special `NaN` number');
-like(fact(0), 1);
-like(fact(5), 120,
-    'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
+throws(()=>fact(), "`n` is not type 'number'");
+throws(()=>fact(NaN), '`n` is NaN!',
+    ['`fact(NaN)` cannot factorialise the special `NaN` number']);
+isLike(fact(0), 1);
+isLike(fact(5), 120,
+    ['`fact(5)` 5! = 5 * 4 * 3 * 2 * 1']);
 
 // Output a test results summary to the console, as plain text.
-console.log(are.render());
+console.log(testSuite.render());
 
 // Calculates the factorial of a given integer.
 function fact(n) {
