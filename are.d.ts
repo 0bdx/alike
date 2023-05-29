@@ -149,27 +149,32 @@ export function bind1<A extends Function>(functionA: A, areOrTitle: Are | string
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, isDeeplyLike, bind2 } from '@0bdx/are';
+ * import { bind2, isDeeplyLike, throwsError } from '../are.js';
  *
  * // Create a test suite with a title, and bind two functions to it.
- * const [ like, section, are ] = bind2(addSection, isDeeplyLike, 'fact()');
+ * const [ isLike, throws, testSuite ] = bind2(isDeeplyLike, throwsError, 'fact()');
  *
- * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind2(addSection, isDeeplyLike, are);
+ * // Or a test suite from a previous test could be passed in instead.
+ * // const [ isLike, throws ] = bind2(isDeeplyLike, throwsError, testSuite);
  *
  * // Optionally, begin a new section.
- * section('Check that fact() works');
+ * testSuite.addSection('Check that fact() works');
  *
  * // Run the tests. The third argument, `notes`, is optional.
- * like(fact(0), 1);
- * like(fact(5), 120,
- *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
+ * throws(()=>fact(), "`n` is not type 'number'");
+ * throws(()=>fact(NaN), '`n` is NaN!',
+ *     ['`fact(NaN)` cannot factorialise the special `NaN` number']);
+ * isLike(fact(0), 1);
+ * isLike(fact(5), 120,
+ *     ['`fact(5)` 5! = 5 * 4 * 3 * 2 * 1']);
  *
  * // Output a test results summary to the console, as plain text.
- * console.log(are.render());
+ * console.log(testSuite.render());
  *
  * // Calculates the factorial of a given integer.
  * function fact(n) {
+ *     if (typeof n !== 'number') throw Error("`n` is not type 'number'");
+ *     if (isNaN(n)) throw Error('`n` is NaN!');
  *     if (n === 0 || n === 1) return 1;
  *     for (let i=n-1; i>0; i--) n *= i;
  *     return n;
@@ -196,34 +201,7 @@ export function bind2<A extends Function, B extends Function>(functionA: A, func
  * This pattern of dependency injection allows lots of flexibility, and works
  * well with Rollup's tree shaking.
  *
- * @example
- * import { addSection, isDeeplyLike, bind3, throws } from '@0bdx/are';
- *
- * // Create a test suite with a title, and bind three functions to it.
- * const [ section, like, are ] = bind3(addSection, isDeeplyLike, 'fact()');
- *
- * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind3(addSection, isDeeplyLike, are);
- *
- * // Optionally, begin a new section.
- * section('Check that fact() works');
- *
- * // Run the tests. The third argument, `notes`, is optional.
- * throws(fact(), '`n` is not a number!');
- * like(fact(0), 1);
- * like(fact(5), 120,
- *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
- *
- * // Output a test results summary to the console, as plain text.
- * console.log(are.render());
- *
- * // Calculates the factorial of a given integer.
- * function fact(n) {
- *     if (typeof n !== 'number') throw Error('`n` is not a number!');
- *     if (n === 0 || n === 1) return 1;
- *     for (let i=n-1; i>0; i--) n *= i;
- *     return n;
- * }
+ * @TODO example
  *
  * @template {function} A
  * @template {function} B
@@ -417,8 +395,10 @@ export function isDeeplyLike(actually: any, expected: any, notes?: string | stri
  *
  * @param {function} actually
  *    A function which is expected to throw an `Error` exception when called.
- * @param {string} expected
- *    The `Error` object's expected message.
+ * @param {string|{test:(arg0:string)=>boolean}} expected
+ *    Either the `Error` object's expected message, or a regular expression
+ *    to test that message.
+ *    - Instead of a `RegExp`, any object with a `test()` method can be used
  * @param {string|string[]} [notes]
  *    An optional description of the test, as a string or array of strings.
  *    - A string is treated identically to an array containing just that string
@@ -433,7 +413,9 @@ export function isDeeplyLike(actually: any, expected: any, notes?: string | stri
  *    Also, unless it's bound to an object with an `addResult()` method, throws
  *    an `Error` if the test fails.
  */
-export function throwsError(actually: Function, expected: string, notes?: string | string[]): string;
+export function throwsError(actually: Function, expected: string | {
+    test: (arg0: string) => boolean;
+}, notes?: string | string[]): string;
 /** ### Records the outcome of one test.
  *
  * - __Dereferenced:__ object arguments are deep-cloned, to avoid back-refs

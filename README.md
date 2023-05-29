@@ -74,7 +74,7 @@ function fact(n) {
 ```js
 import { bind2, isDeeplyLike, throwsError } from '@0bdx/are';
 
-// Create a test suite with a title, and bind one function to it.
+// Create a test suite with a title, and bind two functions to it.
 const [ isLike, throws, testSuite ] = bind2(isDeeplyLike, throwsError, 'fact()');
 
 // Or a test suite from a previous test could be passed in instead.

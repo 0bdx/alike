@@ -931,27 +931,32 @@ function bind1(functionA, areOrTitle) {
  * well with Rollup's tree shaking.
  *
  * @example
- * import { addSection, isDeeplyLike, bind2 } from '@0bdx/are';
- *
+ * import { bind2, isDeeplyLike, throwsError } from '../are.js';
+ * 
  * // Create a test suite with a title, and bind two functions to it.
- * const [ like, section, are ] = bind2(addSection, isDeeplyLike, 'fact()');
- *
- * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind2(addSection, isDeeplyLike, are);
- *
+ * const [ isLike, throws, testSuite ] = bind2(isDeeplyLike, throwsError, 'fact()');
+ * 
+ * // Or a test suite from a previous test could be passed in instead.
+ * // const [ isLike, throws ] = bind2(isDeeplyLike, throwsError, testSuite);
+ * 
  * // Optionally, begin a new section.
- * section('Check that fact() works');
- *
+ * testSuite.addSection('Check that fact() works');
+ * 
  * // Run the tests. The third argument, `notes`, is optional.
- * like(fact(0), 1);
- * like(fact(5), 120,
- *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
- *
+ * throws(()=>fact(), "`n` is not type 'number'");
+ * throws(()=>fact(NaN), '`n` is NaN!',
+ *     ['`fact(NaN)` cannot factorialise the special `NaN` number']);
+ * isLike(fact(0), 1);
+ * isLike(fact(5), 120,
+ *     ['`fact(5)` 5! = 5 * 4 * 3 * 2 * 1']);
+ * 
  * // Output a test results summary to the console, as plain text.
- * console.log(are.render());
- *
+ * console.log(testSuite.render());
+ * 
  * // Calculates the factorial of a given integer.
  * function fact(n) {
+ *     if (typeof n !== 'number') throw Error("`n` is not type 'number'");
+ *     if (isNaN(n)) throw Error('`n` is NaN!');
  *     if (n === 0 || n === 1) return 1;
  *     for (let i=n-1; i>0; i--) n *= i;
  *     return n;
@@ -1003,34 +1008,7 @@ function bind2(functionA, functionB, areOrTitle) {
  * This pattern of dependency injection allows lots of flexibility, and works
  * well with Rollup's tree shaking.
  *
- * @example
- * import { addSection, isDeeplyLike, bind3, throws } from '@0bdx/are';
- *
- * // Create a test suite with a title, and bind three functions to it.
- * const [ section, like, are ] = bind3(addSection, isDeeplyLike, 'fact()');
- *
- * // Or a suite from a previous test could be passed in instead.
- * // const [ like, section ] = bind3(addSection, isDeeplyLike, are);
- *
- * // Optionally, begin a new section.
- * section('Check that fact() works');
- *
- * // Run the tests. The third argument, `notes`, is optional.
- * throws(fact(), '`n` is not a number!');
- * like(fact(0), 1);
- * like(fact(5), 120,
- *     'fact(5) // 5! = 5 * 4 * 3 * 2 * 1');
- *
- * // Output a test results summary to the console, as plain text.
- * console.log(are.render());
- *
- * // Calculates the factorial of a given integer.
- * function fact(n) {
- *     if (typeof n !== 'number') throw Error('`n` is not a number!');
- *     if (n === 0 || n === 1) return 1;
- *     for (let i=n-1; i>0; i--) n *= i;
- *     return n;
- * }
+ * @TODO example
  *
  * @template {function} A
  * @template {function} B
@@ -1287,8 +1265,10 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
  *
  * @param {function} actually
  *    A function which is expected to throw an `Error` exception when called.
- * @param {string} expected
- *    The `Error` object's expected message.
+ * @param {string|{test:(arg0:string)=>boolean}} expected
+ *    Either the `Error` object's expected message, or a regular expression
+ *    to test that message.
+ *    - Instead of a `RegExp`, any object with a `test()` method can be used
  * @param {string|string[]} [notes]
  *    An optional description of the test, as a string or array of strings.
  *    - A string is treated identically to an array containing just that string
@@ -1306,6 +1286,15 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
 function throwsError(actually, expected, notes) {
     const begin = 'throwsError()';
 
+    // Validate the `actually` and `expected` arguments.
+    const aActually = aintaFunction(actually, 'actually', { begin });
+    if (aActually) throw Error(aActually);
+    const [ aExpected, isStrOrRxLike ] = narrowAintas(
+        { begin, schema:{ test: { types:['function'] } } },
+        [ aintaObject, aintaString ]); // array means 'OR' to `narrowAintas()`
+    isStrOrRxLike(expected, 'expected');
+    if (aExpected.length) throw Error(aExpected.join('\n'));
+
     // Validate the `notes` argument. `this.addResult()`, if it exists, will
     // do some similar validation, but its error message would be confusing.
     const notesIsArray = Array.isArray(notes); // used again, further below
@@ -1316,17 +1305,56 @@ function throwsError(actually, expected, notes) {
             ? aintaString(notes, 'notes', options)
             : ''; // no `notes` argument was passed in
     if (aNotes) throw Error(aNotes);
-/*
+
+    // Determine if `actually()` throws an exception. If so, store it in `err`.
+    let didThrow = false;
+    let err;
+    try { actually(); } catch (thrownErr) {
+        didThrow = true;
+        err = thrownErr;
+    }
+
+    // Generate `result`, which will be the main part of the `overview`. Also,
+    // set `status`, which is 'PASS' if the expected error message is thrown.
+    let didFail = true;
+    let result = '';
+    let status = 'FAIL';
+    if (!didThrow) {
+        result = '`actually()` did not throw an exception';
+    } else {
+        const type = typeof err;
+        result = err === null
+            ? '`null`'
+            : Array.isArray(err)
+                ? 'an array'
+                : type !== 'object'
+                    ? "type '" + type + "'"
+                    : err instanceof Error
+                        ? ''
+                        : "an instance of '" + err.constructor.name + "'";
+        if (result) {
+            result = '`actually()` throws ' + result + ', not an `Error` object';
+        } else {
+            if (typeof expected === 'string'
+                ? err.message !== expected
+                : !expected.test(err.message)
+            ) {
+                result = '`actually()` throws an `Error` with unexpected message';
+            }
+            didFail = true;
+            status = 'PASS';
+        }
+    }
+
     // Generate the overview which `throwsError()` will throw or return.
-    const status = didFail ? 'FAIL' : 'PASS';
     const actuallyRenderable = Renderable.from(actually);
     const expectedRenderable = Renderable.from(expected);
-    const firstNotesLine = notesIsArray
+    const firstNotesLine = Array.isArray(notes)
         ? (notes[0] || '') // `notes` is an array
         : (notes || ''); // `notes` should be undefined or a string
     const overview = status +
         `: ${firstNotesLine && truncate(firstNotesLine,114) + '\n    : '}` +
-        `\`actually\` is ${actuallyRenderable.overview}${didFail
+        `\`actually\` is ${actuallyRenderable.overview}${result
             ? `\n    : \`expected\` is ${expectedRenderable.overview}`
             : ' as expected'}`;
 
@@ -1341,7 +1369,7 @@ function throwsError(actually, expected, notes) {
         ? notes // was already an array
         : typeof notes === 'undefined'
             ? [] // no `notes` argument was passed in
-            : [ notes ] // hopefully a string, but that will be validated below
+            : [ notes ]; // hopefully a string, but that will be validated below
 
     // Prepare an array of strings to pass to the `addResult()` `notes` argument.
     // This array will end with some auto-generated notes about the test.
@@ -1362,8 +1390,6 @@ function throwsError(actually, expected, notes) {
 
     // Return an overview of the test result.
     return overview;
-*/
-    return '@TODO';
 }
 
 export { Highlight, Renderable, bind1, bind2, bind3, Are as default, isDeeplyLike, throwsError };

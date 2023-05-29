@@ -14,7 +14,7 @@ import { Are } from '../classes/index.js';
  * @example
  * import { bind2, isDeeplyLike, throwsError } from '../are.js';
  * 
- * // Create a test suite with a title, and bind one function to it.
+ * // Create a test suite with a title, and bind two functions to it.
  * const [ isLike, throws, testSuite ] = bind2(isDeeplyLike, throwsError, 'fact()');
  * 
  * // Or a test suite from a previous test could be passed in instead.
