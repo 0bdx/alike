@@ -1253,6 +1253,10 @@ function isDeeplyLike(actually, expected, notes) {
 const noteRx = /^[ -\[\]-~]*$/;
 noteRx.toString = () => "'Printable ASCII characters except backslashes'";
 
+// Define two constants which will act as enums.
+const PASS = 'PASS';
+const FAIL = 'FAIL';
+
 /** ### Determines whether a function throws the expected error.
  * 
  * `throwsError()` operates in one of two modes:
@@ -1265,7 +1269,7 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
  *
  * @param {function} actually
  *    A function which is expected to throw an `Error` exception when called.
- * @param {string|{test:(arg0:string)=>boolean}} expected
+ * @param {string|{test:(arg0:string)=>boolean,toString:()=>string}} expected
  *    Either the `Error` object's expected message, or a regular expression
  *    to test that message.
  *    - Instead of a `RegExp`, any object with a `test()` method can be used
@@ -1308,6 +1312,7 @@ function throwsError(actually, expected, notes) {
 
     // Determine if `actually()` throws an exception. If so, store it in `err`.
     let didThrow = false;
+    let didThrowError = false;
     let err;
     try { actually(); } catch (thrownErr) {
         didThrow = true;
@@ -1316,12 +1321,9 @@ function throwsError(actually, expected, notes) {
 
     // Generate `result`, which will be the main part of the `overview`. Also,
     // set `status`, which is 'PASS' if the expected error message is thrown.
-    let didFail = true;
     let result = '';
-    let status = 'FAIL';
-    if (!didThrow) {
-        result = '`actually()` did not throw an exception';
-    } else {
+    let status = FAIL;
+    if (didThrow) {
         const type = typeof err;
         result = err === null
             ? '`null`'
@@ -1332,44 +1334,57 @@ function throwsError(actually, expected, notes) {
                     : err instanceof Error
                         ? ''
                         : "an instance of '" + err.constructor.name + "'";
-        if (result) {
-            result = '`actually()` throws ' + result + ', not an `Error` object';
-        } else {
+        if (!result) {
+            didThrowError = true;
             if (typeof expected === 'string'
-                ? err.message !== expected
-                : !expected.test(err.message)
-            ) {
-                result = '`actually()` throws an `Error` with unexpected message';
-            }
-            didFail = true;
-            status = 'PASS';
+                ? err.message === expected
+                : expected.test(err.message)
+            ) status = PASS;
         }
     }
 
     // Generate the overview which `throwsError()` will throw or return.
-    const actuallyRenderable = Renderable.from(actually);
-    const expectedRenderable = Renderable.from(expected);
     const firstNotesLine = Array.isArray(notes)
         ? (notes[0] || '') // `notes` is an array
         : (notes || ''); // `notes` should be undefined or a string
+    const exp = typeof expected === 'object'
+        ? truncate(expected.toString(),114) // could be a RegExp, or just rx-like
+        : expected // must be a string
+            ? `"${truncate(expected,114)}"`
+            : 'an empty string'
+    ;
     const overview = status +
         `: ${firstNotesLine && truncate(firstNotesLine,114) + '\n    : '}` +
-        `\`actually\` is ${actuallyRenderable.overview}${result
-            ? `\n    : \`expected\` is ${expectedRenderable.overview}`
-            : ' as expected'}`;
+        (status === PASS
+            ? typeof expected === 'string'
+                ? `\`actually()\` throws ${exp} as expected`
+                : `\`actually()\` throws "${truncate(err.message,92)}"\n    : ` +
+                  `\`expected\`, ${expected.constructor.name} ${exp}, allows it`
+            : !didThrow
+                ? '`actually()` did not throw an exception' +
+                  '\n    : `expected` is ' + exp
+                : !didThrowError
+                    ? `\`actually()\` throws ${result}, not an \`Error\` object`
+                    : `\`actually()\` throws "${truncate(err.message,92)}"\n` +
+                      '    : `expected`' + (typeof expected === 'string'
+                        ? ' value is ' + exp
+                        : `, ${expected.constructor.name} ${exp}, disallows it`
+                    )
+        );
 
-    // If there's no `this.addResult()`, throw or return the overview.
+    // If there's no `this.addResult()` then `throwsError()` is not bound,
+    // so throw `overview` if the test failed or return it if the test passed.
     if (typeof this?.addResult !== 'function') {
-        if (didFail) throw Error(overview);
+        if (status === FAIL) throw Error(overview);
         return overview;
     }
-
+/*
     // Normalise the `notes` argument into an array.
     const notesArr = Array.isArray(notes)
         ? notes // was already an array
         : typeof notes === 'undefined'
             ? [] // no `notes` argument was passed in
-            : [ notes ]; // hopefully a string, but that will be validated below
+            : [ notes ] // hopefully a string, but that will be validated below
 
     // Prepare an array of strings to pass to the `addResult()` `notes` argument.
     // This array will end with some auto-generated notes about the test.
@@ -1390,6 +1405,8 @@ function throwsError(actually, expected, notes) {
 
     // Return an overview of the test result.
     return overview;
+*/
+    return '@TODO';
 }
 
 export { Highlight, Renderable, bind1, bind2, bind3, Are as default, isDeeplyLike, throwsError };

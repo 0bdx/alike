@@ -395,7 +395,7 @@ export function isDeeplyLike(actually: any, expected: any, notes?: string | stri
  *
  * @param {function} actually
  *    A function which is expected to throw an `Error` exception when called.
- * @param {string|{test:(arg0:string)=>boolean}} expected
+ * @param {string|{test:(arg0:string)=>boolean,toString:()=>string}} expected
  *    Either the `Error` object's expected message, or a regular expression
  *    to test that message.
  *    - Instead of a `RegExp`, any object with a `test()` method can be used
@@ -415,6 +415,7 @@ export function isDeeplyLike(actually: any, expected: any, notes?: string | stri
  */
 export function throwsError(actually: Function, expected: string | {
     test: (arg0: string) => boolean;
+    toString: () => string;
 }, notes?: string | string[]): string;
 /** ### Records the outcome of one test.
  *
