@@ -148,7 +148,7 @@ export default function throwsError(actually, expected, notes) {
     are.addResult(
         Renderable.from(err), // will be `undefined` if nothing was thrown
         Renderable.from(expected),
-        [ ...notesArr, overview ],
+        [ ...notesArr, ...(overview.split('\n')) ],
         status,
     );
 

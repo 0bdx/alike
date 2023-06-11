@@ -1,6 +1,6 @@
 /**
  * https://www.npmjs.com/package/@0bdx/are
- * @version 0.0.2
+ * @version 0.0.3
  * @license Copyright (c) 2023 0bdx <0@0bdx.com> (0bdx.com)
  * SPDX-License-Identifier: MIT
  */
@@ -1396,7 +1396,7 @@ function throwsError(actually, expected, notes) {
     are.addResult(
         Renderable.from(err), // will be `undefined` if nothing was thrown
         Renderable.from(expected),
-        [ ...notesArr, overview ],
+        [ ...notesArr, ...(overview.split('\n')) ],
         status,
     );
 

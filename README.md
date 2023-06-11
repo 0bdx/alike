@@ -2,7 +2,7 @@
 
 __Utilities for unit testing 0bdx apps, libraries and websites.__
 
-⨂ __Version:__ 0.0.2  
+⨂ __Version:__ 0.0.3  
 ⨂ __NPM:__ <https://www.npmjs.com/package/@0bdx/are>  
 ⨂ __Repo:__ <https://github.com/0bdx/are>  
 ⨂ __Homepage:__ <https://0bdx.com/are>
