@@ -7,13 +7,13 @@ const noteRx = /^[ -\[\]-~]*$/;
 noteRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 /** ### Compares two JavaScript values in a user-friendly way.
- * 
+ *
  * `isDeeplyLike()` operates in one of two modes:
  * 1. If it has been bound to an object with an `addResult()` method, it sends
  *    that method the full test results, and then returns an overview.
  * 2. Otherwise, it either throws an `Error` if the test fails, or returns
  *    an overview if the test passes.
- * 
+ *
  * @TODO finish the description, with examples
  *
  * @param {any} actually
@@ -102,7 +102,7 @@ export default function isDeeplyLike(actually, expected, notes) {
 /* ---------------------------------- Test ---------------------------------- */
 
 /** ### `isDeeplyLike()` unit tests.
- * 
+ *
  * @param {typeof Are} A
  *    The `Are` class, because `Are` in are.js !== `Are` in src/.
  * @param {isDeeplyLike} f

@@ -103,7 +103,7 @@ export default class Result {
 /* ---------------------------------- Tests --------------------------------- */
 
 /** ### `Result` unit tests.
- * 
+ *
  * @returns {void}
  *    Does not return anything.
  * @throws {Error}

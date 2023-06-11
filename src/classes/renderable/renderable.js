@@ -109,7 +109,7 @@ export default class Renderable {
 /* ---------------------------------- Tests --------------------------------- */
 
 /** ### `Renderable` unit tests.
- * 
+ *
  * @returns {void}
  *    Does not return anything.
  * @throws {Error}

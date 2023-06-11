@@ -12,13 +12,13 @@ const PASS = 'PASS';
 const FAIL = 'FAIL';
 
 /** ### Determines whether a function throws the expected error.
- * 
+ *
  * `throwsError()` operates in one of two modes:
  * 1. If it has been bound to an object with an `addResult()` method, it sends
  *    that method the full test results, and then returns an overview.
  * 2. Otherwise, it either throws an `Error` if the test fails, or returns
  *    an overview if the test passes.
- * 
+ *
  * @TODO finish the description, with examples
  *
  * @param {function} actually
@@ -167,7 +167,7 @@ export default function throwsError(actually, expected, notes) {
 /* ---------------------------------- Test ---------------------------------- */
 
 /** ### `throwsError()` unit tests.
- * 
+ *
  * @param {typeof Are} A
  *    The `Are` class, because `Are` in are.js !== `Are` in src/.
  * @param {throwsError} f

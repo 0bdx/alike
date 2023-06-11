@@ -82,7 +82,7 @@ export const determineWhetherDeeplyAlike = (actually, expected, maxDepth=99) => 
 /** ### Protects `JSON.stringify()` against cyclic references.
  *
  * See <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cyclic_object_value>
- * 
+ *
  * @private
  * @returns {function(string,any):any}
  */
@@ -128,7 +128,7 @@ export const truncate = (text, length) => {
 /* ---------------------------------- Test ---------------------------------- */
 
 /** ### helper unit tests.
- * 
+ *
  * @returns {void}
  *    Does not return anything.
  * @throws {Error}
