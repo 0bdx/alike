@@ -38,8 +38,8 @@ const FAIL = 'FAIL';
  *    Returns an overview of the test result.
  * @throws {Error}
  *    Throws an `Error` if the arguments or the `this` context are invalid.
- *    Also, unless it's bound to an object with an `addResult()` method, throws
- *    an `Error` if the test fails.
+ *    Also, unless the `this` context is an object with an `addResult()` method,
+ *    throws an `Error` if the test fails.
  */
 export default function throwsError(actually, expected, notes) {
     const begin = 'throwsError()';
@@ -76,6 +76,7 @@ export default function throwsError(actually, expected, notes) {
     // Generate `result`, which will be the main part of the `overview`. Also,
     // set `status`, which is 'PASS' if the expected error message is thrown.
     let result = '';
+    /** @type {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} */
     let status = FAIL;
     if (didThrow) {
         const type = typeof err;
@@ -132,7 +133,7 @@ export default function throwsError(actually, expected, notes) {
         if (status === FAIL) throw Error(overview);
         return overview;
     }
-/*
+
     // Normalise the `notes` argument into an array.
     const notesArr = Array.isArray(notes)
         ? notes // was already an array
@@ -140,27 +141,19 @@ export default function throwsError(actually, expected, notes) {
             ? [] // no `notes` argument was passed in
             : [ notes ] // hopefully a string, but that will be validated below
 
-    // Prepare an array of strings to pass to the `addResult()` `notes` argument.
-    // This array will end with some auto-generated notes about the test.
-    const auto = !didFail
-        ? [ '{{actually}} as expected' ]
-        : actuallyRenderable.isShort() && expectedRenderable.isShort()
-            ? [ 'actually: {{actually}}', 'expected: {{expected}}' ]
-            : [ 'actually:', '{{actually}}', 'expected:', '{{expected}}' ];
-    const notesPlusAuto = [ ...notesArr, ...auto ];
-
     // Add the test result to the object that this function has been bound to.
-    this.addResult(
-        actuallyRenderable,
-        expectedRenderable,
-        notesPlusAuto,
+    // @TODO this will need to be improved
+    /** @type {Are} */
+    const are = this;
+    are.addResult(
+        Renderable.from(err), // will be `undefined` if nothing was thrown
+        Renderable.from(expected),
+        [ ...notesArr, overview ],
         status,
     );
 
     // Return an overview of the test result.
     return overview;
-*/
-    return '@TODO';
 }
 
 
@@ -299,6 +292,31 @@ export function throwsErrorTest(A, f, R) {
         'PASS: "Throws ok"',
         '    : `actually()` throws "CDE"',
         '    : `expected`, RegExp /[abc]/i, allows it'));
+
+
+    // BOUND, PASS
+
+    // Bound, if `expected` is an empty string, an overview is returned if `actually()` throws an empty `Error.message`.
+    const resultEmptyStrings = bound(()=>{throw Error('')},'');
+    const resultEmptyStringsStr = toLines(
+        `{`,
+        `  "actually": {`,
+        `    "highlights": [],`,
+        `    "text": "{}"`,
+        `  },`,
+        `  "expected": {`,
+        simpleResultMocker('STRING', 2, '\\"\\"'),
+        '  "notes": "PASS: `actually()` throws an empty string as expected",',
+        `  "sectionIndex": 0,`,
+        `  "status": "PASS"`,
+        `}`
+    );
+    equal(resultEmptyStrings, 'PASS: `actually()` throws an empty string as expected');
+    equal(are.resultsAndSections.length, 1);
+    equal(toStr(are.resultsAndSections[0]), resultEmptyStringsStr);
+    equal(are.resultsAndSections[0] === resultEmptyStrings, false); // not the same object
+
+    // @TODO lots more bound unit tests
 
 
     // UNBOUND, DOES NOT THROW

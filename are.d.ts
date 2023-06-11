@@ -379,8 +379,8 @@ declare class Are {
  *    Returns an overview of the test result.
  * @throws {Error}
  *    Throws an `Error` if `notes` or the `this` context are invalid.
- *    Also, unless it's bound to an object with an `addResult()` method, throws
- *    an `Error` if the test fails.
+ *    Also, unless the `this` context is an object with an `addResult()` method,
+ *    throws an `Error` if the test fails.
  */
 export function isDeeplyLike(actually: any, expected: any, notes?: string | string[]): string;
 /** ### Determines whether a function throws the expected error.
@@ -410,8 +410,8 @@ export function isDeeplyLike(actually: any, expected: any, notes?: string | stri
  *    Returns an overview of the test result.
  * @throws {Error}
  *    Throws an `Error` if the arguments or the `this` context are invalid.
- *    Also, unless it's bound to an object with an `addResult()` method, throws
- *    an `Error` if the test fails.
+ *    Also, unless the `this` context is an object with an `addResult()` method,
+ *    throws an `Error` if the test fails.
  */
 export function throwsError(actually: Function, expected: string | {
     test: (arg0: string) => boolean;

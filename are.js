@@ -864,24 +864,24 @@ Are.prototype.render = function render(
  *
  * @example
  * import { bind1, isDeeplyLike } from '../are.js';
- * 
+ *
  * // Create a test suite with a title, and bind one function to it.
  * const [ isLike, testSuite ] = bind1(isDeeplyLike, 'fact()');
- * 
+ *
  * // Or a test suite from a previous test could be passed in instead.
  * // const [ isLike ] = bind1(isDeeplyLike, testSuite);
- * 
+ *
  * // Optionally, begin a new section.
  * testSuite.addSection('Check that fact() works');
- * 
+ *
  * // Run the tests. The third argument, `notes`, is optional.
  * isLike(fact(0), 1);
  * isLike(fact(5), 120,
  *     ['`fact(5)` 5! = 5 * 4 * 3 * 2 * 1']);
- * 
+ *
  * // Output a test results summary to the console, as plain text.
  * console.log(testSuite.render());
- * 
+ *
  * // Calculates the factorial of a given integer.
  * function fact(n) {
  *     if (n === 0 || n === 1) return 1;
@@ -932,16 +932,16 @@ function bind1(functionA, areOrTitle) {
  *
  * @example
  * import { bind2, isDeeplyLike, throwsError } from '../are.js';
- * 
+ *
  * // Create a test suite with a title, and bind two functions to it.
  * const [ isLike, throws, testSuite ] = bind2(isDeeplyLike, throwsError, 'fact()');
- * 
+ *
  * // Or a test suite from a previous test could be passed in instead.
  * // const [ isLike, throws ] = bind2(isDeeplyLike, throwsError, testSuite);
- * 
+ *
  * // Optionally, begin a new section.
  * testSuite.addSection('Check that fact() works');
- * 
+ *
  * // Run the tests. The third argument, `notes`, is optional.
  * throws(()=>fact(), "`n` is not type 'number'");
  * throws(()=>fact(NaN), '`n` is NaN!',
@@ -949,10 +949,10 @@ function bind1(functionA, areOrTitle) {
  * isLike(fact(0), 1);
  * isLike(fact(5), 120,
  *     ['`fact(5)` 5! = 5 * 4 * 3 * 2 * 1']);
- * 
+ *
  * // Output a test results summary to the console, as plain text.
  * console.log(testSuite.render());
- * 
+ *
  * // Calculates the factorial of a given integer.
  * function fact(n) {
  *     if (typeof n !== 'number') throw Error("`n` is not type 'number'");
@@ -1158,13 +1158,13 @@ const noteRx$1 = /^[ -\[\]-~]*$/;
 noteRx$1.toString = () => "'Printable ASCII characters except backslashes'";
 
 /** ### Compares two JavaScript values in a user-friendly way.
- * 
+ *
  * `isDeeplyLike()` operates in one of two modes:
  * 1. If it has been bound to an object with an `addResult()` method, it sends
  *    that method the full test results, and then returns an overview.
  * 2. Otherwise, it either throws an `Error` if the test fails, or returns
  *    an overview if the test passes.
- * 
+ *
  * @TODO finish the description, with examples
  *
  * @param {any} actually
@@ -1182,8 +1182,8 @@ noteRx$1.toString = () => "'Printable ASCII characters except backslashes'";
  *    Returns an overview of the test result.
  * @throws {Error}
  *    Throws an `Error` if `notes` or the `this` context are invalid.
- *    Also, unless it's bound to an object with an `addResult()` method, throws
- *    an `Error` if the test fails.
+ *    Also, unless the `this` context is an object with an `addResult()` method,
+ *    throws an `Error` if the test fails.
  */
 function isDeeplyLike(actually, expected, notes) {
     const begin = 'isDeeplyLike()';
@@ -1238,7 +1238,9 @@ function isDeeplyLike(actually, expected, notes) {
     const notesPlusAuto = [ ...notesArr, ...auto ];
 
     // Add the test result to the object that this function has been bound to.
-    this.addResult(
+    /** @type {Are} */
+    const are = this;
+    are.addResult(
         actuallyRenderable,
         expectedRenderable,
         notesPlusAuto,
@@ -1258,13 +1260,13 @@ const PASS = 'PASS';
 const FAIL = 'FAIL';
 
 /** ### Determines whether a function throws the expected error.
- * 
+ *
  * `throwsError()` operates in one of two modes:
  * 1. If it has been bound to an object with an `addResult()` method, it sends
  *    that method the full test results, and then returns an overview.
  * 2. Otherwise, it either throws an `Error` if the test fails, or returns
  *    an overview if the test passes.
- * 
+ *
  * @TODO finish the description, with examples
  *
  * @param {function} actually
@@ -1284,8 +1286,8 @@ const FAIL = 'FAIL';
  *    Returns an overview of the test result.
  * @throws {Error}
  *    Throws an `Error` if the arguments or the `this` context are invalid.
- *    Also, unless it's bound to an object with an `addResult()` method, throws
- *    an `Error` if the test fails.
+ *    Also, unless the `this` context is an object with an `addResult()` method,
+ *    throws an `Error` if the test fails.
  */
 function throwsError(actually, expected, notes) {
     const begin = 'throwsError()';
@@ -1322,6 +1324,7 @@ function throwsError(actually, expected, notes) {
     // Generate `result`, which will be the main part of the `overview`. Also,
     // set `status`, which is 'PASS' if the expected error message is thrown.
     let result = '';
+    /** @type {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} */
     let status = FAIL;
     if (didThrow) {
         const type = typeof err;
@@ -1378,35 +1381,27 @@ function throwsError(actually, expected, notes) {
         if (status === FAIL) throw Error(overview);
         return overview;
     }
-/*
+
     // Normalise the `notes` argument into an array.
     const notesArr = Array.isArray(notes)
         ? notes // was already an array
         : typeof notes === 'undefined'
             ? [] // no `notes` argument was passed in
-            : [ notes ] // hopefully a string, but that will be validated below
-
-    // Prepare an array of strings to pass to the `addResult()` `notes` argument.
-    // This array will end with some auto-generated notes about the test.
-    const auto = !didFail
-        ? [ '{{actually}} as expected' ]
-        : actuallyRenderable.isShort() && expectedRenderable.isShort()
-            ? [ 'actually: {{actually}}', 'expected: {{expected}}' ]
-            : [ 'actually:', '{{actually}}', 'expected:', '{{expected}}' ];
-    const notesPlusAuto = [ ...notesArr, ...auto ];
+            : [ notes ]; // hopefully a string, but that will be validated below
 
     // Add the test result to the object that this function has been bound to.
-    this.addResult(
-        actuallyRenderable,
-        expectedRenderable,
-        notesPlusAuto,
+    // @TODO this will need to be improved
+    /** @type {Are} */
+    const are = this;
+    are.addResult(
+        Renderable.from(err), // will be `undefined` if nothing was thrown
+        Renderable.from(expected),
+        [ ...notesArr, overview ],
         status,
     );
 
     // Return an overview of the test result.
     return overview;
-*/
-    return '@TODO';
 }
 
 export { Highlight, Renderable, bind1, bind2, bind3, Are as default, isDeeplyLike, throwsError };

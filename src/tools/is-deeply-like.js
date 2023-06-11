@@ -31,8 +31,8 @@ noteRx.toString = () => "'Printable ASCII characters except backslashes'";
  *    Returns an overview of the test result.
  * @throws {Error}
  *    Throws an `Error` if `notes` or the `this` context are invalid.
- *    Also, unless it's bound to an object with an `addResult()` method, throws
- *    an `Error` if the test fails.
+ *    Also, unless the `this` context is an object with an `addResult()` method,
+ *    throws an `Error` if the test fails.
  */
 export default function isDeeplyLike(actually, expected, notes) {
     const begin = 'isDeeplyLike()';
@@ -87,7 +87,9 @@ export default function isDeeplyLike(actually, expected, notes) {
     const notesPlusAuto = [ ...notesArr, ...auto ];
 
     // Add the test result to the object that this function has been bound to.
-    this.addResult(
+    /** @type {Are} */
+    const are = this;
+    are.addResult(
         actuallyRenderable,
         expectedRenderable,
         notesPlusAuto,
