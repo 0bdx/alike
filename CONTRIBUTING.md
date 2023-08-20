@@ -9,9 +9,9 @@
 ### __Set up your development machine__
 
 1.  Check your __Git__ version:  
-    `git --version # should be 'git version 2.20.1' or greater`
+    `git --version # should be 'git version 2.41.0' or greater`
 2.  Check your __Node__ version:  
-    `node --version # should be 'v14.0.0' or greater`
+    `node --version # should be 'v18.16.0' or greater`
 3.  Check your global __TypeScript__ version:  
     `tsc --version # should be 'Version 4.9.4' or greater`  
     There is no actual TypeScript code in this project, but TypeScript can infer
@@ -22,7 +22,7 @@
 ### __Set up VS Code__
 
 1.  Check your __VS Code__ version:  
-    `code --version # should be '1.74.3' or greater`
+    `code --version # should be '1.81.0' or greater`
 2.  Install and enable the [`jeremyljackson.vs-docblock`
     ](https://marketplace.visualstudio.com/items?itemName=jeremyljackson.vs-docblock)
     extension.
@@ -39,7 +39,7 @@ Install the runtime dependency, and the two dev-dependencies:
 `npm i`  
 @0bdx/ainta 0.0.18, 1 package, 114 kB for 7 items.  
 @0bdx/build-helpers 0.0.4, 1 package, 22 kB for 6 items.  
-rollup 3.15.0, 2 packages, 2.6 MB for 31 items.  
+rollup 3.28.0, 2 packages, 2.6 MB for 35 items.  
 
 Open the `are` repo in VS Code:  
 `code .`
@@ -179,7 +179,7 @@ npm install rollup --save-dev
     `rm package.jsonx`
 15. Install two dev-dependencies:  
     `npm install @0bdx/build-helpers --save-dev` 0.0.4, 1 package, 22 kB for 6 items  
-    `npm install rollup --save-dev` 3.15.0, 2 packages, 2.6 MB for 31 items  
+    `npm install rollup --save-dev` 3.28.0, 2 packages, 2.6 MB for 35 items  
 16. Install one runtime dependency:  
     `npm install @0bdx/ainta` 0.0.18, 1 package, 114 kB for 7 items  
 
