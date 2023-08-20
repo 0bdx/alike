@@ -1,6 +1,6 @@
 # Contributing
 
-@TODO add an overview
+TODO add an overview
 
 ---
 
@@ -26,9 +26,15 @@
 2.  Install and enable the [`jeremyljackson.vs-docblock`
     ](https://marketplace.visualstudio.com/items?itemName=jeremyljackson.vs-docblock)
     extension.
-3.  Install and enable the [`dnamsons.kimbie-dark-plus`
+3.  Install and enable the [`wayou.vscode-todo-highlight`
+    ](https://marketplace.visualstudio.com/items?itemName=wayou.vscode-todo-highlight)
+    extension.
+4.  Install and enable the [`gruntfuggly.todo-tree`
+    ](https://marketplace.visualstudio.com/items?itemName=gruntfuggly.todo-tree)
+    extension.
+5.  Install and enable the [`dnamsons.kimbie-dark-plus`
     ](https://marketplace.visualstudio.com/items?itemName=dnamsons.kimbie-dark-plus)
-    theme.  
+    theme.
 
 ### __Set up the repo locally__
 
@@ -59,7 +65,8 @@ Run all tests on the built __are.js__ file:
 `npm run preflight:test`
 
 Check that __are.js__ uses all types correctly:  
-`npm run preflight:types` @TODO fix this
+`npm run preflight:types`  
+TODO fix this
 
 Or run all the build and preflight steps in one line, eg before committing:  
 `npm run build && npm run preflight`
@@ -69,6 +76,7 @@ Display what will be published:
 
 Publish to [npmjs.com/package/@0bdx/are](
 https://www.npmjs.com/package/@0bdx/are):  
+`npm whoami # should be "0bdx" - you may need to log in`  
 `npm publish`
 
 ---

@@ -139,11 +139,11 @@ export function resultTest() {
     const nUsual = ['First line.','Second Line.'];
     const siUsual = 77;
     const stUsual = 'PASS';
-    // @TODO *Min
-    // @TODO *Max
+    // TODO *Min
+    // TODO *Max
 
     // Instantiating with all arguments invalid should fail.
-    // @TODO more tests
+    // TODO more tests
     // @ts-expect-error
     throws(()=>new C(),
         begin + ": `actually` is type 'undefined' not 'object'\n" +
@@ -236,10 +236,10 @@ export function resultTest() {
     equal(toStr(usual), expectedUsual);
 
     // A minimal `Result` should `JSON.stringify()` as expected.
-    // @TODO
+    // TODO
 
     // A maximal `Result` should `JSON.stringify()` as expected.
-    // @TODO
+    // TODO
 
     // It should not be possible to add a new property.
     // @ts-expect-error
@@ -277,11 +277,11 @@ export function resultTest() {
     equal(toStr(usual), expectedUsual);
 
     // The `actually` and `expected` properties should also be frozen.
-    // @TODO
+    // TODO
 
     // The `actually` and `expected` properties should not be the same objects
     // as their passed-in arguments. So, the arguments should not be frozen, and
     // modifying them after `new Result()` should not change the properties.
-    // @TODO
+    // TODO
 
 }

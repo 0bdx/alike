@@ -286,8 +286,8 @@ export function areTest(A, H, R) {
 
     // Define some typical, minimal and maximal valid values.
     const tUsual = 'The Cafe is ok.';
-    // @TODO tMin
-    // @TODO tMax
+    // TODO tMin
+    // TODO tMax
 
     // `title` should be a valid string, up to 64 characters long.
     // @ts-expect-error
@@ -320,10 +320,10 @@ export function areTest(A, H, R) {
     equal(toStr(usual), expectedStringifiedUsual);
 
     // A minimal `Result` should `JSON.stringify()` as expected.
-    // @TODO
+    // TODO
 
     // A maximal `Result` should `JSON.stringify()` as expected.
-    // @TODO
+    // TODO
 
     // It should not be possible to add a new property.
     // @ts-expect-error
@@ -333,7 +333,7 @@ export function areTest(A, H, R) {
     throws(()=>{usual.title = 'This would be a valid title'}, /read only|read-only|readonly/);
 
     // It should not be possible to set scalar getter properties.
-    // @TODO accept browser equivalents of the "...has only a getter" error message
+    // TODO accept browser equivalents of the "...has only a getter" error message
     // @ts-expect-error
     throws(()=>{usual.failTally = 44}, /has only a getter/);
     // @ts-expect-error
@@ -342,13 +342,13 @@ export function areTest(A, H, R) {
     throws(()=>{usual.pendingTally = 44}, /has only a getter/);
 
     // It should not be possible to set object getter properties.
-    // @TODO accept browser equivalents of this error message
+    // TODO accept browser equivalents of this error message
     // @ts-expect-error
     throws(()=>{usual.resultsAndSections = []},
         'Cannot set property resultsAndSections of #<Are> which has only a getter');
 
     // It should not be possible to modify object getter properties.
-    // @TODO check that browsers don't throw an error, either
+    // TODO check that browsers don't throw an error, either
     equal(usual.resultsAndSections.length, 0);
     usual.resultsAndSections.push(new Section(123, 'Should be using `addSection()` instead!'));
     equal(usual.resultsAndSections.length, 0);
@@ -357,7 +357,7 @@ export function areTest(A, H, R) {
     throws(()=>{delete usual.title}, /^.*delete.+property.*$|^.*property.+delete.*$/);
 
     // It should not be possible to delete scalar getter properties.
-    // @TODO check that browsers don't throw an error, either
+    // TODO check that browsers don't throw an error, either
     equal(typeof usual.failTally + typeof usual.passTally + typeof usual.pendingTally, 'numbernumbernumber');
     // @ts-expect-error
     delete usual.failTally;
@@ -368,7 +368,7 @@ export function areTest(A, H, R) {
     equal(typeof usual.failTally + typeof usual.passTally + typeof usual.pendingTally, 'numbernumbernumber');
 
     // It should not be possible to delete object getter properties.
-    // @TODO check that browsers don't throw an error, either
+    // TODO check that browsers don't throw an error, either
     equal(typeof usual.resultsAndSections, 'object');
     // @ts-expect-error
     delete usual.resultsAndSections;

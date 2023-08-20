@@ -1,6 +1,6 @@
 {
   "name": "@0bdx/are",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Utilities for unit testing 0bdx apps, libraries and websites.",
   "type": "module",
   "files": [

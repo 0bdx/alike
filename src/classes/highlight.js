@@ -111,7 +111,7 @@ export function highlightTest() {
     const kMax = 'SYMBOL';
 
     // Instantiating with all arguments invalid should fail.
-    // @TODO more tests
+    // TODO more tests
     // @ts-expect-error
     throws(()=>new C(),
         begin + ": `kind` is type 'undefined' not 'string'\n" +

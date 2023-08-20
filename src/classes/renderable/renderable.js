@@ -42,8 +42,8 @@ export default class Renderable {
         aStr(text, 'text', { min:1, max:65535 });
         if (aResults.length) throw Error(aResults.join('\n'));
 
-        // @TODO check that none of the Highlights overlap
-        // @TODO and that they don't extend beyond the end of `text`
+        // TODO check that none of the Highlights overlap
+        // TODO and that they don't extend beyond the end of `text`
 
         // Store the validated arguments as properties.
         this.highlights = highlights;
@@ -138,11 +138,11 @@ export function renderableTest() {
     const tUsual = '{ ok:"Café" }';
     const hMin = [];
     const tMin = ' ';
-    const hMax = []; // @TODO
+    const hMax = []; // TODO
     const tMax = '12345678'.repeat(8);
 
     // Instantiating with both arguments invalid should fail.
-    // @TODO more tests
+    // TODO more tests
     // @ts-expect-error
     throws(()=>new C(),
         begin + ": `highlights` is type 'undefined' not an array\n" +
@@ -245,12 +245,12 @@ export function renderableTest() {
     equal(toStr(usual), expectedUsual);
 
     // The `highlights` property should also be frozen.
-    // @TODO
+    // TODO
 
     // The `highlights` property should not be the same object as the passed-in
     // `highlights` argument. So, that argument should not be frozen, and
     // modifying its items after `new Renderable()` should not change the
     // `highlights` property.
-    // @TODO
+    // TODO
 
 }

@@ -90,7 +90,7 @@ export function sectionTest() {
     const tMax = '12345678'.repeat(8);
 
     // Instantiating with both arguments invalid should fail.
-    // @TODO more tests
+    // TODO more tests
     // @ts-expect-error
     throws(()=>new C(),
         begin + ": `index` is type 'undefined' not 'number'\n" +

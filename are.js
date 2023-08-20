@@ -1,6 +1,6 @@
 /**
  * https://www.npmjs.com/package/@0bdx/are
- * @version 0.0.4
+ * @version 0.0.5
  * @license Copyright (c) 2023 0bdx <0@0bdx.com> (0bdx.com)
  * SPDX-License-Identifier: MIT
  */
@@ -126,7 +126,7 @@ function renderableFrom(value, start=0) {
 
     // Deal with a function.
     // Based on <https://stackoverflow.com/a/39253854>
-    // @TODO test this in more detail
+    // TODO test this in more detail
     if (type === 'function') {
         const params = new RegExp('(?:'+value.name+'\\s*|^)\\s*\\((.*?)\\)')
             .exec(String.toString.call(value).replace(/\n/g, ''))[1]
@@ -225,8 +225,8 @@ class Renderable {
         aStr(text, 'text', { min:1, max:65535 });
         if (aResults.length) throw Error(aResults.join('\n'));
 
-        // @TODO check that none of the Highlights overlap
-        // @TODO and that they don't extend beyond the end of `text`
+        // TODO check that none of the Highlights overlap
+        // TODO and that they don't extend beyond the end of `text`
 
         // Store the validated arguments as properties.
         this.highlights = highlights;
@@ -1092,11 +1092,11 @@ const determineWhetherDeeplyAlike = (actually, expected, maxDepth=99) => {
     if (actually === expected) return true;
 
     // If the arguments are both functions, return `false`.
-    // @TODO maybe compare static properties on a class
+    // TODO maybe compare static properties on a class
     if (typeActually === 'function' && typeExpected === 'function') return false;
 
     // If they are both arrays, compare each argument recursively.
-    // @TODO improve cyclic reference detection, by passing down a `foundObjects` argument
+    // TODO improve cyclic reference detection, by passing down a `foundObjects` argument
     const actuallyIsArray = Array.isArray(actually);
     const expectedIsArray = Array.isArray(expected);
     if (actuallyIsArray && expectedIsArray) {
@@ -1125,7 +1125,7 @@ const determineWhetherDeeplyAlike = (actually, expected, maxDepth=99) => {
     if (maxDepth === 0) return true;
 
     // Compare the two objects recursively, ignoring non-enumerable properties.
-    // @TODO improve cyclic reference detection, by passing down a `foundObjects` argument
+    // TODO improve cyclic reference detection, by passing down a `foundObjects` argument
     for (const key of actuallyKeys) {
         if (!determineWhetherDeeplyAlike(actually[key], expected[key], maxDepth - 1))
             return false;
@@ -1192,7 +1192,7 @@ function isDeeplyLike(actually, expected, notes) {
     // do some similar validation, but its error message would be confusing.
     const notesIsArray = Array.isArray(notes); // used again, further below
     const options = { begin, max:120, most:100, pass:true, rx:noteRx$1 };
-    const aNotes = notesIsArray // @TODO make ainta able to handle 'or' types
+    const aNotes = notesIsArray // TODO make ainta able to handle 'or' types
         ? aintaArray(notes, 'notes', { ...options, types:['string'] })
         : typeof notes !== 'undefined'
             ? aintaString(notes, 'notes', options)
@@ -1305,7 +1305,7 @@ function throwsError(actually, expected, notes) {
     // do some similar validation, but its error message would be confusing.
     const notesIsArray = Array.isArray(notes); // used again, further below
     const options = { begin, max:120, most:100, pass:true, rx:noteRx };
-    const aNotes = notesIsArray // @TODO make ainta able to handle 'or' types
+    const aNotes = notesIsArray // TODO make ainta able to handle 'or' types
         ? aintaArray(notes, 'notes', { ...options, types:['string'] })
         : typeof notes !== 'undefined'
             ? aintaString(notes, 'notes', options)
@@ -1390,7 +1390,7 @@ function throwsError(actually, expected, notes) {
             : [ notes ]; // hopefully a string, but that will be validated below
 
     // Add the test result to the object that this function has been bound to.
-    // @TODO this will need to be improved
+    // TODO this will need to be improved
     /** @type {Are} */
     const are = this;
     are.addResult(

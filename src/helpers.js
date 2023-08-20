@@ -38,11 +38,11 @@ export const determineWhetherDeeplyAlike = (actually, expected, maxDepth=99) => 
     if (actually === expected) return true;
 
     // If the arguments are both functions, return `false`.
-    // @TODO maybe compare static properties on a class
+    // TODO maybe compare static properties on a class
     if (typeActually === 'function' && typeExpected === 'function') return false;
 
     // If they are both arrays, compare each argument recursively.
-    // @TODO improve cyclic reference detection, by passing down a `foundObjects` argument
+    // TODO improve cyclic reference detection, by passing down a `foundObjects` argument
     const actuallyIsArray = Array.isArray(actually);
     const expectedIsArray = Array.isArray(expected);
     if (actuallyIsArray && expectedIsArray) {
@@ -71,7 +71,7 @@ export const determineWhetherDeeplyAlike = (actually, expected, maxDepth=99) => 
     if (maxDepth === 0) return true;
 
     // Compare the two objects recursively, ignoring non-enumerable properties.
-    // @TODO improve cyclic reference detection, by passing down a `foundObjects` argument
+    // TODO improve cyclic reference detection, by passing down a `foundObjects` argument
     for (const key of actuallyKeys) {
         if (!determineWhetherDeeplyAlike(actually[key], expected[key], maxDepth - 1))
             return false;
@@ -207,7 +207,7 @@ export function helpersTest() {
     equal(dwda([][0], [].length), false);
 
     // Should return `true` if the arguments reference the same thing.
-    // @TODO maybe test functions bound to different things
+    // TODO maybe test functions bound to different things
     const arr = []; class Cls {}; const fn = () => {}; const obj = {};
     equal(dwda(arr, arr), true);
     equal(dwda(Cls, Cls), true);
@@ -219,7 +219,7 @@ export function helpersTest() {
     equal(dwda(obj, arr), false);
 
     // Should return `true` or `false` if `actually` is an array.
-    // @TODO test that infinite recursion is handled ok
+    // TODO test that infinite recursion is handled ok
     equal(dwda([], []), true);
     equal(dwda([], function () { return [] }), false);
     equal(dwda(Array(10), Array(10)), true);
@@ -314,9 +314,9 @@ export function helpersTest() {
 
     // Should throw an `Error` if the arguments are invalid.
     // @ts-expect-error
-    throws(()=>truncate(), /undefined/); // @TODO test in all browsers
+    throws(()=>truncate(), /undefined/); // TODO test in all browsers
     // @ts-expect-error
-    throws(()=>truncate(123), /function/); // @TODO test in all browsers
+    throws(()=>truncate(123), /function/); // TODO test in all browsers
     throws(()=>truncate('abc', 11), 'truncate(): `length` 11 is < 12');
 
     // Should return `text` as-is, if it is not longer than `length`.

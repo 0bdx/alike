@@ -49,7 +49,7 @@ export default function renderableFrom(value, start=0) {
 
     // Deal with a function.
     // Based on <https://stackoverflow.com/a/39253854>
-    // @TODO test this in more detail
+    // TODO test this in more detail
     if (type === 'function') {
         const params = new RegExp('(?:'+value.name+'\\s*|^)\\s*\\((.*?)\\)')
             .exec(String.toString.call(value).replace(/\n/g, ''))[1]
@@ -266,7 +266,7 @@ export function renderableFromTest() {
         `      "stop": 6`,
         `    }`,
         `  ],`,
-        `  "text": "/(?:)/"`, // @TODO test on different browsers
+        `  "text": "/(?:)/"`, // TODO test on different browsers
         `}`,
     ));
     equal(toStr(f(/^[^abc]{3,9}$/gi)), toLines(

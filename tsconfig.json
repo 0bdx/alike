@@ -31,7 +31,8 @@
         "moduleResolution": "nodenext",
 
         // Allow 'private identifiers'. This should probably be "es2022", but
-        // a `tsserver` bug means even "es2015" will work. @TODO revisit this
+        // a `tsserver` bug means even "es2015" will work.
+        // TODO revisit this
         "target": "es2020"
     },
 

@@ -41,7 +41,7 @@ export default function isDeeplyLike(actually, expected, notes) {
     // do some similar validation, but its error message would be confusing.
     const notesIsArray = Array.isArray(notes); // used again, further below
     const options = { begin, max:120, most:100, pass:true, rx:noteRx };
-    const aNotes = notesIsArray // @TODO make ainta able to handle 'or' types
+    const aNotes = notesIsArray // TODO make ainta able to handle 'or' types
         ? aintaArray(notes, 'notes', { ...options, types:['string'] })
         : typeof notes !== 'undefined'
             ? aintaString(notes, 'notes', options)
@@ -253,7 +253,7 @@ export function isDeeplyLikeTest(A, f, R) {
         `}`
     ));
 
-    // @TODO more unit tests
+    // TODO more unit tests
 
     // `notes` can be an empty array.
     // throws(()=>f('true', true, []), 'foo');

@@ -57,7 +57,7 @@ export default function throwsError(actually, expected, notes) {
     // do some similar validation, but its error message would be confusing.
     const notesIsArray = Array.isArray(notes); // used again, further below
     const options = { begin, max:120, most:100, pass:true, rx:noteRx };
-    const aNotes = notesIsArray // @TODO make ainta able to handle 'or' types
+    const aNotes = notesIsArray // TODO make ainta able to handle 'or' types
         ? aintaArray(notes, 'notes', { ...options, types:['string'] })
         : typeof notes !== 'undefined'
             ? aintaString(notes, 'notes', options)
@@ -142,7 +142,7 @@ export default function throwsError(actually, expected, notes) {
             : [ notes ] // hopefully a string, but that will be validated below
 
     // Add the test result to the object that this function has been bound to.
-    // @TODO this will need to be improved
+    // TODO this will need to be improved
     /** @type {Are} */
     const are = this;
     are.addResult(
@@ -232,10 +232,10 @@ export function throwsErrorTest(A, f, R) {
     // @ts-expect-error
     throws(()=>bound(()=>{},{},''),
         "throwsError(): `expected.test` is type 'undefined', not the `options.types` 'function'; " +
-        "or ` is type 'object' not 'string'"); //@TODO minor ainta fix
+        "or ` is type 'object' not 'string'"); // TODO minor ainta fix
     // @ts-expect-error
     throws(()=>f(()=>{},{Test:(str)=>str==='foo'},''), // uppercase `T`
-        "throwsError(): `expected.Test` is unexpected; or ` is type 'object' not 'string'"); //@TODO minor ainta fix
+        "throwsError(): `expected.Test` is unexpected; or ` is type 'object' not 'string'"); // TODO minor ainta fix
 
     // Whether `throwsError()` is bound or not, an exception should be thrown
     // if `notes` is not a valid string or array of strings.
@@ -276,14 +276,14 @@ export function throwsErrorTest(A, f, R) {
     equal(f(()=>{throw ReferenceError('Oh no!')},'Oh no!'),
         'PASS: `actually()` throws "Oh no!" as expected');
     equal(f(()=>{throw Error('Some "Error"')},'Some "Error"',['']), // `notes` is an array containing an empty string
-        'PASS: `actually()` throws "Some "Error"" as expected'); // @TODO fix double double quote!
+        'PASS: `actually()` throws "Some "Error"" as expected'); // TODO fix double double quote!
     equal(f(()=>{throw EvalError('Oh no!')},'Oh no!','Throws the expected `Error.message`'), toLines(
         'PASS: Throws the expected `Error.message`',
         '    : `actually()` throws "Oh no!" as expected'));
 
     // Unbound, if `expected` is RegExp-like, an overview is returned if `actually()` throws a correct `Error.message`.
     equal(f(()=>{throw SyntaxError('"')},{test:(s)=>s==='"'}), toLines(
-        'PASS: `actually()` throws """', // @TODO fix double double quote!
+        'PASS: `actually()` throws """', // TODO fix double double quote!
         '    : `expected`, Object [object Object], allows it'));
     equal(f(()=>{throw TypeError('abc Is /thrown/ xyz')},/Is \/thrown\//,[]), toLines( // `notes` is an empty array
         'PASS: `actually()` throws "abc Is /thrown/ xyz"',
@@ -316,7 +316,7 @@ export function throwsErrorTest(A, f, R) {
     equal(toStr(are.resultsAndSections[0]), resultEmptyStringsStr);
     equal(are.resultsAndSections[0] === resultEmptyStrings, false); // not the same object
 
-    // @TODO lots more bound unit tests
+    // TODO lots more bound unit tests
 
 
     // UNBOUND, DOES NOT THROW
@@ -339,7 +339,7 @@ export function throwsErrorTest(A, f, R) {
         '    : `expected` is "Never thrown"'));
     throws(()=>f(()=>{},'Never "thrown"',''), toLines( // `notes` is an empty string
         'FAIL: `actually()` did not throw an exception',
-        '    : `expected` is "Never "thrown""')); // @TODO fix double double quote!
+        '    : `expected` is "Never "thrown""')); // TODO fix double double quote!
     throws(()=>f(()=>{},'Never thrown',['Does not throw','IGNORED!']), toLines(
         'FAIL: Does not throw',
         '    : `actually()` did not throw an exception',
@@ -393,8 +393,8 @@ export function throwsErrorTest(A, f, R) {
         'FAIL: `actually()` throws "Unexpected"',
         '    : `expected` value is "expected"'));
     throws(()=>f(()=>{throw Error('')},'Emptiness"',''), toLines( // `notes` is an empty string
-        'FAIL: `actually()` throws ""', // @TODO maybe make this "FAIL: `actually()` throws an empty string"
-        '    : `expected` value is "Emptiness""')); // @TODO fix double double quote!
+        'FAIL: `actually()` throws ""', // TODO maybe make this "FAIL: `actually()` throws an empty string"
+        '    : `expected` value is "Emptiness""')); // TODO fix double double quote!
     throws(()=>f(()=>{throw RangeError(' ')},'-',['!']), toLines(
         'FAIL: !',
         '    : `actually()` throws " "',
@@ -405,7 +405,7 @@ export function throwsErrorTest(A, f, R) {
         'FAIL: `actually()` throws "Unexpected"',
         '    : `expected`, Object -=- Custom toString() method! -=-, disallows it'));
     throws(()=>f(()=>{throw ReferenceError('')},/foo \/bar\//,[]), toLines( // `notes` is an empty array
-        'FAIL: `actually()` throws ""', // @TODO maybe make this "FAIL: `actually()` throws an empty string"
+        'FAIL: `actually()` throws ""', // TODO maybe make this "FAIL: `actually()` throws an empty string"
         '    : `expected`, RegExp /foo \\/bar\\//, disallows it'));
     throws(()=>f(()=>{throw URIError('YIKES!')},new RegExp('^yikes!$'),'Throws an interjection'), toLines(
         'FAIL: Throws an interjection',

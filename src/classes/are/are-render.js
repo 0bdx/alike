@@ -212,7 +212,7 @@ export function areRenderTest(A) {
         "areRender(): `begin` is null not type 'string'")
 
     // Calling `areRender()` with the other arguments invalid should fail.
-    // @TODO more tests
+    // TODO more tests
     // @ts-expect-error
     throws(()=>f(new A(''), 'test()'),
         "test(): `filterSections` is type 'undefined' not 'string'\n" +
