@@ -43,9 +43,9 @@ Clone the repository, and `cd` into it:
 
 Install the runtime dependency, and the two dev-dependencies:  
 `npm i`  
-@0bdx/ainta 0.0.18, 1 package, 114 kB for 7 items.  
+@0bdx/ainta 0.0.20, 1 package, 135 kB for 7 items.  
 @0bdx/build-helpers 0.0.4, 1 package, 22 kB for 6 items.  
-rollup 3.28.0, 2 packages, 2.6 MB for 35 items.  
+rollup 4.0.2, 3 packages, 5 MB for 46 items.  
 
 Open the `are` repo in VS Code:  
 `code .`
@@ -70,6 +70,12 @@ TODO fix this
 
 Or run all the build and preflight steps in one line, eg before committing:  
 `npm run build && npm run preflight`
+
+Commit locally, and push to GitHub:  
+`git add .`  
+`git status`  
+`git commit -am 'makes some changes; bumps to 1.2.3'`  
+`git push`
 
 Display what will be published:  
 `npm publish --dry-run`
@@ -187,9 +193,9 @@ npm install rollup --save-dev
     `rm package.jsonx`
 15. Install two dev-dependencies:  
     `npm install @0bdx/build-helpers --save-dev` 0.0.4, 1 package, 22 kB for 6 items  
-    `npm install rollup --save-dev` 3.28.0, 2 packages, 2.6 MB for 35 items  
+    `npm install rollup --save-dev` 4.0.2, 3 packages, 5 MB for 46 items  
 16. Install one runtime dependency:  
-    `npm install @0bdx/ainta` 0.0.18, 1 package, 114 kB for 7 items  
+    `npm install @0bdx/ainta` 0.0.20, 1 package, 135 kB for 7 items  
 
 ### __5. Fix the package name__
 

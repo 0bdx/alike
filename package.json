@@ -1,7 +1,7 @@
 {
   "name": "@0bdx/are",
-  "version": "0.0.5",
-  "description": "Utilities for unit testing 0bdx apps, libraries and websites.",
+  "version": "0.0.6",
+  "description": "Utilities for unit testing apps, libraries and websites.",
   "type": "module",
   "files": [
     "are.d.ts",
@@ -39,9 +39,9 @@
   "homepage": "https://github.com/0bdx/are#readme",
   "devDependencies": {
     "@0bdx/build-helpers": "^0.0.4",
-    "rollup": "^3.28.0"
+    "rollup": "^4.0.2"
   },
   "dependencies": {
-    "@0bdx/ainta": "^0.0.19"
+    "@0bdx/ainta": "^0.0.20"
   }
 }
