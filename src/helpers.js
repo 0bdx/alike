@@ -39,7 +39,7 @@ export const determineWhetherDeeplyAlike = (actually, expected, maxDepth=99) => 
 
     // If the arguments are both functions, return `false`.
     // TODO maybe compare static properties on a class
-    if (typeActually === 'function' && typeExpected === 'function') return false;
+    if (typeActually === 'function') return false;
 
     // If they are both arrays, compare each argument recursively.
     // TODO improve cyclic reference detection, by passing down a `foundObjects` argument

@@ -1,6 +1,6 @@
 /**
  * https://www.npmjs.com/package/@0bdx/are
- * @version 0.0.6
+ * @version 0.0.7
  * @license Copyright (c) 2023 0bdx <0@0bdx.com> (0bdx.com)
  * SPDX-License-Identifier: MIT
  */
@@ -1093,7 +1093,7 @@ const determineWhetherDeeplyAlike = (actually, expected, maxDepth=99) => {
 
     // If the arguments are both functions, return `false`.
     // TODO maybe compare static properties on a class
-    if (typeActually === 'function' && typeExpected === 'function') return false;
+    if (typeActually === 'function') return false;
 
     // If they are both arrays, compare each argument recursively.
     // TODO improve cyclic reference detection, by passing down a `foundObjects` argument

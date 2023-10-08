@@ -1,6 +1,6 @@
 {
   "name": "@0bdx/are",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Utilities for unit testing apps, libraries and websites.",
   "type": "module",
   "files": [
@@ -15,6 +15,7 @@
     "build:prod": "rollup -c",
     "build:types": "tsc are.js --allowJs --declaration --emitDeclarationOnly",
     "build": "for s in {prod,types};do npm run build:$s;done",
+    "examples": "for s in examples/*.js;do node $s;done",
     "preflight:test": "echo \"🧬 test.js\" && node test.js",
     "preflight:types": "tsc are.js --allowJs --checkJs --noEmit --moduleResolution nodenext --target es2020",
     "preflight": "for s in {test,types};do npm run preflight:$s;done",

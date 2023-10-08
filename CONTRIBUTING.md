@@ -11,7 +11,7 @@ TODO add an overview
 1.  Check your __Git__ version:  
     `git --version # should be 'git version 2.41.0' or greater`
 2.  Check your __Node__ version:  
-    `node --version # should be 'v18.16.0' or greater`
+    `node --version # should be 'v14.0.0' or greater`
 3.  Check your global __TypeScript__ version:  
     `tsc --version # should be 'Version 4.9.4' or greater`  
     There is no actual TypeScript code in this project, but TypeScript can infer
@@ -68,8 +68,11 @@ Check that __are.js__ uses all types correctly:
 `npm run preflight:types`  
 TODO fix this
 
-Or run all the build and preflight steps in one line, eg before committing:  
-`npm run build && npm run preflight`
+Run all examples:  
+`npm run examples`
+
+Or run the build, preflight and examples in one line, eg before committing:  
+`npm run build && npm run preflight && npm run examples`
 
 Commit locally, and push to GitHub:  
 `git add .`  
@@ -121,10 +124,10 @@ touch are.d.ts are.js
 ```sh
 npm init --yes
 sed -ix 's/: "1.0.0",/: "0.0.1",/' *e.json
-sed -ix 's/keywords": \[/keywords": [ "assert", "expect" /' *e.json
+sed -ix 's/keywords": \[/keywords": [ "assert", "expect", "test" /' *e.json
 sed -ix 's/: "ISC",/: "MIT",/' *e.json
 A=(§{1..3},\\n·);sed -ix "s/\"main/${A[*]}·\"main/;s/·/ /g" *e.json
-A=(§{a..f},\\n···);sed -ix "s/\"test\"/${A[*]}·\"test\"/;s/·/ /g" *e.json
+A=(§{a..g},\\n···);sed -ix "s/\"test\"/${A[*]}·\"test\"/;s/·/ /g" *e.json
 sed -ix 's/§1/"type": "module"/' *e.json
 sed -ix 's|§2|"files": [ "§0d.ts", "§0js" ]|' *e.json
 sed -ix 's/§3/"engines": { "node": ">= 14.0.0" }/' *e.json
@@ -133,11 +136,12 @@ sed -ix 's/§b/"§Z:§B": "tsc §0js §_"/' *e.json
 sed -ix 's/§_/--allowJs --declaration --emitDeclarationOnly/' *e.json
 sed -ix 's/§c/"§Z": "for s in {§A,§B};do npm run §Z:$s;done"/' *e.json
 sed -ix 's/§A/prod/g;s/§B/types/g;s/§Z/build/g;' *e.json
-sed -ix 's/§d/"§Z:§D": "echo \\"🧬 test.js\\" && node test.js"/' *e.json
-sed -ix 's/§e/"§Z:§E": "tsc §0js --allowJs --checkJs --noEmit §_"/' *e.json
+sed -ix 's|§d|"examples": "for s in examples/*.js;do node $s;done"|' *e.json
+sed -ix 's/§e/"§Z:§E": "echo \\"🧬 test.js\\" && "/' *e.json
+sed -ix 's/§f/"§Z:§F": "tsc §0js --allowJs --checkJs --noEmit §_"/' *e.json
 sed -ix 's/§_/--moduleResolution nodenext --target es2020/' *e.json
-sed -ix 's/§f/"§Z": "for s in {§D,§E};do npm run §Z:$s;done"/' *e.json
-sed -ix 's/§D/test/g;s/§E/types/g;s/§Z/preflight/g;' *e.json
+sed -ix 's/§g/"§Z": "for s in {§E,§F};do npm run §Z:$s;done"/' *e.json
+sed -ix 's/§E/test/g;s/§F/types/g;s/§Z/preflight/g;' *e.json
 sed -ix 's|Error: no test specified|🧪 src/test.js|' *e.json
 sed -ix 's|exit 1|node src/test.js|' *e.json
 sed -ix 's/§0/are./g' *e.json
@@ -153,13 +157,13 @@ npm install rollup --save-dev
 2. Change the version to 0.0.1:  
    `sed -ix 's/: "1.0.0",/: "0.0.1",/' *e.json`
 3. Add keywords, for better [npmjs.org](http://npmjs.org) searchability:  
-   `sed -ix 's/keywords": \[/keywords": [ "assert", "expect" /' *e.json`
+   `sed -ix 's/keywords": \[/keywords": [ "assert", "expect", "test" /' *e.json`
 4. Change the license to MIT:  
    `sed -ix 's/: "ISC",/: "MIT",/' *e.json`
 5. Insert three top-level placeholder properties before `"main"`, and then  
-   insert six placeholder `"script"` properties before `"test"`:  
+   insert seven placeholder `"script"` properties before `"test"`:  
    `A=(§{1..3},\\n·);sed -ix "s/\"main/${A[*]}·\"main/;s/·/ /g" *e.json`  
-   `A=(§{a..f},\\n···);sed -ix "s/\"test\"/${A[*]}·\"test\"/;s/·/ /g" *e.json`
+   `A=(§{a..g},\\n···);sed -ix "s/\"test\"/${A[*]}·\"test\"/;s/·/ /g" *e.json`
 6. Tell Node to use `import` not `require()` (avoids needing .mjs):  
    `sed -ix 's/§1/"type": "module"/' *e.json`
 7. Tell NPM which files to include as part of the published package:  
@@ -173,28 +177,30 @@ npm install rollup --save-dev
    `sed -ix 's/§b/"§Z:§B": "tsc §0js §_"/' *e.json`  
    `sed -ix 's/§_/--allowJs --declaration --emitDeclarationOnly/' *e.json`  
    `sed -ix 's/§c/"§Z": "for s in {§A,§B};do npm run §Z:$s;done"/' *e.json`  
-   `sed -ix 's/§A/prod/g;s/§B/types/g;s/§Z/build/g;' *e.json`  
-10. The fourth script runs unit tests on the main file, __are.js__,  
-    and the fifth script checks it against the type declarations.  
-    The sixth script is a shortcut to run both `"preflight:..."` scripts:  
-    `sed -ix 's/§d/"§Z:§D": "echo \"🧬 test.js\" && "/' *e.json`  
-    `sed -ix 's/§e/"§Z:§E": "tsc §0js --allowJs --checkJs --noEmit §_"/' *e.json`  
+   `sed -ix 's/§A/prod/g;s/§B/types/g;s/§Z/build/g;' *e.json`
+10. The fourth script runs all of the examples (note the delimiter is | here):  
+    `sed -ix 's|§d|"examples": "for s in examples/*.js;do node $s;done"|' *e.json`
+11. The fifth script runs unit tests on the main file, __are.js__,  
+    and the sixth script checks it against the type declarations.  
+    The seventh script is a shortcut to run both `"preflight:..."` scripts:  
+    `sed -ix 's/§e/"§Z:§E": "echo \\"🧬 test.js\\" && "/' *e.json`  
+    `sed -ix 's/§f/"§Z:§F": "tsc §0js --allowJs --checkJs --noEmit §_"/' *e.json`  
     `sed -ix 's/§_/--moduleResolution nodenext --target es2020/' *e.json`  
-    `sed -ix 's/§f/"§Z": "for s in {§D,§E};do npm run §Z:$s;done"/' *e.json`  
-    `sed -ix 's/§D/test/g;s/§E/types/g;s/§Z/preflight/g;' *e.json`  
-11. The seventh script runs unit tests on the source code:  
+    `sed -ix 's/§g/"§Z": "for s in {§E,§F};do npm run §Z:$s;done"/' *e.json`  
+    `sed -ix 's/§E/test/g;s/§F/types/g;s/§Z/preflight/g;' *e.json`
+12. The eighth script runs unit tests on the source code:  
     `sed -ix 's|Error: no test specified|🧪 src/test.js|' *e.json`  
     `sed -ix 's|exit 1|node src/test.js|' *e.json`
-12. Replace `§0` with `are.`:  
+13. Replace `§0` with `are.`:  
     `sed -ix 's/§0/are./g' *e.json`
-13. Insert the author’s name, email and domain:  
+14. Insert the author’s name, email and domain:  
     `sed -ix 's/author": "/author": "0bdx <0@0bdx.com> (0bdx.com)/' *e.json`
-14. Delete the temporary __package.jsonx__ file:  
+15. Delete the temporary __package.jsonx__ file:  
     `rm package.jsonx`
-15. Install two dev-dependencies:  
+16. Install two dev-dependencies:  
     `npm install @0bdx/build-helpers --save-dev` 0.0.4, 1 package, 22 kB for 6 items  
     `npm install rollup --save-dev` 4.0.2, 3 packages, 5 MB for 46 items  
-16. Install one runtime dependency:  
+17. Install one runtime dependency:  
     `npm install @0bdx/ainta` 0.0.20, 1 package, 135 kB for 7 items  
 
 ### __5. Fix the package name__
