@@ -8,7 +8,7 @@ const noteRx = /^[ -\[\]-~]*$/;
 noteRx.toString = () => "'Printable ASCII characters except backslashes'";
 
 // Define an enum for validating `status`.
-const validStatus = [ 'FAIL', 'PASS', 'PENDING', 'UNEXPECTED_EXCEPTION' ];
+const validStatus = [ 'FAIL', 'PASS', 'UNEXPECTED_EXCEPTION' ];
 
 /** ### Records the outcome of one test.
  *
@@ -36,10 +36,9 @@ export default class Result {
      * be rendered before the first section, or if there are no sections. */
     sectionIndex;
 
-    /** A string (effectively an enum) which can be one of four values:
+    /** A string (effectively an enum) which can be one of three values:
      * - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      * - `"PASS"` if the test passed
-     * - `"PENDING"` if the test has not completed yet
      * - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception */
     status;
 
@@ -58,11 +57,10 @@ export default class Result {
      * @param {number} sectionIndex
      *    The index of the `Section` that the test belongs to. Zero if it should
      *    be rendered before the first section, or if there are no sections.
-     * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
-     *    A string (effectively an enum) which can be one of four values:
+     * @param {'FAIL'|'PASS'|'UNEXPECTED_EXCEPTION'} status
+     *    A string (effectively an enum) which can be one of three values:
      *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      *    - `"PASS"` if the test passed
-     *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
@@ -178,16 +176,16 @@ export function resultTest() {
     throws(()=>new C(aUsual, eUsual, nUsual, 33.44, stUsual),
         begin + ": `sectionIndex` 33.44 is not divisible by 1");
 
-    // `status` should be one of the 4 valid strings.
+    // `status` should be one of the three valid strings.
     // @ts-expect-error
     throws(()=>new C(aUsual, eUsual, nUsual, siUsual, true),
         begin + ": `status` is type 'boolean' not 'string'");
     // @ts-expect-error
     throws(()=>new C(aUsual, eUsual, nUsual, siUsual, ''),
-        begin + ": `status` '' is not in `options.is` 'FAIL:PASS:PENDING:UNE...XCEPTION'");
+        begin + ": `status` '' is not in `options.is` 'FAIL:PASS:UNEXPECTED_EXCEPTION'");
     // @ts-expect-error
     throws(()=>new C(aUsual, eUsual, nUsual, siUsual, 'Pass'),
-        begin + ": `status` 'Pass' is not in `options.is` 'FAIL:PASS:PENDING:UNE...XCEPTION'");
+        begin + ": `status` 'Pass' is not in `options.is` 'FAIL:PASS:UNEXPECTED_EXCEPTION'");
 
     // `notes` should be a valid array of up to 100 strings, each to 120 characters long.
     // @ts-expect-error
@@ -255,7 +253,7 @@ export function resultTest() {
         /read only|read-only|readonly/);
     throws(()=>{usual.sectionIndex = 44},
         /read only|read-only|readonly/);
-    throws(()=>{usual.status = 'PENDING'},
+    throws(()=>{usual.status = 'UNEXPECTED_EXCEPTION'},
         /read only|read-only|readonly/);
 
     // It should not be possible to delete properties.

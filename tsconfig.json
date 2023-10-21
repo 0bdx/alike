@@ -26,6 +26,10 @@
         // Allow ES2020 features, like `BigInt`.
         "lib": [ "dom", "es2020" ],
 
+        // Option 'module' must be set to 'NodeNext' when option
+        // 'moduleResolution' is set to 'NodeNext'.
+        "module": "nodenext",
+
         // Specify "moduleResolution" to allow Node-style imports from
         // 'node_modules/'. This is only needed because "target" has been set.
         "moduleResolution": "nodenext",

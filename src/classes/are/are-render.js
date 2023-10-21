@@ -61,8 +61,7 @@ const areRender = (
     // Get the number of tests which failed, passed, and have not completed yet.
     const fail = are.failTally;
     const pass = are.passTally;
-    const pending = are.pendingTally;
-    const numTests = fail + pass + pending;
+    const numTests = fail + pass;
 
     // Set up the appropriate styling-strings for the current `formatting`.
     const { failIn, failOut } = STYLING_STRINGS[formatting];
@@ -78,26 +77,24 @@ const areRender = (
     const summary =
         numTests === 0
             ? 'No tests were run.'
-            : pending
-                ? `${pending} test${pending === 1 ? '' : 's' } still pending.`
-                : fail
-                  ? `${failIn}${
-                    numTests === fail
-                        ? (
-                            fail === 1
-                            ? 'The test failed.'
-                            : fail === 2
-                                ? 'Both tests failed.'
-                                : `All ${fail} tests failed.`)
-                        : (
-                            `${fail} of ${numTests} tests failed.`
-                        )
-                  }${failOut}`
-                  : pass === 1
-                    ? 'The test passed.'
-                    : pass === 2
-                        ? 'Both tests passed.'
-                        : `All ${pass} tests passed.`
+            : fail
+                ? `${failIn}${
+                numTests === fail
+                    ? (
+                        fail === 1
+                        ? 'The test failed.'
+                        : fail === 2
+                            ? 'Both tests failed.'
+                            : `All ${fail} tests failed.`)
+                    : (
+                        `${fail} of ${numTests} tests failed.`
+                    )
+                }${failOut}`
+                : pass === 1
+                ? 'The test passed.'
+                : pass === 2
+                    ? 'Both tests passed.'
+                    : `All ${pass} tests passed.`
     ;
 
     // Create a more detailed report of the test results.
@@ -330,22 +327,4 @@ export function areRenderTest(A) {
         'FAIL: `actually` is `true`',
         '    : `expected` is `false`\n',
     ));
-
-    // With one or two 'PENDING' results, the summary wording should refer to
-    // the pending tests, but also list any failed tests.
-    pqArePASS.addResult(r(new Promise(()=>{})), r(2), ['will be 2?'], 'PENDING');
-    equal(f(...pqPassArgs), toLines(
-        `${pqHeaderPASS}1 test still pending.\n`,
-        'FAIL: `null` is not `undefined`',
-        '    : `actually` is `null`',
-        '    : `expected` is `undefined`\n',
-    ));
-    pqArePASS.addResult(r(new Promise(()=>{})), r('B'), ['will be "B"?'], 'PENDING');
-    equal(f(...pqPassArgs), toLines(
-        `${pqHeaderPASS}2 tests still pending.\n`,
-        'FAIL: `null` is not `undefined`',
-        '    : `actually` is `null`',
-        '    : `expected` is `undefined`\n',
-    ));
-
 }

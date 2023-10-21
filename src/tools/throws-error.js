@@ -76,7 +76,7 @@ export default function throwsError(actually, expected, notes) {
     // Generate `result`, which will be the main part of the `overview`. Also,
     // set `status`, which is 'PASS' if the expected error message is thrown.
     let result = '';
-    /** @type {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} */
+    /** @type {'FAIL'|'PASS'|'UNEXPECTED_EXCEPTION'} */
     let status = FAIL;
     if (didThrow) {
         const type = typeof err;

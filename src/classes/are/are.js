@@ -35,11 +35,6 @@ export default class Are {
     get passTally() { return this.#passTally };
     #passTally;
 
-    /** ### A non-negative integer. The total number of tests not completed yet.
-     * @property {number} pendingTally */
-    get pendingTally() { return this.#pendingTally };
-    #pendingTally;
-
     /** ### An array containing zero or more test results and sections.
      * @property {(Result|Section)[]} resultsAndSections */
     get resultsAndSections() { return [...this.#resultsAndSections] };
@@ -70,7 +65,6 @@ export default class Are {
         this.#currentSectionIndex = 0;
         this.#failTally = 0;
         this.#passTally = 0;
-        this.#pendingTally = 0;
         this.#resultsAndSections = [];
 
         // Prevent this instance from being modified.
@@ -83,7 +77,7 @@ export default class Are {
      * any object being serialized. If it exists, it serializes the return value
      * of `toJSON()`, instead of just writing "[object Object]".
      * 
-     * @returns {{failTally:number, passTally:number, pendingTally:number,
+     * @returns {{failTally:number, passTally:number,
      *           resultsAndSections:(Result|Section)[], title:string}}
      *    The public properties of `Are`.
      */
@@ -91,7 +85,6 @@ export default class Are {
         return ({
             failTally: this.failTally,
             passTally: this.passTally,
-            pendingTally: this.pendingTally,
             resultsAndSections: this.resultsAndSections,
             title: this.title,
         });
@@ -112,11 +105,10 @@ export default class Are {
      *    - 0 to 100 items, where each item is a line
      *    - 0 to 120 printable ASCII characters (except `"\"`) per line
      *    - An empty array `[]` means that no notes have been supplied
-     * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
-     *    A string (effectively an enum) which can be one of four values:
+     * @param {'FAIL'|'PASS'|'UNEXPECTED_EXCEPTION'} status
+     *    A string (effectively an enum) which can be one of three values:
      *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      *    - `"PASS"` if the test passed
-     *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @returns {void}
      *    Does not return anything.
@@ -147,9 +139,6 @@ export default class Are {
                 break;
             case 'PASS':
                 this.#passTally += 1;
-                break;
-            case 'PENDING':
-                this.#pendingTally += 1;
                 break;
         }
 
@@ -312,7 +301,6 @@ export function areTest(A, H, R) {
         `{`,
         `  "failTally": 0,`,
         `  "passTally": 0,`,
-        `  "pendingTally": 0,`,
         `  "resultsAndSections": [],`,
         `  "title": "The Cafe is ok."`,
         `}`,
@@ -338,8 +326,6 @@ export function areTest(A, H, R) {
     throws(()=>{usual.failTally = 44}, /has only a getter/);
     // @ts-expect-error
     throws(()=>{usual.passTally = 44}, /has only a getter/);
-    // @ts-expect-error
-    throws(()=>{usual.pendingTally = 44}, /has only a getter/);
 
     // It should not be possible to set object getter properties.
     // TODO accept browser equivalents of this error message
@@ -358,14 +344,12 @@ export function areTest(A, H, R) {
 
     // It should not be possible to delete scalar getter properties.
     // TODO check that browsers don't throw an error, either
-    equal(typeof usual.failTally + typeof usual.passTally + typeof usual.pendingTally, 'numbernumbernumber');
+    equal(typeof usual.failTally + typeof usual.passTally, 'numbernumber');
     // @ts-expect-error
     delete usual.failTally;
     // @ts-expect-error
     delete usual.passTally;
-    // @ts-expect-error
-    delete usual.pendingTally;
-    equal(typeof usual.failTally + typeof usual.passTally + typeof usual.pendingTally, 'numbernumbernumber');
+    equal(typeof usual.failTally + typeof usual.passTally, 'numbernumber');
 
     // It should not be possible to delete object getter properties.
     // TODO check that browsers don't throw an error, either

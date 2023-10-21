@@ -1,6 +1,6 @@
 /**
  * https://www.npmjs.com/package/@0bdx/are
- * @version 0.0.7
+ * @version 0.0.8
  * @license Copyright (c) 2023 0bdx <0@0bdx.com> (0bdx.com)
  * SPDX-License-Identifier: MIT
  */
@@ -293,7 +293,7 @@ const noteRx$2 = /^[ -\[\]-~]*$/;
 noteRx$2.toString = () => "'Printable ASCII characters except backslashes'";
 
 // Define an enum for validating `status`.
-const validStatus = [ 'FAIL', 'PASS', 'PENDING', 'UNEXPECTED_EXCEPTION' ];
+const validStatus = [ 'FAIL', 'PASS', 'UNEXPECTED_EXCEPTION' ];
 
 /** ### Records the outcome of one test.
  *
@@ -321,10 +321,9 @@ class Result {
      * be rendered before the first section, or if there are no sections. */
     sectionIndex;
 
-    /** A string (effectively an enum) which can be one of four values:
+    /** A string (effectively an enum) which can be one of three values:
      * - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      * - `"PASS"` if the test passed
-     * - `"PENDING"` if the test has not completed yet
      * - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception */
     status;
 
@@ -343,11 +342,10 @@ class Result {
      * @param {number} sectionIndex
      *    The index of the `Section` that the test belongs to. Zero if it should
      *    be rendered before the first section, or if there are no sections.
-     * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
-     *    A string (effectively an enum) which can be one of four values:
+     * @param {'FAIL'|'PASS'|'UNEXPECTED_EXCEPTION'} status
+     *    A string (effectively an enum) which can be one of three values:
      *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      *    - `"PASS"` if the test passed
-     *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
@@ -468,11 +466,6 @@ class Are {
     get passTally() { return this.#passTally };
     #passTally;
 
-    /** ### A non-negative integer. The total number of tests not completed yet.
-     * @property {number} pendingTally */
-    get pendingTally() { return this.#pendingTally };
-    #pendingTally;
-
     /** ### An array containing zero or more test results and sections.
      * @property {(Result|Section)[]} resultsAndSections */
     get resultsAndSections() { return [...this.#resultsAndSections] };
@@ -503,7 +496,6 @@ class Are {
         this.#currentSectionIndex = 0;
         this.#failTally = 0;
         this.#passTally = 0;
-        this.#pendingTally = 0;
         this.#resultsAndSections = [];
 
         // Prevent this instance from being modified.
@@ -516,7 +508,7 @@ class Are {
      * any object being serialized. If it exists, it serializes the return value
      * of `toJSON()`, instead of just writing "[object Object]".
      * 
-     * @returns {{failTally:number, passTally:number, pendingTally:number,
+     * @returns {{failTally:number, passTally:number,
      *           resultsAndSections:(Result|Section)[], title:string}}
      *    The public properties of `Are`.
      */
@@ -524,7 +516,6 @@ class Are {
         return ({
             failTally: this.failTally,
             passTally: this.passTally,
-            pendingTally: this.pendingTally,
             resultsAndSections: this.resultsAndSections,
             title: this.title,
         });
@@ -545,11 +536,10 @@ class Are {
      *    - 0 to 100 items, where each item is a line
      *    - 0 to 120 printable ASCII characters (except `"\"`) per line
      *    - An empty array `[]` means that no notes have been supplied
-     * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
-     *    A string (effectively an enum) which can be one of four values:
+     * @param {'FAIL'|'PASS'|'UNEXPECTED_EXCEPTION'} status
+     *    A string (effectively an enum) which can be one of three values:
      *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      *    - `"PASS"` if the test passed
-     *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @returns {void}
      *    Does not return anything.
@@ -580,9 +570,6 @@ class Are {
                 break;
             case 'PASS':
                 this.#passTally += 1;
-                break;
-            case 'PENDING':
-                this.#pendingTally += 1;
                 break;
         }
 
@@ -743,8 +730,7 @@ const areRender = (
     // Get the number of tests which failed, passed, and have not completed yet.
     const fail = are.failTally;
     const pass = are.passTally;
-    const pending = are.pendingTally;
-    const numTests = fail + pass + pending;
+    const numTests = fail + pass;
 
     // Set up the appropriate styling-strings for the current `formatting`.
     const { failIn, failOut } = STYLING_STRINGS[formatting];
@@ -760,26 +746,24 @@ const areRender = (
     const summary =
         numTests === 0
             ? 'No tests were run.'
-            : pending
-                ? `${pending} test${pending === 1 ? '' : 's' } still pending.`
-                : fail
-                  ? `${failIn}${
-                    numTests === fail
-                        ? (
-                            fail === 1
-                            ? 'The test failed.'
-                            : fail === 2
-                                ? 'Both tests failed.'
-                                : `All ${fail} tests failed.`)
-                        : (
-                            `${fail} of ${numTests} tests failed.`
-                        )
-                  }${failOut}`
-                  : pass === 1
-                    ? 'The test passed.'
-                    : pass === 2
-                        ? 'Both tests passed.'
-                        : `All ${pass} tests passed.`
+            : fail
+                ? `${failIn}${
+                numTests === fail
+                    ? (
+                        fail === 1
+                        ? 'The test failed.'
+                        : fail === 2
+                            ? 'Both tests failed.'
+                            : `All ${fail} tests failed.`)
+                    : (
+                        `${fail} of ${numTests} tests failed.`
+                    )
+                }${failOut}`
+                : pass === 1
+                ? 'The test passed.'
+                : pass === 2
+                    ? 'Both tests passed.'
+                    : `All ${pass} tests passed.`
     ;
 
     // Create a more detailed report of the test results.
@@ -1324,7 +1308,7 @@ function throwsError(actually, expected, notes) {
     // Generate `result`, which will be the main part of the `overview`. Also,
     // set `status`, which is 'PASS' if the expected error message is thrown.
     let result = '';
-    /** @type {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} */
+    /** @type {'FAIL'|'PASS'|'UNEXPECTED_EXCEPTION'} */
     let status = FAIL;
     if (didThrow) {
         const type = typeof err;

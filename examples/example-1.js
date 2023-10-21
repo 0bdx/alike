@@ -1,8 +1,8 @@
 import { isDeeplyLike as isLike } from '../are.js';
 
 // Compare two numbers.
-console.log(isLike(0, -0, 'Zero and minus-zero are alike'));
-// PASS: Zero and minus-zero are alike
+console.log(isLike(0, -0, 'Zero and minus-zero are alike.'));
+// PASS: Zero and minus-zero are alike.
 //     : `actually` is `0` as expected
 
 // Compare two booleans.

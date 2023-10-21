@@ -249,9 +249,6 @@ declare class Are {
     /** ### A non-negative integer. The total number of passed tests.
      * @property {number} passTally */
     get passTally(): number;
-    /** ### A non-negative integer. The total number of tests not completed yet.
-     * @property {number} pendingTally */
-    get pendingTally(): number;
     /** ### An array containing zero or more test results and sections.
      * @property {(Result|Section)[]} resultsAndSections */
     get resultsAndSections(): any[];
@@ -261,14 +258,13 @@ declare class Are {
      * any object being serialized. If it exists, it serializes the return value
      * of `toJSON()`, instead of just writing "[object Object]".
      *
-     * @returns {{failTally:number, passTally:number, pendingTally:number,
+     * @returns {{failTally:number, passTally:number,
      *           resultsAndSections:(Result|Section)[], title:string}}
      *    The public properties of `Are`.
      */
     toJSON(): {
         failTally: number;
         passTally: number;
-        pendingTally: number;
         resultsAndSections: (Result | Section)[];
         title: string;
     };
@@ -287,18 +283,17 @@ declare class Are {
      *    - 0 to 100 items, where each item is a line
      *    - 0 to 120 printable ASCII characters (except `"\"`) per line
      *    - An empty array `[]` means that no notes have been supplied
-     * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
-     *    A string (effectively an enum) which can be one of four values:
+     * @param {'FAIL'|'PASS'|'UNEXPECTED_EXCEPTION'} status
+     *    A string (effectively an enum) which can be one of three values:
      *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      *    - `"PASS"` if the test passed
-     *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @returns {void}
      *    Does not return anything.
      * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
-    addResult(actually: Renderable, expected: Renderable, notes: string[], status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION'): void;
+    addResult(actually: Renderable, expected: Renderable, notes: string[], status: 'FAIL' | 'PASS' | 'UNEXPECTED_EXCEPTION'): void;
     /** ### Adds a new section to the test suite.
      *
      * @param {string} subtitle
@@ -440,16 +435,15 @@ declare class Result {
      * @param {number} sectionIndex
      *    The index of the `Section` that the test belongs to. Zero if it should
      *    be rendered before the first section, or if there are no sections.
-     * @param {'FAIL'|'PASS'|'PENDING'|'UNEXPECTED_EXCEPTION'} status
-     *    A string (effectively an enum) which can be one of four values:
+     * @param {'FAIL'|'PASS'|'UNEXPECTED_EXCEPTION'} status
+     *    A string (effectively an enum) which can be one of three values:
      *    - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      *    - `"PASS"` if the test passed
-     *    - `"PENDING"` if the test has not completed yet
      *    - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception
      * @throws {Error}
      *    Throws an `Error` if any of the arguments are invalid.
      */
-    constructor(actually: Renderable, expected: Renderable, notes: string[], sectionIndex: number, status: 'FAIL' | 'PASS' | 'PENDING' | 'UNEXPECTED_EXCEPTION');
+    constructor(actually: Renderable, expected: Renderable, notes: string[], sectionIndex: number, status: 'FAIL' | 'PASS' | 'UNEXPECTED_EXCEPTION');
     /** A representation of the value that the test actually got, ready to
      * render. This could be the representation of an unexpected exception. */
     actually: Renderable;
@@ -463,12 +457,11 @@ declare class Result {
     /** The index of the `Section` that the test belongs to. Zero if it should
      * be rendered before the first section, or if there are no sections. */
     sectionIndex: number;
-    /** A string (effectively an enum) which can be one of four values:
+    /** A string (effectively an enum) which can be one of three values:
      * - `"FAIL"` if the test failed (but not by `"UNEXPECTED_EXCEPTION"`)
      * - `"PASS"` if the test passed
-     * - `"PENDING"` if the test has not completed yet
      * - `"UNEXPECTED_EXCEPTION"` if the test threw an unexpected exception */
-    status: "FAIL" | "PASS" | "PENDING" | "UNEXPECTED_EXCEPTION";
+    status: "FAIL" | "PASS" | "UNEXPECTED_EXCEPTION";
 }
 /** ### Marks the start of a new section in the test suite.
  *
