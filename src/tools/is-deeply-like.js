@@ -77,22 +77,13 @@ export default function isDeeplyLike(actually, expected, notes) {
             ? [] // no `notes` argument was passed in
             : [ notes ] // hopefully a string, but that will be validated below
 
-    // Prepare an array of strings to pass to the `addResult()` `notes` argument.
-    // This array will end with some auto-generated notes about the test.
-    const auto = !didFail
-        ? [ '{{actually}} as expected' ]
-        : actuallyRenderable.isShort() && expectedRenderable.isShort()
-            ? [ 'actually: {{actually}}', 'expected: {{expected}}' ]
-            : [ 'actually:', '{{actually}}', 'expected:', '{{expected}}' ];
-    const notesPlusAuto = [ ...notesArr, ...auto ];
-
     // Add the test result to the object that this function has been bound to.
     /** @type {Are} */
     const are = this;
     are.addResult(
         actuallyRenderable,
         expectedRenderable,
-        notesPlusAuto,
+        notesArr,
         status,
     );
 
@@ -181,7 +172,7 @@ export function isDeeplyLikeTest(A, f, R) {
         simpleResultMocker('NULLISH', 9, 'undefined'),
         `  "expected": {`,
         simpleResultMocker('NULLISH', 9, 'undefined'),
-        `  "notes": "{{actually}} as expected",`,
+        `  "notes": "",`,
         `  "sectionIndex": 0,`,
         `  "status": "PASS"`,
         `}`
@@ -214,7 +205,7 @@ export function isDeeplyLikeTest(A, f, R) {
         simpleResultMocker('NULLISH', 4, 'null'),
         `  "expected": {`,
         simpleResultMocker('NULLISH', 9, 'undefined'),
-        `  "notes": "\\nactually: {{actually}}\\nexpected: {{expected}}",`,
+        `  "notes": "",`,
         `  "sectionIndex": 0,`,
         `  "status": "FAIL"`,
         `}`
@@ -231,7 +222,7 @@ export function isDeeplyLikeTest(A, f, R) {
         `  "expected": {`,
         simpleResultMocker('BOOLNUM', 1, '3'),
         `  "notes": " !\\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[ABCDEFGHIJKLMNOPQRSTUVWXYZ` +
-            `]^_\`abcdefghijklmnopqrstuvwxyz{|}~\\n{{actually}} as expected",`,
+            `]^_\`abcdefghijklmnopqrstuvwxyz{|}~",`,
         `  "sectionIndex": 0,`,
         `  "status": "PASS"`,
         `}`
@@ -247,7 +238,7 @@ export function isDeeplyLikeTest(A, f, R) {
         simpleResultMocker('STRING', 6, '\\"true\\"'),
         `  "expected": {`,
         simpleResultMocker('BOOLNUM', 4, 'true'),
-        `  "notes": "actually: {{actually}}\\nexpected: {{expected}}",`,
+        `  "notes": "",`,
         `  "sectionIndex": 0,`,
         `  "status": "FAIL"`,
         `}`

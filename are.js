@@ -675,12 +675,16 @@ class Are {
 // Define styling-strings for all possible `formatting`.
 const STYLING_STRINGS = {
     ANSI: {
-        failIn: '\x1B[38;5;198;48;5;52m', // bright red on dull red
-        failOut: '\x1B[0m',
+        failIn: '\x1B[38;5;224;48;5;52m ', // bright red on dark red
+        failOut: ' \x1B[0m',
+        passIn: '\x1B[38;5;118;48;5;22m ', // bright green on dark green
+        passOut: ' \x1B[0m',
     },
     PLAIN: {
         failIn: '',
         failOut: '',
+        passIn: '',
+        passOut: '',
     },
 };
 
@@ -733,7 +737,7 @@ const areRender = (
     const numTests = fail + pass;
 
     // Set up the appropriate styling-strings for the current `formatting`.
-    const { failIn, failOut } = STYLING_STRINGS[formatting];
+    const { failIn, failOut, passIn, passOut } = STYLING_STRINGS[formatting];
 
     // Create the test suite's heading.
     const heading = [
@@ -759,11 +763,13 @@ const areRender = (
                         `${fail} of ${numTests} tests failed.`
                     )
                 }${failOut}`
-                : pass === 1
-                ? 'The test passed.'
-                : pass === 2
-                    ? 'Both tests passed.'
-                    : `All ${pass} tests passed.`
+                : `${passIn}${
+                pass === 1
+                    ? 'The test passed.'
+                    : pass === 2
+                        ? 'Both tests passed.'
+                        : `All ${pass} tests passed.`
+                }${passOut}`
     ;
 
     // Create a more detailed report of the test results.
@@ -1050,19 +1056,19 @@ function bind3(functionA, functionB, functionC, areOrTitle) {
  */
 const determineWhetherDeeplyAlike = (actually, expected, maxDepth=99) => {
 
-    // If either argument is `null`, we can return `true` or `false` early.
+    // If either argument is `null`, return `true` or `false` early.
     const actuallyIsNull = actually === null;
     const expectedIsNull = expected === null;
     if (actuallyIsNull && expectedIsNull) return true; // both `null`
     if (actuallyIsNull || expectedIsNull) return false; // only one is `null`
 
-    // If either argument is `NaN`, we can return `true` or `false` early.
+    // If either argument is `NaN`, return `true` or `false` early.
     const actuallyIsNaN = Number.isNaN(actually);
     const expectedIsNaN = Number.isNaN(expected);
     if (actuallyIsNaN && expectedIsNaN) return true; // both 'not-a-number'
     if (actuallyIsNaN || expectedIsNaN) return false; // only one is `NaN`
 
-    // If the arguments are not the same type, `false`.
+    // If the arguments are not the same type, return `false`.
     const typeActually = typeof actually;
     const typeExpected = typeof expected;
     if (typeActually !== typeExpected) return false; // not the same type
@@ -1212,22 +1218,13 @@ function isDeeplyLike(actually, expected, notes) {
             ? [] // no `notes` argument was passed in
             : [ notes ]; // hopefully a string, but that will be validated below
 
-    // Prepare an array of strings to pass to the `addResult()` `notes` argument.
-    // This array will end with some auto-generated notes about the test.
-    const auto = !didFail
-        ? [ '{{actually}} as expected' ]
-        : actuallyRenderable.isShort() && expectedRenderable.isShort()
-            ? [ 'actually: {{actually}}', 'expected: {{expected}}' ]
-            : [ 'actually:', '{{actually}}', 'expected:', '{{expected}}' ];
-    const notesPlusAuto = [ ...notesArr, ...auto ];
-
     // Add the test result to the object that this function has been bound to.
     /** @type {Are} */
     const are = this;
     are.addResult(
         actuallyRenderable,
         expectedRenderable,
-        notesPlusAuto,
+        notesArr,
         status,
     );
 

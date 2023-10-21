@@ -12,19 +12,19 @@
  */
 export const determineWhetherDeeplyAlike = (actually, expected, maxDepth=99) => {
 
-    // If either argument is `null`, we can return `true` or `false` early.
+    // If either argument is `null`, return `true` or `false` early.
     const actuallyIsNull = actually === null;
     const expectedIsNull = expected === null;
     if (actuallyIsNull && expectedIsNull) return true; // both `null`
     if (actuallyIsNull || expectedIsNull) return false; // only one is `null`
 
-    // If either argument is `NaN`, we can return `true` or `false` early.
+    // If either argument is `NaN`, return `true` or `false` early.
     const actuallyIsNaN = Number.isNaN(actually);
     const expectedIsNaN = Number.isNaN(expected);
     if (actuallyIsNaN && expectedIsNaN) return true; // both 'not-a-number'
     if (actuallyIsNaN || expectedIsNaN) return false; // only one is `NaN`
 
-    // If the arguments are not the same type, `false`.
+    // If the arguments are not the same type, return `false`.
     const typeActually = typeof actually;
     const typeExpected = typeof expected;
     if (typeActually !== typeExpected) return false; // not the same type

@@ -13,11 +13,11 @@ testSuite.addSection('Check that fact() works');
 
 // Run the tests. The third argument, `notes`, is optional.
 isLike(fact(0), 1);
-isLike(fact(5), 121,
+isLike(fact(5), 120,
     ['`fact(5)` 5! = 5 * 4 * 3 * 2 * 1']);
 
 // Output a test results summary to the console, as plain text.
-console.log(testSuite.renderAnsi());
+console.log(testSuite.render());
 
 // Calculates the factorial of a given integer.
 function fact(n) {
