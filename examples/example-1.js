@@ -1,5 +1,7 @@
 import { isDeeplyLike as isLike } from '../are.js';
 
+console.log('\n\n> @0bdx/are/examples/example-1.js\n');
+
 // Compare two numbers.
 console.log(isLike(0, -0, 'Zero and minus-zero are alike.'));
 // PASS: Zero and minus-zero are alike.

@@ -1,5 +1,7 @@
 import Are, { bind2, isDeeplyLike, throwsError } from '../are.js';
 
+console.log('\n\n> @0bdx/are/examples/example-3.js\n');
+
 // Create a new test suite, run some tests, and log summary of the results.
 const testSuite = new Are('fact()');
 runTest(testSuite);

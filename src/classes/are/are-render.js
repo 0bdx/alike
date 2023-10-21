@@ -6,12 +6,16 @@ import Are from './are.js';
 // Define styling-strings for all possible `formatting`.
 const STYLING_STRINGS = {
     ANSI: {
-        failIn: '\x1B[38;5;198;48;5;52m', // bright red on dull red
-        failOut: '\x1B[0m',
+        failIn: '\x1B[38;5;224;48;5;52m ', // bright red on dark red
+        failOut: ' \x1B[0m',
+        passIn: '\x1B[38;5;118;48;5;22m ', // bright green on dark green
+        passOut: ' \x1B[0m',
     },
     PLAIN: {
         failIn: '',
         failOut: '',
+        passIn: '',
+        passOut: '',
     },
 };
 
@@ -64,7 +68,7 @@ const areRender = (
     const numTests = fail + pass;
 
     // Set up the appropriate styling-strings for the current `formatting`.
-    const { failIn, failOut } = STYLING_STRINGS[formatting];
+    const { failIn, failOut, passIn, passOut } = STYLING_STRINGS[formatting];
 
     // Create the test suite's heading.
     const heading = [
@@ -90,11 +94,13 @@ const areRender = (
                         `${fail} of ${numTests} tests failed.`
                     )
                 }${failOut}`
-                : pass === 1
-                ? 'The test passed.'
-                : pass === 2
-                    ? 'Both tests passed.'
-                    : `All ${pass} tests passed.`
+                : `${passIn}${
+                pass === 1
+                    ? 'The test passed.'
+                    : pass === 2
+                        ? 'Both tests passed.'
+                        : `All ${pass} tests passed.`
+                }${passOut}`
     ;
 
     // Create a more detailed report of the test results.
